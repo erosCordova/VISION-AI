@@ -13,7 +13,7 @@ describe('Pintado de máscaras binarias', () => {
     forEachMaskSegment({ encoding: 'binary-rle-row-v1', width: 3, height: 2, counts: [6] }, (...args) => segments.push(args));
     expect(segments).toEqual([]);
   });
-  it.each([[0, 0], [4, 0], [0, 4], [2, -1], [0, 1, 0, 3]])('rechaza un RLE mal formado: %j', (...counts) => {
+  it.each([[0, 0], [4, 0], [0, 4, 1], [2, -1], [0, 1, 0, 3]])('rechaza un RLE mal formado: %j', (...counts) => {
     expect(isValidMask({ ...mask, counts })).toBe(false);
   });
   it('no permite una expansión con dimensiones erróneas', () => {
