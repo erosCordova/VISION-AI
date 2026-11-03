@@ -1,0 +1,45 @@
+requisito,nombre,fase,caso,tipo,estado,evidencia
+RF-01,Sesión y perfiles de interfaz,6,RF-01-OK,principal,pendiente,por_registrar
+RF-01,Sesión y perfiles de interfaz,6,RF-01-ERR,alternativa_o_error,pendiente,por_registrar
+RF-02,Escenarios y clases,7,RF-02-OK,principal,pendiente,por_registrar
+RF-02,Escenarios y clases,7,RF-02-ERR,alternativa_o_error,pendiente,por_registrar
+RF-03,Entrada de imágenes,9,RF-03-OK,principal,pendiente,por_registrar
+RF-03,Entrada de imágenes,9,RF-03-ERR,alternativa_o_error,pendiente,por_registrar
+RF-04,Ejecución y estados,9,RF-04-OK,principal,pendiente,por_registrar
+RF-04,Ejecución y estados,9,RF-04-ERR,alternativa_o_error,pendiente,por_registrar
+RF-05,Detección y filtros,9,RF-05-OK,principal,pendiente,por_registrar
+RF-05,Detección y filtros,9,RF-05-ERR,alternativa_o_error,pendiente,por_registrar
+RF-06,Segmentación visual,10,RF-06-OK,principal,pendiente,por_registrar
+RF-06,Segmentación visual,10,RF-06-ERR,alternativa_o_error,pendiente,por_registrar
+RF-07,Patrones y reglas,11,RF-07-OK,principal,pendiente,por_registrar
+RF-07,Patrones y reglas,11,RF-07-ERR,alternativa_o_error,pendiente,por_registrar
+RF-08,Alertas y revisión,11,RF-08-OK,principal,pendiente,por_registrar
+RF-08,Alertas y revisión,11,RF-08-ERR,alternativa_o_error,pendiente,por_registrar
+RF-09,Dashboard,8,RF-09-OK,principal,pendiente,por_registrar
+RF-09,Dashboard,8,RF-09-ERR,alternativa_o_error,pendiente,por_registrar
+RF-10,Historial,12,RF-10-OK,principal,pendiente,por_registrar
+RF-10,Historial,12,RF-10-ERR,alternativa_o_error,pendiente,por_registrar
+RF-11,CSV,12,RF-11-OK,principal,pendiente,por_registrar
+RF-11,CSV,12,RF-11-ERR,alternativa_o_error,pendiente,por_registrar
+RF-12,Configuración,7,RF-12-OK,principal,pendiente,por_registrar
+RF-12,Configuración,7,RF-12-ERR,alternativa_o_error,pendiente,por_registrar
+RF-13,Origen DEMO y REAL,6,RF-13-OK,principal,pendiente,por_registrar
+RF-13,Origen DEMO y REAL,6,RF-13-ERR,alternativa_o_error,pendiente,por_registrar
+RF-14,IA real evaluada,15,RF-14-OK,principal,pendiente,por_registrar
+RF-14,IA real evaluada,15,RF-14-ERR,alternativa_o_error,pendiente,por_registrar
+RNF-01,Modularidad,5,RNF-01-OK,principal,pendiente,por_registrar
+RNF-01,Modularidad,5,RNF-01-ERR,alternativa_o_error,pendiente,por_registrar
+RNF-02,Usabilidad y accesibilidad,6,RNF-02-OK,principal,pendiente,por_registrar
+RNF-02,Usabilidad y accesibilidad,6,RNF-02-ERR,alternativa_o_error,pendiente,por_registrar
+RNF-03,Calidad reproducible,14,RNF-03-OK,principal,pendiente,por_registrar
+RNF-03,Calidad reproducible,14,RNF-03-ERR,alternativa_o_error,pendiente,por_registrar
+RNF-04,Persistencia e integridad,7,RNF-04-OK,principal,pendiente,por_registrar
+RNF-04,Persistencia e integridad,7,RNF-04-ERR,alternativa_o_error,pendiente,por_registrar
+RNF-05,Seguridad y privacidad,13,RNF-05-OK,principal,pendiente,por_registrar
+RNF-05,Seguridad y privacidad,13,RNF-05-ERR,alternativa_o_error,pendiente,por_registrar
+RNF-06,Trazabilidad,7,RNF-06-OK,principal,pendiente,por_registrar
+RNF-06,Trazabilidad,7,RNF-06-ERR,alternativa_o_error,pendiente,por_registrar
+RNF-07,Rendimiento y capacidad,14,RNF-07-OK,principal,pendiente,por_registrar
+RNF-07,Rendimiento y capacidad,14,RNF-07-ERR,alternativa_o_error,pendiente,por_registrar
+RNF-08,Operación y recuperación,16,RNF-08-OK,principal,pendiente,por_registrar
+RNF-08,Operación y recuperación,16,RNF-08-ERR,alternativa_o_error,pendiente,por_registrar
