@@ -1,0 +1,6 @@
+# Ejecutar únicamente en local; Python 3.11 o 3.12 recomendado.
+fastapi>=0.115,<1
+uvicorn>=0.34,<1
+ultralytics>=8.4,<9
+opencv-python-headless>=4.10,<5
+numpy>=1.26,<3

@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
+import type { RefObject } from 'react';
 import { CameraController } from './camera-controller';
 const labels = { idle: 'Cámara detenida', requesting: 'Esperando permiso', preview: 'Vista en vivo', paused: 'Cámara pausada', failed: 'Cámara no disponible' };
 export type CameraStatus = keyof typeof labels;
-export function CameraPanel({ scenario, onStatusChange }: { scenario: string; onStatusChange?: (status: CameraStatus) => void }) {
-  const video = useRef<HTMLVideoElement>(null);
+export function CameraPanel({ scenario, onStatusChange, videoRef }: { scenario: string; onStatusChange?: (status: CameraStatus) => void; videoRef?: RefObject<HTMLVideoElement | null> }) {
+  const internalVideo = useRef<HTMLVideoElement>(null);
+  const video = videoRef ?? internalVideo;
   const controller = useRef<CameraController | null>(null);
   const alive = useRef(true);
   const operation = useRef(0);

@@ -7,7 +7,7 @@ const root = document.getElementById('root');
 if (!root) throw new Error('No se encontró el punto de entrada de VISION AI.');
 try {
   const { config } = createFoundation(import.meta.env);
-  createRoot(root).render(<StrictMode><App origin={config.origin} /></StrictMode>);
+  createRoot(root).render(<StrictMode><App origin={config.origin} apiBaseUrl={config.apiBaseUrl} /></StrictMode>);
 } catch {
   const message = document.createElement('p');
   message.textContent = 'No se pudo iniciar la aplicación. Revisa la configuración del entorno.';

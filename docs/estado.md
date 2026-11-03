@@ -42,3 +42,10 @@ Segundo incremento de Fase 6: formulario validado de propuesta temporal, modal c
 Tercer incremento Fase 6: recorrido guiado (escenario → cámara → resultados), estados de cámara visibles y bloque explícito de resultados sin inferencia. Se mantiene 31.25 % hasta QA integral. Ver evidencias_fase_06.md.
 
 Cuarto incremento Fase 6: visor de fotograma con cajas, máscaras RLE, patrones, caducidad y rechazo por identidad; sin conexión de YOLO. Pruebas de sincronización y QA responsive automatizado sujetos a CI. No se declara cierre hasta QA manual y cámara real completa.
+
+
+## Incremento de simulación de video real (en validación)
+
+A petición del usuario se adelanta un piloto local de inferencia para cuatro escenarios: fuente de video en bucle o webcam, captura JPEG limitada a 640 px y envío a FastAPI por HTTP mientras esté activo el análisis, sin cola concurrente en el navegador. El servidor carga YOLO26n en CPU y devuelve cajas reales. La cobertura de casco, chaleco, montacargas y defectos requiere datasets y pesos especializados, y no se afirma inferencia de estas clases con COCO. Persistencia, alerta temporal, segmentación y despliegue seguro continúan pendientes.
+
+La fase 6 sigue sin cierre hasta comprobar cámara, permisos, accesibilidad y simulación en hardware. El repositorio incluye código fuente y pruebas de contrato; que la CI compile no acredita un modelo descargado o ejecutado en el equipo final.

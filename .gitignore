@@ -16,3 +16,7 @@ __pycache__/
 # Datos y modelos privados; incluir fixtures públicos solo de forma explícita
 private-data/
 private-models/
+
+# Checkpoints descargados y capturas de QA
+*.pt
+qa-artifacts/

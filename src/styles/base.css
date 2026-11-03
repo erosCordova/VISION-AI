@@ -69,3 +69,24 @@ dt{color:#586c7a}
 .evidence-privacy{margin:16px 0 0;font-size:10px}
 @media(max-width:760px){.evidence-panel{padding:16px}.evidence-heading{display:block}.evidence-heading .status{display:inline-block;margin-top:10px}.evidence-insights{grid-template-columns:1fr}.evidence-box span{font-size:8px;max-width:100px}.evidence-placeholder{min-height:190px;padding:24px 15px}}
 @media(max-width:380px){.evidence-options{gap:6px}.evidence-options label{padding:7px 9px}.mode-badge{letter-spacing:0;padding:6px}}
+
+
+/* Simulación real con video local/cámara y controles de inferencia. */
+.simulation-source-tabs{display:flex;gap:9px;margin-bottom:18px;flex-wrap:wrap}
+.simulation-source-tabs button{font-size:12px;min-width:140px}
+.simulation-source-tabs button[aria-pressed=true]{background:#e5f7f7;border-color:#58bfc1;color:#096a76}
+.simulation-viewport video[hidden]{display:none}
+.simulation-filename{font-size:11px;overflow-wrap:anywhere}
+.inference-controls{margin-top:20px}
+.inference-controls>.panel-heading{align-items:start}
+.inference-controls h2{margin-top:6px}
+.inference-actions{display:flex;align-items:center;flex-wrap:wrap;gap:15px;margin:18px 0}
+.inference-actions>span{font-size:10px;overflow-wrap:anywhere;color:#536a78}
+.simulation-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0}
+.simulation-metrics>div{border:1px solid #e0e8ec;border-radius:8px;background:#f6fafb;padding:14px;display:grid;gap:12px}
+.simulation-metrics span{font-size:10px;color:#53697b}
+.simulation-metrics strong{font-family:Manrope,sans-serif;font-size:18px}
+.simulation-coverage{padding:12px;font-size:11px;background:#effaf4;border:1px solid #bcdfca;color:#235e45;border-radius:8px}
+.simulation-coverage.warning{background:#fff8ea;border-color:#ead3a5;color:#775623}
+.camera-controls input[type=file]{font-size:10px;max-width:100%;padding:8px}
+@media(max-width:760px){.simulation-metrics{grid-template-columns:1fr}.simulation-metrics>div{display:flex;justify-content:space-between;align-items:center}.simulation-source-tabs button{flex:1;min-width:0}}

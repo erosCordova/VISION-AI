@@ -123,3 +123,19 @@ Se mantienen fuera de alcance inicial: biometría, grabación masiva, vigilancia
 - [MDN getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia).
 - [MDN requestVideoFrameCallback](https://developer.mozilla.org/en-US/docs/Web/API/HTMLVideoElement/requestVideoFrameCallback).
 - [MDN WebSocket bufferedAmount](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/bufferedAmount).
+
+
+## Incremento piloto — simulación en tiempo real sobre video (2026-11-03)
+
+Se implementa un camino vertical de **inferencia verdadera** sin prometer capacidades de un modelo genérico:
+
+- Fuente 1: archivo de video local que se reproduce en bucle a su velocidad natural; solo se envían imágenes cuando el usuario inicia análisis explícitamente.
+- Fuente 2: cámara del navegador con permiso y estado de pausa/stop.
+- Captura de fotogramas JPEG del elemento de video (lado mayor 640 px); una solicitud HTTP en vuelo, siguiente fotograma tras finalizar la anterior. No se crea una cola de imágenes antigua. Este transporte HTTP es el piloto local previo al WebSocket escalable de Fase 9.
+- Backend FastAPI en loopback, YOLO26n base sobre CPU y opción de sustituir pesos por escenario desde rutas locales confiables.
+- Resultado vinculado a sessionId, generation, frameId, timestamp monotónico, hash exacto del JPEG, modelo y configuración. El visor rechaza otras identidades y retira anotaciones caducadas.
+- El backend no guarda archivos; CORS restringido a localhost. No usar como servicio público sin identidad, TLS y límites de abuso.
+- La detección genérica de personas puede aprovecharse en retail; no inferir incumplimiento de EPP, montacargas o defectos con clases ausentes del modelo. Las alertas se mantienen deshabilitadas hasta integrar reglas comprobadas.
+- Ultralytics YOLO26 tiene licencia AGPL-3.0/Enterprise. Alternativa a evaluar: RF-DETR Nano (pesos Apache 2.0) y comparativa real de CPU, memoria, FPS, mAP y uso de licencia antes de decidir motor final.
+
+Para levantar el piloto, ver [backend/README.md](../backend/README.md). No sustituye las fases 9–15 ni los criterios de aceptación en tiempo real.

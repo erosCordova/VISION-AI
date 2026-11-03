@@ -78,6 +78,6 @@ export function ResultFrameViewer({ frame }: { frame: AnalyzedFrame | null }) {
       <div><h3>Patrones ({result.patterns.length})</h3>
         {patterns && result.patterns.length ? <ul>{result.patterns.map(p => <li key={p.id}>{p.label} · {p.assessment === 'triggered' ? 'Revisión requerida' : p.assessment === 'not-triggered' ? 'No activado' : 'Indeterminado'}</li>)}</ul> : <p>{result.patterns.length ? 'Capa de patrones oculta.' : 'Sin patrones evaluados.'}</p>}</div>
     </div>}
-    <p className="evidence-privacy">No se almacenan fotogramas ni se envían imágenes desde este componente. La conexión y la persistencia llegarán en fases posteriores.</p>
+    <p className="evidence-privacy">Este visor no guarda imágenes. Al iniciar la inferencia se envían fotogramas JPEG al backend local configurado; no se guarda el video.</p>
   </section>;
 }
