@@ -39,7 +39,7 @@ function getStatus(url) {
     http.get(url, res => { res.resume(); resolve(res.statusCode); }).on('error', reject);
   });
 }
-async function eventually(callback, description, retries = 90) {
+async function eventually(callback, description, retries = 240) {
   for (let i = 0; i < retries; i++) {
     try { const value = await callback(); if (value) return value; }
     catch { /* carga en curso */ }
@@ -84,7 +84,7 @@ let cdp;
 try {
   await eventually(async () => await getStatus('http://127.0.0.1:4173/') === 200, 'servidor de preview');
   chrome = spawn(findBrowser(), ['--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
-    '--hide-scrollbars', '--remote-debugging-port=0', '--no-first-run', '--no-default-browser-check',
+    '--hide-scrollbars', '--disable-extensions', '--disable-background-networking', '--remote-debugging-port=0', '--no-first-run', '--no-default-browser-check',
     '--user-data-dir=' + profile, 'about:blank'], { stdio: 'ignore' });
   const port = await eventually(() => {
     const f = path.join(profile, 'DevToolsActivePort');
