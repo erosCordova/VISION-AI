@@ -36,3 +36,36 @@ dt{color:#586c7a}
 .results-explainer{font-size:11px;margin:14px 0 0}
 @media(max-width:1200px){.flow-steps{grid-template-columns:1fr}.flow-step{align-items:center}.flow-heading{align-items:start}}
 @media(max-width:760px){.flow-heading{display:block}.flow-heading p{margin-top:10px}.flow-panel{padding:16px}.flow-step{padding:12px}.flow-state{font-size:9px}.result-title{flex-wrap:wrap}.flow-steps{gap:9px}}
+
+/* Fase 06 — fotograma real y capas alineadas; el visor nunca predice. */
+.result-readiness{border:1px solid #d9e7ec;background:#f4f9fb;border-radius:10px;padding:18px;margin-top:22px}
+.result-readiness strong{font-size:12px;color:#1a5c78}
+.result-readiness p{font-size:11px;margin:7px 0 0}
+.evidence-panel{margin-top:20px}
+.evidence-heading{align-items:flex-start}
+.evidence-heading h2{margin:8px 0 3px}
+.evidence-heading p{margin:0}
+.evidence-options{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 16px}
+.evidence-options label{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #dae6ea;border-radius:8px;font-size:11px;color:#24485b;font-weight:700}
+.evidence-options label:has(input:disabled){opacity:.65;background:#f3f6f8}
+.evidence-options input{width:16px;height:16px;min-width:16px;padding:0;margin:0;accent-color:#0a819b}
+.evidence-placeholder{border:1px dashed #9cb6c4;background:linear-gradient(145deg,#eef5f8,#f9fbfc);border-radius:11px;min-height:210px;padding:35px 20px;text-align:center;display:grid;place-content:center;justify-items:center}
+.evidence-placeholder-icon{font-size:37px;color:#4a8197}
+.evidence-placeholder h3{font-size:16px;margin:8px 0}
+.evidence-placeholder p{max-width:500px;font-size:12px;margin:0}
+.evidence-figure{margin:0}
+.evidence-surface{position:relative;background:#12293b;max-width:100%;width:min(100%,920px);overflow:hidden;border-radius:10px}
+.evidence-surface img,.evidence-mask{position:absolute;inset:0;width:100%;height:100%;display:block}
+.evidence-surface img{object-fit:fill}
+.evidence-mask{pointer-events:none}
+.evidence-box{position:absolute;border:2px solid #21ebca;box-shadow:0 0 0 1px #082c34;pointer-events:none;min-width:1px;min-height:1px}
+.evidence-box span{position:absolute;top:0;left:0;max-width:190px;background:#084c54e8;color:#fff;padding:3px 6px;border-radius:0 0 4px 0;font-size:10px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.evidence-figure figcaption{color:#536a79;margin-top:12px;font-size:11px}
+.evidence-insights{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:18px}
+.evidence-insights>div{background:#f6f9fa;border:1px solid #e1e9ee;border-radius:9px;padding:15px}
+.evidence-insights h3{font-size:12px;margin:0}
+.evidence-insights ul{padding-left:18px;color:#435d69;font-size:11px;line-height:1.7}
+.evidence-insights p{font-size:11px;margin-bottom:0}
+.evidence-privacy{margin:16px 0 0;font-size:10px}
+@media(max-width:760px){.evidence-panel{padding:16px}.evidence-heading{display:block}.evidence-heading .status{display:inline-block;margin-top:10px}.evidence-insights{grid-template-columns:1fr}.evidence-box span{font-size:8px;max-width:100px}.evidence-placeholder{min-height:190px;padding:24px 15px}}
+@media(max-width:380px){.evidence-options{gap:6px}.evidence-options label{padding:7px 9px}.mode-badge{letter-spacing:0;padding:6px}}

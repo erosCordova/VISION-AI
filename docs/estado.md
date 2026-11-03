@@ -40,3 +40,5 @@ Ver [diseño e inventario](diseno_ui.md) y [evidencias](evidencias_fase_06.md). 
 Segundo incremento de Fase 6: formulario validado de propuesta temporal, modal con foco, filtros y tabla de historial, notificaciones y recuperación de errores por ruta. Cámara confirmada por el usuario; QA integral pendiente.
 
 Tercer incremento Fase 6: recorrido guiado (escenario → cámara → resultados), estados de cámara visibles y bloque explícito de resultados sin inferencia. Se mantiene 31.25 % hasta QA integral. Ver evidencias_fase_06.md.
+
+Cuarto incremento Fase 6: visor de fotograma con cajas, máscaras RLE, patrones, caducidad y rechazo por identidad; sin conexión de YOLO. Pruebas de sincronización y QA responsive automatizado sujetos a CI. No se declara cierre hasta QA manual y cámara real completa.

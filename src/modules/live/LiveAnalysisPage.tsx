@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { CameraPanel } from '../camera/CameraPanel';
 import type { CameraStatus } from '../camera/CameraPanel';
 import { cameraStep } from './live-workflow';
+import { ResultFrameViewer } from './ResultFrameViewer';
+import type { AnalyzedFrame } from './frame-guard';
 
 interface Scenario {
   readonly id: string;
@@ -14,17 +16,11 @@ interface Props {
   readonly scenarioId: string;
   readonly onScenarioChange: (id: string) => void;
   readonly role: string;
+  /** Sin adaptador YOLO, la aplicación pasa null; jamás se fabrica una detección. */
+  readonly analyzedFrame?: AnalyzedFrame | null;
 }
-type ResultTab = 'Detecciones' | 'Máscaras' | 'Patrones';
-const resultLabels: Record<ResultTab, string> = {
-  Detecciones: 'No hay detecciones realizadas',
-  Máscaras: 'No hay máscaras calculadas',
-  Patrones: 'No se han evaluado patrones'
-};
-
-export function LiveAnalysisPage({ scenarios, scenarioId, onScenarioChange, role }: Props) {
+export function LiveAnalysisPage({ scenarios, scenarioId, onScenarioChange, role, analyzedFrame = null }: Props) {
   const [cameraStatus, setCameraStatus] = useState<CameraStatus>('idle');
-  const [resultTab, setResultTab] = useState<ResultTab>('Detecciones');
   const selected = scenarios.find(item => item.id === scenarioId) ?? scenarios[0];
   if (!selected) return null;
   const camera = role === 'auditor'
@@ -39,7 +35,7 @@ export function LiveAnalysisPage({ scenarios, scenarioId, onScenarioChange, role
         <li className="flow-step unavailable"><span className="flow-number" aria-hidden="true">3</span><div><h3>Revisar resultados</h3><p>La detección, las máscaras y las alertas requieren conectar y validar YOLO.</p></div><span className="flow-state">Pendiente</span></li>
       </ol>
     </section>
-    <div className="scenario-picker"><label htmlFor="scenario">Escenario seleccionado</label><select id="scenario" value={scenarioId} onChange={e => { setCameraStatus('idle'); setResultTab('Detecciones'); onScenarioChange(e.target.value); }}>{scenarios.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}</select><span>Una cámara por sesión · sin grabación</span></div>
+    <div className="scenario-picker"><label htmlFor="scenario">Escenario seleccionado</label><select id="scenario" value={scenarioId} onChange={e => { setCameraStatus('idle'); onScenarioChange(e.target.value); }}>{scenarios.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}</select><span>Una cámara por sesión · sin grabación</span></div>
     <div className="analysis-grid">
       {role !== 'auditor'
         ? <CameraPanel key={scenarioId + role} scenario={selected.name} onStatusChange={setCameraStatus} />
@@ -47,11 +43,11 @@ export function LiveAnalysisPage({ scenarios, scenarioId, onScenarioChange, role
       <aside className="panel results-panel" aria-label="Resultados del escenario">
         <div className="result-title"><div><span className="eyebrow">PASO 3 · RESULTADOS</span><h2>Resultados del análisis</h2></div><span className="result-pending">YOLO no conectado</span></div>
         <p className="results-explainer">Este panel mostrará las predicciones del fotograma realmente procesado, no de la vista previa.</p>
-        <div className="result-tabs" role="group" aria-label="Tipo de resultado">{(['Detecciones','Máscaras','Patrones'] as const).map(tab => <button key={tab} aria-pressed={resultTab === tab} onClick={() => setResultTab(tab)}>{tab}</button>)}</div>
-        <div className="empty-result" role="status"><span aria-hidden="true">◎</span><h3>{resultLabels[resultTab]}</h3><p>La cámara no genera detecciones sin el motor de visión.</p></div>
+        <div className="result-readiness"><strong>Esperando conexión con YOLO</strong><p>La vista previa no produce detecciones. Cuando exista inferencia validada, aquí se consultarán las clases, las reglas y el rendimiento.</p></div>
         <dl><dt>Clases previstas</dt><dd>{selected.classes}</dd><dt>Regla prevista</dt><dd>{selected.rule}</dd><dt>Rendimiento</dt><dd>Sin FPS ni latencias de inferencia medidos</dd></dl>
         <div className="subtle-note">Al integrar YOLO se mostrarán únicamente resultados asociados al fotograma analizado, con su fecha y antigüedad.</div>
       </aside>
     </div>
+    <ResultFrameViewer frame={analyzedFrame} />
   </>;
 }

@@ -43,3 +43,11 @@ Estado: Fase 6 en curso. Continúan pendientes visor de resultados por capa, est
 Se reordena la pantalla de análisis para que el recorrido sea **1. Elegir escenario → 2. Iniciar cámara → 3. Revisar resultados**. La selección desmonta la cámara anterior mediante la clave de escenario; cada paso expresa su estado, incluida solicitud, pausa, fallo y vista previa. El perfil auditor mantiene la cámara inaccesible. Los resultados permanecen visibles como panel de consulta, pero claramente no disponibles hasta validar YOLO: no se dibujan cajas, máscaras ni cifras inventadas.
 
 Pruebas unitarias añadidas para los cinco estados de la cámara y para no confundir vista previa con inferencia. La validación CI (tipos, arquitectura, pruebas y compilación) debe comprobarse en el commit de este incremento. **No** se acredita todavía QA responsive de hardware real ni cierre de Fase 6.
+
+## Cuarto incremento — visor de fotogramas vinculados
+
+Se añade el componente de visor para fotogramas efectivamente analizados, con imagen de igual orientación y dimensiones, cajas normalizadas, máscaras RLE por filas y lista de patrones. Los controles permiten mostrar y ocultar cada capa. La confianza se presenta como puntuación del detector, no como porcentaje de aciertos.
+
+El visor requiere coincidencia estricta de sesión, generación, ID de fotograma, instante monotónico, versión de configuración, assetId y hash de contenido. Solo admite resultados origin=real con modelVersion, valida cajas y máscaras y oculta anotaciones si el resultado tiene más de 1000 ms, no carga la imagen o la geometría no coincide. La cámara local sigue separada y no envía fotogramas al visor hasta disponer de adaptador YOLO, por lo que en producción se muestra el estado vacío.
+
+Se añaden pruebas de lógica de sincronización y máscaras y una auditoría automatizada de anchuras de pantalla en 360, 768 y 1440 px. Los resultados de CI, compatibilidad real y revisión manual se documentan al verificarse; **no** equivale aún a despliegue ni a inferencia en vivo.
