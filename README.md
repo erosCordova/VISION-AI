@@ -4,7 +4,7 @@ Plataforma empresarial de visión computacional para detección de objetos, segm
 
 ## Estado
 
-**Fases 1 a 5 aprobadas en su alcance. Avance administrativo: 31.25 %.** Base React y TypeScript compilable, contratos validados y 112 pruebas automatizadas aprobadas localmente. La siguiente fase construirá la interfaz empresarial. No hay API de inferencia ni despliegue.
+**Fases 1 a 5 aprobadas en su alcance. Avance administrativo: 31.25 %.** Base React y TypeScript compilable, contratos validados y 116 pruebas automatizadas aprobadas localmente. Fase 6 en curso: interfaz empresarial navegable y controles de cámara; QA integral pendiente. No hay API de inferencia ni despliegue.
 
 ## Preparar y comprobar
 
@@ -17,7 +17,7 @@ npm run build
 python3 -m unittest discover -s tests
 ```
 
-Ver [entorno y comandos](docs/entorno.md). npm run dev inicia la pantalla técnica local; no abre nuevas terminales ni publica. El modo predeterminado es DEMO y el motor todavía no está conectado.
+Ver [entorno y comandos](docs/entorno.md). npm run dev inicia la interfaz local; no abre nuevas terminales ni publica. El modo predeterminado es DEMO y el motor todavía no está conectado.
 
 ## Arquitectura
 
@@ -44,4 +44,4 @@ Eros Igor Córdova Pintado — Ingeniería de Software con IA, SENATI.
 
 ## Alcance vigente: YOLO y tiempo real
 
-Los cuatro escenarios usarán YOLO con cámara en vivo. Webcam inicial y conector IP/RTSP posterior en backend. La Fase 6 incluirá controles de cámara; YOLO, transporte y seguimiento siguen pendientes. El avance de 31.25 % corresponde a la base previa y no acredita esta ampliación. Ver [especificación temporal](docs/tiempo_real_yolo.md). Manual vigente: 5.0.
+Los cuatro escenarios usarán YOLO con cámara en vivo. Webcam inicial y conector IP/RTSP posterior en backend. La Fase 6 ya incorpora controles de cámara, pendientes de validación con hardware; YOLO, transporte y seguimiento siguen pendientes. El avance de 31.25 % corresponde a la base previa y no acredita esta ampliación. Ver [especificación temporal](docs/tiempo_real_yolo.md). Manual vigente: 5.0.

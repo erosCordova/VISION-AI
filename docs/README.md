@@ -51,3 +51,8 @@ Los casos describen validaciones por ejecutar. No son resultados de una aplicaci
 ## Ampliación D12: YOLO y tiempo real
 
 Los cuatro escenarios pasan a operar con cámara en vivo. La especificación vigente, los estados de sesión, límites de carga, reglas temporales y los diez casos RT pendientes se detallan en [YOLO y tiempo real](tiempo_real_yolo.md). Los diagramas y las pruebas previas conservan su función de referencia; no acreditan inferencia ni seguimiento real. La Fase 6 incorpora selección de cámara, Iniciar, Pausar y Detener, permisos, preview y estados de conexión. La integración YOLO real continúa pendiente de implementación y evaluación.
+
+## Fase 6 en curso
+
+- [Diseño UI e inventario de rutas](diseno_ui.md).
+- [Evidencia y pendientes](evidencias_fase_06.md).

@@ -14,11 +14,11 @@ Fecha: 2026-11-03. Referencia: manual 5.0 y decisiones D08 a D12.
 
 ## Verificación local
 
-50 pruebas TypeScript y 62 Python aprobadas: **112 en total**. Tipos estrictos, guard de arquitectura y compilación correctos; instalación reproducida con npm ci. El workflow remoto de CI está preparado y se debe consultar en GitHub Actions para su resultado específico.
+54 pruebas TypeScript y 62 Python aprobadas: **116 en total**. Tipos estrictos, guard de arquitectura y compilación correctos; instalación reproducida con npm ci. El workflow remoto de CI está preparado y se debe consultar en GitHub Actions para su resultado específico.
 
 ## Pendientes
 
-- Existe una pantalla técnica React; todavía no el dashboard, navegación empresarial ni controles de la Fase 6.
+- Fase 6 en curso: interfaz navegable, cuatro escenarios, perfiles de prueba y controles de cámara. Falta QA integral y captura física en contexto seguro.
 - El repositorio actual es VOLÁTIL: no hay persistencia tras recargar ni cuota de navegador comprobada.
 - No hay motor demo integrado, motor de reglas visuales productivo, API real ni despliegue.
 - Los PNG son diagramas DEMO; no se han seleccionado datasets fotográficos ni modelos reales.
@@ -31,4 +31,8 @@ Fase 6: interfaz empresarial, rutas, componentes, sistema visual y estados. Pers
 
 ## Estado de la ampliación en vivo
 
-YOLO y tiempo real son ahora requisitos de los cuatro escenarios. Se añadieron contratos TypeScript de sesión y puerto de inferencia, documentación y diez casos de aceptación pendientes. No hay adaptador YOLO, cámara ni transporte implementados. El 31.25 % corresponde únicamente a la base anterior; la ampliación temporal de esas fases debe revalidarse. Las 112 pruebas no cubren cámara ni YOLO. Próximo trabajo: interfaz y controles de cámara de Fase 6. Ver [YOLO y tiempo real](tiempo_real_yolo.md).
+YOLO y tiempo real son ahora requisitos de los cuatro escenarios. Se añadieron contratos TypeScript de sesión y puerto de inferencia, documentación y diez casos de aceptación pendientes. No hay adaptador YOLO, cámara ni transporte implementados. El 31.25 % corresponde únicamente a la base anterior; la ampliación temporal de esas fases debe revalidarse. Las pruebas nuevas cubren el controlador con dobles, no cámara física ni YOLO. Próximo trabajo: interfaz y controles de cámara de Fase 6. Ver [YOLO y tiempo real](tiempo_real_yolo.md).
+
+## Incremento de Fase 6
+
+Ver [diseño e inventario](diseno_ui.md) y [evidencias](evidencias_fase_06.md). El porcentaje se mantiene en 31.25 % hasta aprobar los criterios completos de la fase.
