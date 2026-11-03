@@ -36,3 +36,10 @@ Confirmación del usuario: «ya funciona». La cámara funciona en su equipo; fa
 ![Configuración de interfaz](evidencias/fase06-configuracion.jpg)
 
 Estado: Fase 6 en curso. Continúan pendientes visor de resultados por capa, estados de ejecución con fixtures y QA responsive/accesible integral. No hay YOLO ni persistencia.
+
+
+## Tercer incremento — recorrido guiado de la Fase 6
+
+Se reordena la pantalla de análisis para que el recorrido sea **1. Elegir escenario → 2. Iniciar cámara → 3. Revisar resultados**. La selección desmonta la cámara anterior mediante la clave de escenario; cada paso expresa su estado, incluida solicitud, pausa, fallo y vista previa. El perfil auditor mantiene la cámara inaccesible. Los resultados permanecen visibles como panel de consulta, pero claramente no disponibles hasta validar YOLO: no se dibujan cajas, máscaras ni cifras inventadas.
+
+Pruebas unitarias añadidas para los cinco estados de la cámara y para no confundir vista previa con inferencia. La validación CI (tipos, arquitectura, pruebas y compilación) debe comprobarse en el commit de este incremento. **No** se acredita todavía QA responsive de hardware real ni cierre de Fase 6.

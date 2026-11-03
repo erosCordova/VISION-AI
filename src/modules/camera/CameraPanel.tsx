@@ -1,16 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { CameraController } from './camera-controller';
 const labels = { idle: 'Cámara detenida', requesting: 'Esperando permiso', preview: 'Vista en vivo', paused: 'Cámara pausada', failed: 'Cámara no disponible' };
-type Status = keyof typeof labels;
-export function CameraPanel({ scenario }: { scenario: string }) {
+export type CameraStatus = keyof typeof labels;
+export function CameraPanel({ scenario, onStatusChange }: { scenario: string; onStatusChange?: (status: CameraStatus) => void }) {
   const video = useRef<HTMLVideoElement>(null);
   const controller = useRef<CameraController | null>(null);
   const alive = useRef(true);
   const operation = useRef(0);
-  const [status, setStatus] = useState<Status>('idle');
+  const [status, setStatus] = useState<CameraStatus>('idle');
   const [error, setError] = useState('');
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
   const [device, setDevice] = useState('');
+  useEffect(() => { onStatusChange?.(status); }, [status, onStatusChange]);
   useEffect(() => {
     alive.current = true;
     if (navigator.mediaDevices?.getUserMedia) controller.current = new CameraController(c => navigator.mediaDevices.getUserMedia(c));

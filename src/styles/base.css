@@ -10,3 +10,29 @@ input{font:inherit;min-width:0;width:100%;border:1px solid #cbd6dc;padding:11px;
 p{color:#586c7a}.workspace-footer,.section-heading>span,.scenario-picker>span,.card-index,.card-footer,.camera-note,.settings-fields small{color:#586c7a}.settings-fields .field-error{color:#a42b32}.camera-empty p{color:#b4c9d3}.subtle-note{color:#526b78}.status{color:#425867}.viewport-label{color:#d5e7ed}.stat strong{color:#213044}
 
 dt{color:#586c7a}
+
+
+/* Fase 06 — secuencia guiada de escenario, cámara y resultados. */
+.flow-panel{margin-bottom:22px;padding:22px 24px}
+.flow-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:18px}
+.flow-heading h2{font-size:17px;margin:7px 0 0}
+.flow-heading p{margin:0;max-width:370px;font-size:11px}
+.flow-steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.flow-step{display:flex;gap:11px;align-items:start;border:1px solid #dce6e8;background:#f7fafb;border-radius:10px;padding:15px;min-width:0}
+.flow-number{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:8px;background:#e4eaf0;color:#466077;font-weight:800;font-size:12px}
+.flow-step h3{font-size:12px;margin:0 0 5px;letter-spacing:0}
+.flow-step p{font-size:10px;line-height:1.5;margin:0}
+.flow-step.complete{border-color:#acdacc;background:#f1faf6}
+.flow-step.complete .flow-number{background:#197c60;color:white}
+.flow-step.in-progress{border-color:#a7d5eb;background:#f1f9fd}
+.flow-step.in-progress .flow-number{background:#146b92;color:white}
+.flow-step.attention{border-color:#edc1b4;background:#fff7f4}
+.flow-step.attention .flow-number{background:#a24329;color:white}
+.flow-step.unavailable{background:#f5f6f8;border-style:dashed}
+.flow-state{margin-left:auto;font-size:9px;color:#526a78;white-space:nowrap}
+.result-title{display:flex;justify-content:space-between;align-items:start;gap:12px}
+.result-title h2{margin:7px 0 0}
+.result-pending{border:1px solid #e8d6ba;background:#fff8ed;color:#805b24;padding:7px 9px;font-size:10px;font-weight:700;border-radius:7px;white-space:nowrap}
+.results-explainer{font-size:11px;margin:14px 0 0}
+@media(max-width:1200px){.flow-steps{grid-template-columns:1fr}.flow-step{align-items:center}.flow-heading{align-items:start}}
+@media(max-width:760px){.flow-heading{display:block}.flow-heading p{margin-top:10px}.flow-panel{padding:16px}.flow-step{padding:12px}.flow-state{font-size:9px}.result-title{flex-wrap:wrap}.flow-steps{gap:9px}}

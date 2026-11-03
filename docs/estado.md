@@ -38,3 +38,5 @@ YOLO y tiempo real son ahora requisitos de los cuatro escenarios. Se añadieron 
 Ver [diseño e inventario](diseno_ui.md) y [evidencias](evidencias_fase_06.md). El porcentaje se mantiene en 31.25 % hasta aprobar los criterios completos de la fase.
 
 Segundo incremento de Fase 6: formulario validado de propuesta temporal, modal con foco, filtros y tabla de historial, notificaciones y recuperación de errores por ruta. Cámara confirmada por el usuario; QA integral pendiente.
+
+Tercer incremento Fase 6: recorrido guiado (escenario → cámara → resultados), estados de cámara visibles y bloque explícito de resultados sin inferencia. Se mantiene 31.25 % hasta QA integral. Ver evidencias_fase_06.md.
