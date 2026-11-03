@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "business-errors-v1",
+  "errors": [
+    {
+      "code": "INVALID_IDENTIFIER",
+      "message": "Hay un identificador inválido.",
+      "recovery": "Corregir la entrada; no iniciar cambios.",
+      "recoverable": false,
+      "status": "reference-implemented"
+    },
+    {
+      "code": "INVALID_VERSION",
+      "message": "La versión indicada no es válida.",
+      "recovery": "Recargar la versión actual.",
+      "recoverable": false,
+      "status": "reference-implemented"
+    },
+    {
+      "code": "INVALID_TIMESTAMP",
+      "message": "La fecha del evento no es válida.",
+      "recovery": "Registrar fecha con zona horaria; no reordenar eventos silenciosamente.",
+      "recoverable": false,
+      "status": "reference-implemented"
+    },
+    {
+      "code": "INVALID_STATE",
+      "message": "El estado solicitado no es válido.",
+      "recovery": "Consultar estado actual; conservar datos.",
+      "recoverable": false,
+      "status": "reference-implemented"
+    },
+    {
+      "code": "INVALID_TRANSITION",
+      "message": "Esta acción no está permitida desde el estado actual.",
+      "recovery": "Mostrar las acciones disponibles; no modificar el registro.",
+      "recoverable": false,
+      "status": "reference-implemented"
+    },
+    {
+      "code": "VERSION_CONFLICT",
+      "message": "El registro cambió mientras lo revisabas.",
+      "recovery": "Recargar y reconciliar la nota antes de volver a enviar.",
+      "recoverable": true,
+      "status": "reference-implemented"
+    },
+    {
+      "code": "STALE_EXECUTION",
+      "message": "La respuesta pertenece a una ejecución anterior o fuera de orden.",
+      "recovery": "Consultar la ejecución correspondiente; no sobrescribir la actual.",
+      "recoverable": true,
+      "status": "reference-implemented"
+    },
+    {
+      "code": "RESULT_NOT_COMMITTED",
+      "message": "El análisis aún no tiene un resultado validado y guardado.",
+      "recovery": "Conservar entrada y comprobar validación y persistencia.",
+      "recoverable": true,
+      "status": "reference-implemented"
+    },
+    {
+      "code": "ACCESS_DENIED",
+      "message": "No tienes permiso para realizar esta acción.",
+      "recovery": "Conservar contexto sin revelar datos de otros recursos.",
+      "recoverable": false,
+      "status": "reference-implemented"
+    },
+    {
+      "code": "INVALID_REVIEW_NOTE",
+      "message": "Escribe una observación de entre 1 y 2000 caracteres.",
+      "recovery": "Conservar borrador y corregir la nota.",
+      "recoverable": true,
+      "status": "reference-implemented"
+    },
+    {
+      "code": "INPUT_UNSUPPORTED",
+      "message": "Selecciona una imagen JPG o PNG válida.",
+      "recovery": "Conservar formulario y permitir reemplazar archivo.",
+      "recoverable": true,
+      "status": "specified-for-future-phase"
+    },
+    {
+      "code": "INPUT_LIMIT_EXCEEDED",
+      "message": "La imagen supera los límites configurados.",
+      "recovery": "Mostrar límite y solicitar reducción; no analizar.",
+      "recoverable": true,
+      "status": "specified-for-future-phase"
+    },
+    {
+      "code": "INPUT_DECODE_FAILED",
+      "message": "No se pudo leer la imagen.",
+      "recovery": "Elegir un archivo válido; no crear trabajo completado.",
+      "recoverable": true,
+      "status": "specified-for-future-phase"
+    },
+    {
+      "code": "DEMO_ASSET_MISMATCH",
+      "message": "Esta imagen no tiene resultados preparados en el escenario seleccionado.",
+      "recovery": "Elegir un recurso compatible o usar un motor real validado.",
+      "recoverable": true,
+      "status": "specified-for-future-phase"
+    },
+    {
+      "code": "ENGINE_FAILED",
+      "message": "No se pudo completar el análisis.",
+      "recovery": "Guardar fallo y permitir nueva ejecución explícita.",
+      "recoverable": true,
+      "status": "specified-for-future-phase"
+    },
+    {
+      "code": "ENGINE_TIMEOUT",
+      "message": "No se recibió avance dentro del tiempo previsto.",
+      "recovery": "Consultar estado remoto antes de reintentar; no asumir cancelación.",
+      "recoverable": true,
+      "status": "specified-for-future-phase"
+    },
+    {
+      "code": "STORAGE_WRITE_FAILED",
+      "message": "No se pudo guardar el resultado.",
+      "recovery": "No anunciar completado; informar que la persistencia falló.",
+      "recoverable": true,
+      "status": "specified-for-future-phase"
+    },
+    {
+      "code": "ASSET_UNAVAILABLE",
+      "message": "El recurso visual ya no está disponible.",
+      "recovery": "Mostrar metadatos disponibles y motivo conocido; no sustituir imagen.",
+      "recoverable": true,
+      "status": "specified-for-future-phase"
+    },
+    {
+      "code": "EXPORT_FAILED",
+      "message": "No se pudo generar el reporte completo.",
+      "recovery": "Conservar filtros y ofrecer reintento; no descargar archivo parcial.",
+      "recoverable": true,
+      "status": "specified-for-future-phase"
+    },
+    {
+      "code": "RETENTION_NOT_ELIGIBLE",
+      "message": "Este registro aún no cumple las condiciones de eliminación.",
+      "recovery": "Mostrar motivo y conservar datos sin cambios.",
+      "recoverable": false,
+      "status": "specified-for-future-phase"
+    }
+  ]
+}

@@ -4,7 +4,7 @@ Plataforma empresarial de visión computacional para detección de objetos, segm
 
 ## Estado
 
-Inicio del proyecto conforme al Manual avanzado de VISION AI, versión 4.0. Fases 1 a 3 aprobadas en su alcance documental, matemático y de referencias demo: alcance, contratos geométricos y cuatro escenarios con 12 casos calibrados. La aplicación todavía no está implementada.
+Inicio del proyecto conforme al Manual avanzado de VISION AI, versión 4.0. Fases 1 a 4 aprobadas en su alcance documental y de referencias: fundamentos visuales, cuatro escenarios con 12 casos y contratos de negocio con 62 pruebas aprobadas. La aplicación todavía no está implementada.
 
 ## Escenarios
 
@@ -37,3 +37,7 @@ La referencia usa solo la biblioteca estándar de Python. Verifica cajas, transf
 ## Escenarios definidos
 
 Consulta las [fichas y reglas](docs/escenarios.md) o la [galería de referencias](docs/galeria_escenarios.md). Los diagramas son recursos preparados, no inferencia real.
+
+## Reglas de operación
+
+Consultar [casos de uso](docs/casos_uso.md), [estados y concurrencia](docs/estados.md) y [permisos](docs/permisos.md). Son contratos ejecutables de referencia; la aplicación y la API se implementan en fases posteriores.

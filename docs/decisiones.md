@@ -62,3 +62,11 @@ Validación documental AL03: el cambio actualiza alcance, backlog, estado y regi
 Fecha: 2026-11-03. Se usan 12 diagramas PNG del proyecto como recursos calibrados de la Fase 3, sin incorporar fotografías de terceros. Cada caso conserva etiquetas, geometría, evidencia y huella del archivo exacto.
 
 Permiten aprobar las fichas y preparar la ejecución demo, pero no constituyen datos de entrenamiento o test de un detector real. La elección de fotografías, anotaciones y modelos se exige por separado al validar IA real en Fase 15. Los recursos preparados permanecen identificados como DEMO.
+
+## D10 — Transiciones, versiones y ámbito de autorización
+
+Fecha: 2026-11-03. Análisis: queued a processing a completed, con salida failed antes de finalizar; los estados terminales no se reutilizan. Completado requiere validación y escritura confirmadas. Alertas: new a reviewed a closed; no se incorpora reapertura.
+
+Cada cambio utiliza identidad, correlación cuando corresponda, versión e instante con zona. Revisión requiere supervisor o administrador, nota y versión actual. Acceso desconocido se deniega; el ámbito lógico sigue siendo una organización. Las referencias puras se verificarán nuevamente con persistencia atómica y autenticación reales.
+
+Impacto: Fases 5, 7, 9, 11, 13 y 15 deben implementar y conservar este contrato. Las funciones actuales no son una API ni acreditan seguridad productiva.

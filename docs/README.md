@@ -31,3 +31,11 @@ Los casos describen validaciones por ejecutar. No son resultados de una aplicaci
 - [Galería de las 12 referencias](galeria_escenarios.md).
 - [Catálogo y anotaciones](fixtures/scenarios/catalog.json).
 - [Evidencias y cierre](evidencias_fase_03.md).
+
+## Fase 4
+
+- [Casos de uso y alternativas](casos_uso.md).
+- [Estados y concurrencia](estados.md).
+- [Catálogo de errores](errores.json).
+- [Referencia de estados y permisos](../tools/workflow_reference.py).
+- [Evidencias y cierre](evidencias_fase_04.md).
