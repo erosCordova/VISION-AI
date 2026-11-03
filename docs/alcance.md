@@ -1,6 +1,6 @@
 # Fase 1 — Alcance de VISION AI
 
-Fecha: 2026-11-03. Responsable: Eros Igor Córdova Pintado. Versión: 1.0.
+Fecha: 2026-11-03. Responsable: Eros Igor Córdova Pintado. Versión: 2.0 — D12.
 
 ## Problema y finalidad
 
@@ -26,7 +26,7 @@ Seleccionar imagen o escenario → validar → preparar entrada → ejecutar mot
 | Seguridad industrial — piloto | Persona, casco y chaleco | Posible EPP incompleto por persona; no concluir por ausencia de una detección global. |
 | Almacén inteligente | Cajas, pallets y montacargas | Presencia en una zona con criterio geométrico explícito. |
 | Control de calidad | Un producto y defecto específicos al comenzar | Región defectuosa y condición documentada de revisión. |
-| Retail | Personas, estantes y productos | Conteo u ocupación de un instante; no implica seguimiento. |
+| Retail | Personas, estantes y productos | Conteo y ocupación en vivo; seguimiento anónimo limitado a la sesión, sujeto a evaluación. |
 
 Cada escenario necesita, en Fase 3, un caso positivo, uno negativo y uno ambiguo. Las imágenes deben tener procedencia y autorización de uso documentadas. En Fase 3 se incorporaron 12 diagramas propios con anotaciones verificadas y resultados preparados; aún no hay fotografías ni anotaciones para evaluar inferencia real.
 
@@ -44,7 +44,7 @@ Aceptación: Fase 15 aprobada para todos los escenarios y Fase 16 aprobada con e
 
 ## Exclusiones
 
-- Video continuo, cámaras en vivo, seguimiento temporal y grabación masiva.
+- Grabación masiva de video y operación continua 24/7 sin validación específica.
 - Reconocimiento facial o identificación biométrica.
 - Decisiones médicas, disciplinarias o de seguridad sin revisión humana.
 - Reconocer cualquier objeto o defecto sin datos y modelo adecuados.
@@ -59,3 +59,9 @@ Desarrollo individual, interfaz en español y construcción por fases. Priorizar
 ## Cierre de Fase 1
 
 Requiere requisitos trazados, permisos, presupuestos identificados, riesgos y backlog. Los presupuestos iniciales son hipótesis explícitas. D08 en decisiones.md programa sus mediciones en las fases que construyen los componentes necesarios. La Fase 1 queda aprobada documentalmente; la capacidad y el funcionamiento permanecen pendientes de pruebas de implementación.
+
+## Ampliación vigente D12
+
+El flujo principal pasa a ser cámara autorizada → captura con carga limitada → YOLO → resultados asociados a su fotograma → reglas temporales → eventos revisables. Los cuatro escenarios deben funcionar en tiempo real. El análisis de imágenes queda como complemento de prueba. La webcam será la fuente inicial; el conector IP/RTSP se implementará en backend.
+
+YOLO es obligatorio; versión y pesos requieren evaluación por escenario. Las máscaras requieren un modelo de segmentación. No hay cámara, YOLO ni seguimiento implementados todavía. Los hitos anteriores siguen siendo útiles para validar la base; una demo estática no satisface el nuevo alcance en vivo. Ver [YOLO y tiempo real](tiempo_real_yolo.md).

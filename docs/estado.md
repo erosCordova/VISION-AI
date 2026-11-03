@@ -1,6 +1,6 @@
 # Estado verificado del proyecto
 
-Fecha: 2026-11-03. Referencia: manual 4.0 y decisiones D08 a D11.
+Fecha: 2026-11-03. Referencia: manual 5.0 y decisiones D08 a D12.
 
 | Fase | Alcance validado | Evidencia |
 | --- | --- | --- |
@@ -28,3 +28,7 @@ Fecha: 2026-11-03. Referencia: manual 4.0 y decisiones D08 a D11.
 ## Próximo incremento
 
 Fase 6: interfaz empresarial, rutas, componentes, sistema visual y estados. Persistencia durable en Fase 7; inferencia real en Fase 15.
+
+## Estado de la ampliación en vivo
+
+YOLO y tiempo real son ahora requisitos de los cuatro escenarios. Se añadieron contratos TypeScript de sesión y puerto de inferencia, documentación y diez casos de aceptación pendientes. No hay adaptador YOLO, cámara ni transporte implementados. El 31.25 % corresponde únicamente a la base anterior; la ampliación temporal de esas fases debe revalidarse. Las 112 pruebas no cubren cámara ni YOLO. Próximo trabajo: interfaz y controles de cámara de Fase 6. Ver [YOLO y tiempo real](tiempo_real_yolo.md).

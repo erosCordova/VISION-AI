@@ -177,3 +177,27 @@ Documentar entrega, salud, reinicios, backup y restauración; separar incidencia
 
 Validación de éxito: `RNF-08-OK`.
 Validación alternativa o negativa: `RNF-08-ERR`.
+
+## RF-15 — Cámara y sesión
+
+Solicitar permiso explícito, seleccionar cámara y ofrecer inicio, pausa, detención y recuperación. Liberar pistas y conexiones incluso tras una autorización tardía.
+
+Ampliación D12. Aceptación pendiente: casos RT01 a RT10 en tiempo_real_yolo.md. Fases responsables según matriz RT. Son 18 RF y 8 RNF; los 44 casos históricos no cubren esta ampliación.
+
+## RF-16 — Procesamiento temporal acotado
+
+Identificar sesión, generación y fotograma; limitar a una inferencia y un pendiente, descartar datos obsoletos y mantener overlays sobre el fotograma correcto.
+
+Ampliación D12. Aceptación pendiente: casos RT01 a RT10 en tiempo_real_yolo.md. Fases responsables según matriz RT. Son 18 RF y 8 RNF; los 44 casos históricos no cubren esta ampliación.
+
+## RF-17 — Inferencia YOLO
+
+Usar modelos YOLO adecuados a detección y segmentación; declarar pesos, clases y versión y validar cada escenario con datos reservados.
+
+Ampliación D12. Aceptación pendiente: casos RT01 a RT10 en tiempo_real_yolo.md. Fases responsables según matriz RT. Son 18 RF y 8 RNF; los 44 casos históricos no cubren esta ampliación.
+
+## RF-18 — Eventos y métricas en vivo
+
+Aplicar reglas temporales configurables, evitar alertas duplicadas por episodio y medir captura, inferencia, descartes y latencia sin mezclar relojes.
+
+Ampliación D12. Aceptación pendiente: casos RT01 a RT10 en tiempo_real_yolo.md. Fases responsables según matriz RT. Son 18 RF y 8 RNF; los 44 casos históricos no cubren esta ampliación.

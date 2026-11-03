@@ -64,3 +64,7 @@ VITE_* es público y se incluye en el cliente; no poner claves ni contraseñas. 
 React y Vite se utilizan según el plan; TypeScript es estricto y Vitest prueba el núcleo sin DOM. Se seleccionó TypeScript 6.0.3 porque el guard usa su API de compilador; TypeScript 7.0.2 probado en este entorno expone su CLI pero no esa API y no se mantuvo en las dependencias finales. Las dependencias directas están fijadas y package-lock.json conserva resoluciones e integridad.
 
 Referencias consultadas: [React con una herramienta de compilación](https://react.dev/learn/build-a-react-app-from-scratch), [Vite](https://vite.dev/guide/) y [React con TypeScript](https://react.dev/learn/typescript). Las versiones efectivas se verificaron además con metadatos del registro e instalación local.
+
+## Ampliación D12: YOLO y tiempo real
+
+Los cuatro escenarios pasan a operar con cámara en vivo. La especificación vigente, los estados de sesión, límites de carga, reglas temporales y los diez casos RT pendientes se detallan en [YOLO y tiempo real](tiempo_real_yolo.md). Los diagramas y las pruebas previas conservan su función de referencia; no acreditan inferencia ni seguimiento real. La Fase 6 incorpora selección de cámara, Iniciar, Pausar y Detener, permisos, preview y estados de conexión. La integración YOLO real continúa pendiente de implementación y evaluación.

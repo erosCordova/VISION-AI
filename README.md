@@ -41,3 +41,7 @@ Seguridad industrial, Almacén inteligente, Control de calidad y Retail. Consult
 ## Responsable
 
 Eros Igor Córdova Pintado — Ingeniería de Software con IA, SENATI.
+
+## Alcance vigente: YOLO y tiempo real
+
+Los cuatro escenarios usarán YOLO con cámara en vivo. Webcam inicial y conector IP/RTSP posterior en backend. La Fase 6 incluirá controles de cámara; YOLO, transporte y seguimiento siguen pendientes. El avance de 31.25 % corresponde a la base previa y no acredita esta ampliación. Ver [especificación temporal](docs/tiempo_real_yolo.md). Manual vigente: 5.0.

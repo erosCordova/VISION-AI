@@ -78,3 +78,7 @@ Fecha: 2026-11-03. Se fijan dependencias directas y lockfile. La composición se
 El repositorio de Fase 5 es deliberadamente VOLÁTIL para verificar contratos sin atribuir persistencia del navegador. El esquema analysis-repository-v1 permite copia y validación antes de reemplazo; IndexedDB, cuota y migraciones reales se implementan en Fase 7. La finalización exige resultado válido asociado al recurso exacto y comparación de versión.
 
 La configuración real no activa un modelo: el motor todavía no conectado falla explícitamente. Los motores de fixture viven solo en pruebas. El workflow verifica sin desplegar. Impacto: conservar estos puertos al integrar escenarios, UI, persistencia y API real.
+
+## D12 — YOLO y cuatro escenarios en tiempo real
+
+2026-11-03. Decisión explícita del usuario. Sustituye la exclusión de cámaras y seguimiento limitado. Se mantienen 16 fases y la interfaz en Fase 6; el manual pasa a 5.0. Se especifican sesión, generación, identidad de fotograma, cola acotada y descarte de resultados obsoletos. Motor previsto Python/FastAPI con YOLO; modelo y pesos se elegirán por benchmark. Los objetivos de FPS y latencia son hipótesis medibles, no garantías. Ver [YOLO y tiempo real](tiempo_real_yolo.md). La ampliación de las fases anteriores queda pendiente de revalidación.

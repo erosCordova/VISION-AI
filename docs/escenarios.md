@@ -168,3 +168,7 @@ Fuentes y versiones pueden modificar los bytes al regenerar. Se actualizan hashe
 ## Condición para usar imágenes externas o reales
 
 Registrar proveedor, URL o procedencia, autorización o licencia, fecha, finalidad y anotador. Verificar imagen y etiquetas antes de asociarlas a un caso. No se han seleccionado datasets fotográficos ni modelos en esta fase. Su incorporación a evaluación real requiere el protocolo de Fase 15.
+
+## Ampliación D12: YOLO y tiempo real
+
+Los cuatro escenarios pasan a operar con cámara en vivo. La especificación vigente, los estados de sesión, límites de carga, reglas temporales y los diez casos RT pendientes se detallan en [YOLO y tiempo real](tiempo_real_yolo.md). Los diagramas y las pruebas previas conservan su función de referencia; no acreditan inferencia ni seguimiento real. La Fase 6 incorpora selección de cámara, Iniciar, Pausar y Detener, permisos, preview y estados de conexión. La integración YOLO real continúa pendiente de implementación y evaluación.

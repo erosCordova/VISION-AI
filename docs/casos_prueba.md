@@ -353,3 +353,7 @@ Estado inicial de todos los casos funcionales: **pendiente de ejecución**. Las 
 - Resultado de aceptación: Documentar entrega, salud, reinicios, backup y restauración; separar incidencias técnicas de alertas de negocio.
 - Evidencia: versión, entrada, esperado, observado y registro de ejecución.
 - Estado: pendiente.
+
+## Ampliación D12: YOLO y tiempo real
+
+Los cuatro escenarios pasan a operar con cámara en vivo. La especificación vigente, los estados de sesión, límites de carga, reglas temporales y los diez casos RT pendientes se detallan en [YOLO y tiempo real](tiempo_real_yolo.md). Los diagramas y las pruebas previas conservan su función de referencia; no acreditan inferencia ni seguimiento real. La Fase 6 incorpora selección de cámara, Iniciar, Pausar y Detener, permisos, preview y estados de conexión. La integración YOLO real continúa pendiente de implementación y evaluación.

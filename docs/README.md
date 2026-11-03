@@ -1,6 +1,6 @@
 # Documentación de VISION AI
 
-Referencia vigente: **Manual avanzado de VISION AI, versión 4.0**. La **Fase 6 es Diseño UX/UI empresarial y construcción de la interfaz**.
+Referencia vigente: **Manual avanzado de VISION AI, versión 5.0**. La **Fase 6 es Diseño UX/UI empresarial y construcción de la interfaz**.
 
 ## Fase 1
 
@@ -47,3 +47,7 @@ Los casos describen validaciones por ejecutar. No son resultados de una aplicaci
 - [Evidencia de compilación y pruebas](evidencias_fase_05.md).
 - [Tipos del dominio](../src/core/domain/model.ts).
 - [Puertos de visión](../src/core/ports/vision-engine.ts) y [repositorio](../src/core/ports/analysis-repository.ts).
+
+## Ampliación D12: YOLO y tiempo real
+
+Los cuatro escenarios pasan a operar con cámara en vivo. La especificación vigente, los estados de sesión, límites de carga, reglas temporales y los diez casos RT pendientes se detallan en [YOLO y tiempo real](tiempo_real_yolo.md). Los diagramas y las pruebas previas conservan su función de referencia; no acreditan inferencia ni seguimiento real. La Fase 6 incorpora selección de cámara, Iniciar, Pausar y Detener, permisos, preview y estados de conexión. La integración YOLO real continúa pendiente de implementación y evaluación.
