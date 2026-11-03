@@ -1,30 +1,30 @@
 # Estado verificado del proyecto
 
-Fecha: 2026-11-03. Referencia: manual 4.0 y decisiones D08 a D10.
-
-## Fases aprobadas
+Fecha: 2026-11-03. Referencia: manual 4.0 y decisiones D08 a D11.
 
 | Fase | Alcance validado | Evidencia |
 | --- | --- | --- |
-| 1 | Alcance, requisitos, permisos propuestos, casos, decisiones y planificación | [Cierre documental](evidencias_fases_01_02.md) |
-| 2 | Geometría, máscaras, métricas y filtros | [22 pruebas visuales](../tests/test_vision_reference.py) |
-| 3 | Cuatro escenarios, 12 diagramas y anotaciones calibradas | [Cierre de escenarios](evidencias_fase_03.md) |
-| 4 | Casos de uso, estados, permisos y errores | [Cierre de contratos de negocio](evidencias_fase_04.md) |
+| 1 | Alcance, requisitos, decisiones y planificación | [Cierre documental](evidencias_fases_01_02.md) |
+| 2 | Geometría, máscaras, métricas y filtros | [22 pruebas Python](../tests/test_vision_reference.py) |
+| 3 | Cuatro escenarios y 12 recursos calibrados | [Cierre de escenarios](evidencias_fase_03.md) |
+| 4 | Casos de uso, estados, permisos y errores | [Cierre de negocio](evidencias_fase_04.md) |
+| 5 | React, contratos, arquitectura, instalación limpia y build | [Cierre técnico](evidencias_fase_05.md) |
 
-**Avance administrativo: 25 % (4 de 16 fases).** No equivale a porcentaje de interfaz o calidad de un modelo productivo.
+**Avance administrativo: 31.25 % (5 de 16 fases).** No mide precisión de un modelo ni porcentaje de interfaz terminada.
 
-## Verificación
+## Verificación local
 
-62 pruebas aprobadas: 22 fundamentos matemáticos, 14 catálogo y 26 contratos de negocio. Los 44 casos funcionales iniciales siguen pendientes de la aplicación; no se confunden con estas pruebas de referencia.
+50 pruebas TypeScript y 62 Python aprobadas: **112 en total**. Tipos estrictos, guard de arquitectura y compilación correctos; instalación reproducida con npm ci. El workflow remoto de CI está preparado y se debe consultar en GitHub Actions para su resultado específico.
 
 ## Pendientes
 
-- No hay aplicación React, motor de reglas visuales productivo, API de inferencia ni despliegue.
-- Los permisos de referencia no constituyen sesiones autenticadas ni control real en servidor.
-- Los PNG son diagramas DEMO, no fotografías ni predicciones de un modelo.
-- No se han seleccionado modelos ni datasets fotográficos de evaluación.
-- Los presupuestos de capacidad y rendimiento se medirán en las fases técnicas acordadas por D08.
+- Existe una pantalla técnica React; todavía no el dashboard, navegación empresarial ni controles de la Fase 6.
+- El repositorio actual es VOLÁTIL: no hay persistencia tras recargar ni cuota de navegador comprobada.
+- No hay motor demo integrado, motor de reglas visuales productivo, API real ni despliegue.
+- Los PNG son diagramas DEMO; no se han seleccionado datasets fotográficos ni modelos reales.
+- Los permisos de referencia no son autenticación de servidor.
+- Los 44 casos funcionales del producto siguen pendientes de integración; las mediciones completas se conservan según D08.
 
 ## Próximo incremento
 
-Fase 5: arquitectura modular, contratos y entorno técnico reproducible. Interfaz en Fase 6; inferencia real en Fase 15.
+Fase 6: interfaz empresarial, rutas, componentes, sistema visual y estados. Persistencia durable en Fase 7; inferencia real en Fase 15.

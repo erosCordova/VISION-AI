@@ -70,3 +70,11 @@ Fecha: 2026-11-03. Análisis: queued a processing a completed, con salida failed
 Cada cambio utiliza identidad, correlación cuando corresponda, versión e instante con zona. Revisión requiere supervisor o administrador, nota y versión actual. Acceso desconocido se deniega; el ámbito lógico sigue siendo una organización. Las referencias puras se verificarán nuevamente con persistencia atómica y autenticación reales.
 
 Impacto: Fases 5, 7, 9, 11, 13 y 15 deben implementar y conservar este contrato. Las funciones actuales no son una API ni acreditan seguridad productiva.
+
+## D11 — Base React TypeScript Vite y adaptador volátil
+
+Fecha: 2026-11-03. Se fijan dependencias directas y lockfile. La composición se centraliza y los imports de capas se verifican con TypeScript 6.0.3; se descartó la versión 7 probada para ese guard por no exponer la API requerida.
+
+El repositorio de Fase 5 es deliberadamente VOLÁTIL para verificar contratos sin atribuir persistencia del navegador. El esquema analysis-repository-v1 permite copia y validación antes de reemplazo; IndexedDB, cuota y migraciones reales se implementan en Fase 7. La finalización exige resultado válido asociado al recurso exacto y comparación de versión.
+
+La configuración real no activa un modelo: el motor todavía no conectado falla explícitamente. Los motores de fixture viven solo en pruebas. El workflow verifica sin desplegar. Impacto: conservar estos puertos al integrar escenarios, UI, persistencia y API real.

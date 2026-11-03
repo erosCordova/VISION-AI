@@ -39,3 +39,11 @@ Los casos describen validaciones por ejecutar. No son resultados de una aplicaci
 - [Catálogo de errores](errores.json).
 - [Referencia de estados y permisos](../tools/workflow_reference.py).
 - [Evidencias y cierre](evidencias_fase_04.md).
+
+## Fase 5
+
+- [Arquitectura y contratos](arquitectura.md).
+- [Instalación y comandos](entorno.md).
+- [Evidencia de compilación y pruebas](evidencias_fase_05.md).
+- [Tipos del dominio](../src/core/domain/model.ts).
+- [Puertos de visión](../src/core/ports/vision-engine.ts) y [repositorio](../src/core/ports/analysis-repository.ts).
