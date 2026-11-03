@@ -4,7 +4,7 @@ Plataforma empresarial de visión computacional para detección de objetos, segm
 
 ## Estado
 
-**Fases 1 a 5 aprobadas en su alcance. Avance administrativo: 31.25 %.** Base React y TypeScript compilable, contratos validados y 116 pruebas automatizadas aprobadas localmente. Fase 6 en curso: interfaz empresarial navegable y controles de cámara; QA integral pendiente. No hay API de inferencia ni despliegue.
+**Fases 1 a 5 aprobadas en su alcance. Avance administrativo: 31.25 %.** Base React y TypeScript compilable, contratos validados y 119 pruebas automatizadas aprobadas localmente. Fase 6 en curso: interfaz empresarial navegable y controles de cámara; QA integral pendiente. No hay API de inferencia ni despliegue.
 
 ## Preparar y comprobar
 

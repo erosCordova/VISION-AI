@@ -14,7 +14,7 @@ Fecha: 2026-11-03. Referencia: manual 5.0 y decisiones D08 a D12.
 
 ## Verificación local
 
-54 pruebas TypeScript y 62 Python aprobadas: **116 en total**. Tipos estrictos, guard de arquitectura y compilación correctos; instalación reproducida con npm ci. El workflow remoto de CI está preparado y se debe consultar en GitHub Actions para su resultado específico.
+57 pruebas TypeScript y 62 Python aprobadas: **119 en total**. Tipos estrictos, guard de arquitectura y compilación correctos; instalación reproducida con npm ci. El workflow remoto de CI está preparado y se debe consultar en GitHub Actions para su resultado específico.
 
 ## Pendientes
 
@@ -36,3 +36,5 @@ YOLO y tiempo real son ahora requisitos de los cuatro escenarios. Se añadieron 
 ## Incremento de Fase 6
 
 Ver [diseño e inventario](diseno_ui.md) y [evidencias](evidencias_fase_06.md). El porcentaje se mantiene en 31.25 % hasta aprobar los criterios completos de la fase.
+
+Segundo incremento de Fase 6: formulario validado de propuesta temporal, modal con foco, filtros y tabla de historial, notificaciones y recuperación de errores por ruta. Cámara confirmada por el usuario; QA integral pendiente.

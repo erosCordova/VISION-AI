@@ -20,3 +20,19 @@ No se aprueba el cierre completo de Fase 6. Próximo incremento: completar compo
 ## Captura de escritorio
 
 ![Resumen de VISION AI](evidencias/fase06-resumen.jpg)
+
+## Segundo incremento — componentes y confirmación de cámara
+
+Confirmación del usuario: «ya funciona». La cámara funciona en su equipo; falta recorrer todos los casos de integración RT.
+
+- 57 pruebas TypeScript aprobadas; tres nuevas prueban límites válidos, números no finitos/fraccionarios y rangos inválidos de configuración temporal.
+- Formulario: confianza 2 rechazada, foco en el campo; 0.65 aceptada con aviso de propuesta temporal.
+- Modal: Escape cierra y restaura foco a Restablecer valores.
+- Historial: búsqueda cambia estado vacío, limpiar restablece; botones de paginación deshabilitados sin registros.
+- Contraste de textos secundarios reforzado. Sin auditoría integral de contraste aún.
+- Se revisó escritorio; no se acredita 360/768/1440. El zoom no alteró la anchura del viewport.
+- Logs consultados: aparecen errores de una extensión del navegador; no se atribuyen al código de la aplicación.
+
+![Configuración de interfaz](evidencias/fase06-configuracion.jpg)
+
+Estado: Fase 6 en curso. Continúan pendientes visor de resultados por capa, estados de ejecución con fixtures y QA responsive/accesible integral. No hay YOLO ni persistencia.
