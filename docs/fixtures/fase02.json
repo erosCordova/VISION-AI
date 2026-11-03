@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "vision-fixture-v1",
+  "origin": "synthetic-mathematical-reference",
+  "description": "Referencia geométrica; no representa detecciones de una fotografía ni un modelo entrenado.",
+  "image": {"width": 1000, "height": 800, "orientation": "already-oriented"},
+  "person_box": {"x": 0.2, "y": 0.15, "width": 0.3, "height": 0.7},
+  "viewports": [
+    {"size": [500, 400], "expected": [100, 60, 150, 280]},
+    {"size": [500, 500], "expected": [100, 110, 150, 280]},
+    {"size": [600, 400], "expected": [150, 60, 150, 280]}
+  ],
+  "mask": {"pixels": [[1, 0], [1, 1]], "areaRatio": 0.75, "rleCounts": [0, 1, 1, 2]},
+  "metricConvention": {"bothMasksWithoutForeground": null, "boxIouPartial": "1/7"}
+}

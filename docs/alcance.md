@@ -58,4 +58,4 @@ Desarrollo individual, interfaz en español y construcción por fases. Priorizar
 
 ## Cierre de Fase 1
 
-Requiere requisitos trazados, permisos, presupuestos identificados, riesgos y backlog. Los presupuestos iniciales están propuestos y la prueba de capacidad sigue pendiente; por ello la fase se registra en curso y no como aprobada.
+Requiere requisitos trazados, permisos, presupuestos identificados, riesgos y backlog. Los presupuestos iniciales son hipótesis explícitas. D08 en decisiones.md programa sus mediciones en las fases que construyen los componentes necesarios. La Fase 1 queda aprobada documentalmente; la capacidad y el funcionamiento permanecen pendientes de pruebas de implementación.

@@ -43,6 +43,16 @@ La suma de archivos no implica que el navegador permita 100 MiB: la cuota se con
 - Proveedor de alojamiento y recursos: Fase 16, tras mediciones y comprobación de oferta vigente.
 - Autenticación productiva: Fases 5, 13 y 15; no exigir a una sesión demo garantías de servidor.
 
-## Pendiente para aprobar Fase 1
+## Condición original de capacidad reemplazada por D08
 
 Documentar una prueba de capacidad en el entorno objetivo o acordar formalmente la revisión de esos presupuestos. El repositorio contiene planificación; todavía no existe aplicación con la cual medirlos.
+
+## D08 — Revisión de la condición de capacidad de Fase 1
+
+Fecha: 2026-11-03. Decisión técnica del incremento 2.
+
+La Fase 1 aprueba el alcance y los presupuestos como hipótesis explícitas, no como capacidad acreditada. La medición exige componentes que se construyen después: se agenda prueba de persistencia y cuota en Fases 5 y 7, visor en Fase 6, flujo y rendimiento en Fase 14 y recursos de modelo en Fase 15. Esto sustituye el bloqueo circular de exigir una aplicación durante la planificación inicial.
+
+Impacto: se cierra documentalmente Fase 1; cada medición conserva estado pendiente y permanece obligatoria para el hito correspondiente. No se modifican los valores iniciales ni se afirma que hayan sido alcanzados. Cualquier incumplimiento exige corrección o revisión explícita del presupuesto.
+
+Validación documental AL03: el cambio actualiza alcance, backlog, estado y registro de evidencia. Los casos funcionales de trazabilidad.csv siguen pendientes.

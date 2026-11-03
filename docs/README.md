@@ -16,3 +16,11 @@ Referencia vigente: **Manual avanzado de VISION AI, versión 4.0**. La **Fase 6 
 - [Manual de referencia](manual/Manual_Procedimiento_Vision_Computacional_IA.docx).
 
 Los casos describen validaciones por ejecutar. No son resultados de una aplicación construida.
+
+## Fase 2
+
+- [Contratos del análisis visual](contratos_vision.md).
+- [Fixture geométrica sintética](fixtures/fase02.json).
+- [Referencia matemática](../tools/vision_reference.py).
+- [Pruebas unitarias](../tests/test_vision_reference.py).
+- [Evidencias y cierre de fases 1 y 2](evidencias_fases_01_02.md).

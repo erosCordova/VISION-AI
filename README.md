@@ -4,7 +4,7 @@ Plataforma empresarial de visión computacional para detección de objetos, segm
 
 ## Estado
 
-Inicio del proyecto conforme al Manual avanzado de VISION AI, versión 4.0. Fase 1 en curso: definición de alcance, requisitos y criterios verificables. La aplicación todavía no está implementada.
+Inicio del proyecto conforme al Manual avanzado de VISION AI, versión 4.0. Fases 1 y 2 aprobadas en su alcance documental y matemático: alcance, requisitos, contratos geométricos y pruebas de referencia. La aplicación todavía no está implementada.
 
 ## Escenarios
 
@@ -24,3 +24,12 @@ Consultar [el índice de documentación](docs/README.md) para alcance, requisito
 ## Responsable
 
 Eros Igor Córdova Pintado — Ingeniería de Software con IA, SENATI.
+
+
+## Verificar los fundamentos visuales
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+La referencia usa solo la biblioteca estándar de Python. Verifica cajas, transformaciones, máscaras y filtros; no ejecuta un modelo de IA ni requiere un servidor. Consulta [contratos de visión](docs/contratos_vision.md) y [evidencias](docs/evidencias_fases_01_02.md).

@@ -4,8 +4,8 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 
 | Fase | Objetivo | Entregable principal | Estado |
 | --- | --- | --- | --- |
-| 01 | Definición del proyecto y alcance verificable | Alcance, requisitos, permisos, pruebas, decisiones y riesgos | En curso |
-| 02 | Fundamentos y especificación del análisis visual | Contratos geométricos, máscaras, métricas y fixtures | Pendiente |
+| 01 | Definición del proyecto y alcance verificable | Alcance, requisitos, permisos, pruebas, decisiones y riesgos | Aprobada documentalmente |
+| 02 | Fundamentos y especificación del análisis visual | Contratos geométricos, máscaras, métricas y fixtures | Aprobada con referencia matemática |
 | 03 | Escenarios empresariales y criterios operativos | Cuatro fichas con casos positivo, negativo y ambiguo | Pendiente |
 | 04 | Requisitos funcionales y reglas de negocio | Casos de uso, reglas, estados y alternativas de error | Pendiente |
 | 05 | Arquitectura modular y base técnica | Repositorio técnico, contratos, entorno y scripts | Pendiente |
@@ -28,9 +28,9 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 - [x] Escribir requisitos y propuestas de permisos.
 - [x] Vincular requisitos con fase y casos de aceptación.
 - [x] Registrar decisiones, presupuestos y riesgos.
-- [ ] Validar capacidad o registrar revisión formal de presupuestos.
-- [ ] Registrar cierre de fase con evidencia completa.
+- [x] Registrar revisión de presupuestos y sus mediciones obligatorias posteriores mediante D08.
+- [x] Registrar cierre documental y evidencia AL01 a AL03.
 
 ## Siguiente incremento
 
-Fase 2: especificar coordenadas, transformación reversible, confianza, formatos de máscara e IoU. No comenzar todavía la interfaz: corresponde a la Fase 6.
+Fase 3: preparar cuatro fichas de escenario con tareas, clases, asociación de evidencia y casos positivo, negativo y ambiguo. Las imágenes deben ser autorizadas y verificadas; los fixtures matemáticos de Fase 2 no las sustituyen. La interfaz permanece en Fase 6.
