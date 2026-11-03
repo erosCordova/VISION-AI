@@ -6,7 +6,7 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 | --- | --- | --- | --- |
 | 01 | Definición del proyecto y alcance verificable | Alcance, requisitos, permisos, pruebas, decisiones y riesgos | Aprobada documentalmente |
 | 02 | Fundamentos y especificación del análisis visual | Contratos geométricos, máscaras, métricas y fixtures | Aprobada con referencia matemática |
-| 03 | Escenarios empresariales y criterios operativos | Cuatro fichas con casos positivo, negativo y ambiguo | Pendiente |
+| 03 | Escenarios empresariales y criterios operativos | Cuatro fichas con casos positivo, negativo y ambiguo | Aprobada con referencias esquemáticas |
 | 04 | Requisitos funcionales y reglas de negocio | Casos de uso, reglas, estados y alternativas de error | Pendiente |
 | 05 | Arquitectura modular y base técnica | Repositorio técnico, contratos, entorno y scripts | Pendiente |
 | 06 | Diseño UX/UI empresarial y construcción de la interfaz | Frontend navegable, componentes y sistema visual | Pendiente |
@@ -33,4 +33,4 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 
 ## Siguiente incremento
 
-Fase 3: preparar cuatro fichas de escenario con tareas, clases, asociación de evidencia y casos positivo, negativo y ambiguo. Las imágenes deben ser autorizadas y verificadas; los fixtures matemáticos de Fase 2 no las sustituyen. La interfaz permanece en Fase 6.
+Fase 4: detallar casos de uso y sus alternativas; fijar transiciones de análisis y alerta, autorización y catálogo de errores. Los 12 casos de Fase 3 aportan entradas y resultados esperados. La interfaz permanece en Fase 6.

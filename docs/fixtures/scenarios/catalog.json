@@ -1,0 +1,818 @@
+{
+  "schemaVersion": "scenario-catalog-v1",
+  "scenarios": [
+    {
+      "id": "industrial-safety",
+      "name": "Seguridad industrial",
+      "version": "1.0.0",
+      "pilot": true,
+      "classes": [
+        "person",
+        "helmet",
+        "vest"
+      ],
+      "tasks": [
+        "detection",
+        "instance-segmentation-planned",
+        "patterns"
+      ],
+      "rule": {
+        "id": "ppe-by-person",
+        "version": "1.0.0",
+        "severity": "warning",
+        "policy": "Require explicit per-person association and visible head/torso; absence alone is insufficient"
+      },
+      "evidencePolicy": "El anotador declara visibilidad de cabeza y torso por persona. Casco y chaleco se asocian por ID; no se cuentan globalmente.",
+      "reviewRole": "supervisor",
+      "cases": [
+        {
+          "id": "industrial-positive",
+          "kind": "positive",
+          "objects": [
+            {
+              "id": "person-1",
+              "classId": "person",
+              "box": {
+                "x": 0.2,
+                "y": 0.15,
+                "width": 0.25,
+                "height": 0.7
+              }
+            },
+            {
+              "id": "vest-1",
+              "classId": "vest",
+              "box": {
+                "x": 0.245,
+                "y": 0.37,
+                "width": 0.16,
+                "height": 0.23
+              },
+              "associatedPersonId": "person-1"
+            }
+          ],
+          "observations": {
+            "personId": "person-1",
+            "headVisible": true,
+            "torsoVisible": true,
+            "helmetPresent": false,
+            "vestPresent": true,
+            "assessmentComplete": true
+          },
+          "expected": {
+            "status": "triggered",
+            "finding": "possible-missing-helmet",
+            "evidenceRefs": [
+              "person-1",
+              "vest-1"
+            ]
+          },
+          "asset": {
+            "path": "assets/scenarios/industrial-positive.png",
+            "width": 800,
+            "height": 600,
+            "provenance": "project-authored schematic fixture",
+            "licenseNote": "Diagrama creado para este repositorio; no incorpora imágenes externas.",
+            "usage": "Visual reference only; annotations are prepared, not inferred",
+            "sha256": "15d2ed68f1b0c2bdd61988e73a64e810b373c29dc4189b618e734e29adc3b6de"
+          }
+        },
+        {
+          "id": "industrial-negative",
+          "kind": "negative",
+          "objects": [
+            {
+              "id": "person-1",
+              "classId": "person",
+              "box": {
+                "x": 0.2,
+                "y": 0.15,
+                "width": 0.25,
+                "height": 0.7
+              }
+            },
+            {
+              "id": "helmet-1",
+              "classId": "helmet",
+              "box": {
+                "x": 0.255,
+                "y": 0.15,
+                "width": 0.14,
+                "height": 0.07
+              },
+              "associatedPersonId": "person-1"
+            },
+            {
+              "id": "vest-1",
+              "classId": "vest",
+              "box": {
+                "x": 0.245,
+                "y": 0.37,
+                "width": 0.16,
+                "height": 0.23
+              },
+              "associatedPersonId": "person-1"
+            }
+          ],
+          "observations": {
+            "personId": "person-1",
+            "headVisible": true,
+            "torsoVisible": true,
+            "helmetPresent": true,
+            "vestPresent": true,
+            "assessmentComplete": true
+          },
+          "expected": {
+            "status": "not-triggered",
+            "finding": "ppe-present",
+            "evidenceRefs": [
+              "person-1",
+              "helmet-1",
+              "vest-1"
+            ]
+          },
+          "asset": {
+            "path": "assets/scenarios/industrial-negative.png",
+            "width": 800,
+            "height": 600,
+            "provenance": "project-authored schematic fixture",
+            "licenseNote": "Diagrama creado para este repositorio; no incorpora imágenes externas.",
+            "usage": "Visual reference only; annotations are prepared, not inferred",
+            "sha256": "b075b2d5df1a8009495dcb3c13d98098d4afa073a29b6ba932e6f9650e251e05"
+          }
+        },
+        {
+          "id": "industrial-ambiguous",
+          "kind": "ambiguous",
+          "objects": [
+            {
+              "id": "person-1",
+              "classId": "person",
+              "box": {
+                "x": 0.2,
+                "y": 0.15,
+                "width": 0.25,
+                "height": 0.7
+              }
+            },
+            {
+              "id": "vest-1",
+              "classId": "vest",
+              "box": {
+                "x": 0.245,
+                "y": 0.37,
+                "width": 0.16,
+                "height": 0.23
+              },
+              "associatedPersonId": "person-1"
+            }
+          ],
+          "observations": {
+            "personId": "person-1",
+            "headVisible": false,
+            "torsoVisible": true,
+            "helmetPresent": null,
+            "vestPresent": true,
+            "assessmentComplete": false,
+            "occludedRegion": {
+              "x": 0.2,
+              "y": 0.15,
+              "width": 0.25,
+              "height": 0.16
+            }
+          },
+          "expected": {
+            "status": "indeterminate",
+            "finding": "head-occluded",
+            "evidenceRefs": [
+              "person-1",
+              "vest-1"
+            ]
+          },
+          "asset": {
+            "path": "assets/scenarios/industrial-ambiguous.png",
+            "width": 800,
+            "height": 600,
+            "provenance": "project-authored schematic fixture",
+            "licenseNote": "Diagrama creado para este repositorio; no incorpora imágenes externas.",
+            "usage": "Visual reference only; annotations are prepared, not inferred",
+            "sha256": "0f7bbe44520e0b30b526222cd29fd5d846e03475f824eefd5c6a6516aca1e117"
+          }
+        }
+      ],
+      "origin": "demo",
+      "schemaVersion": "scenario-reference-v1",
+      "classLabels": {
+        "person": "Persona",
+        "helmet": "Casco",
+        "vest": "Chaleco"
+      }
+    },
+    {
+      "id": "smart-warehouse",
+      "name": "Almacén inteligente",
+      "version": "1.0.0",
+      "pilot": false,
+      "classes": [
+        "box",
+        "pallet",
+        "forklift"
+      ],
+      "tasks": [
+        "detection",
+        "patterns"
+      ],
+      "rule": {
+        "id": "forklift-restricted-zone",
+        "version": "1.0.0",
+        "severity": "warning",
+        "policy": "Box center inside rectangular zone, boundary included; reliable center required"
+      },
+      "zone": {
+        "id": "restricted-zone-1",
+        "bounds": {
+          "x": 0.6,
+          "y": 0.2,
+          "width": 0.3,
+          "height": 0.55
+        },
+        "boundary": "included",
+        "appliesTo": [
+          "forklift"
+        ]
+      },
+      "evidencePolicy": "Se evalúa el centro de la caja de montacargas, no cualquier intersección del objeto. Posición no fiable produce revisión indeterminada.",
+      "reviewRole": "supervisor",
+      "cases": [
+        {
+          "id": "warehouse-positive",
+          "kind": "positive",
+          "objects": [
+            {
+              "id": "forklift-1",
+              "classId": "forklift",
+              "box": {
+                "x": 0.64,
+                "y": 0.36,
+                "width": 0.16,
+                "height": 0.22
+              }
+            },
+            {
+              "id": "box-1",
+              "classId": "box",
+              "box": {
+                "x": 0.2,
+                "y": 0.55,
+                "width": 0.12,
+                "height": 0.12
+              }
+            }
+          ],
+          "observations": {
+            "centerReliable": true,
+            "subjectId": "forklift-1"
+          },
+          "expected": {
+            "status": "triggered",
+            "finding": "forklift-in-restricted-zone",
+            "evidenceRefs": [
+              "forklift-1"
+            ]
+          },
+          "asset": {
+            "path": "assets/scenarios/warehouse-positive.png",
+            "width": 800,
+            "height": 600,
+            "provenance": "project-authored schematic fixture",
+            "licenseNote": "Diagrama creado para este repositorio; no incorpora imágenes externas.",
+            "usage": "Visual reference only; annotations are prepared, not inferred",
+            "sha256": "ffcc6a9b1149c8a43f55484c7fe9afaf90f7dcd4ac043b173744aab9f98b7be7"
+          }
+        },
+        {
+          "id": "warehouse-negative",
+          "kind": "negative",
+          "objects": [
+            {
+              "id": "forklift-1",
+              "classId": "forklift",
+              "box": {
+                "x": 0.22,
+                "y": 0.36,
+                "width": 0.16,
+                "height": 0.22
+              }
+            },
+            {
+              "id": "pallet-1",
+              "classId": "pallet",
+              "box": {
+                "x": 0.55,
+                "y": 0.82,
+                "width": 0.2,
+                "height": 0.04
+              }
+            }
+          ],
+          "observations": {
+            "centerReliable": true,
+            "subjectId": "forklift-1"
+          },
+          "expected": {
+            "status": "not-triggered",
+            "finding": "forklift-outside-zone",
+            "evidenceRefs": [
+              "forklift-1"
+            ]
+          },
+          "asset": {
+            "path": "assets/scenarios/warehouse-negative.png",
+            "width": 800,
+            "height": 600,
+            "provenance": "project-authored schematic fixture",
+            "licenseNote": "Diagrama creado para este repositorio; no incorpora imágenes externas.",
+            "usage": "Visual reference only; annotations are prepared, not inferred",
+            "sha256": "de865a1e1da6ee5e3a990cccea0e2a461c19d9af7ecca9f8888f368f04ac75a2"
+          }
+        },
+        {
+          "id": "warehouse-ambiguous",
+          "kind": "ambiguous",
+          "objects": [
+            {
+              "id": "forklift-1",
+              "classId": "forklift",
+              "box": {
+                "x": 0.52,
+                "y": 0.36,
+                "width": 0.16,
+                "height": 0.22
+              }
+            }
+          ],
+          "observations": {
+            "centerReliable": false,
+            "subjectId": "forklift-1",
+            "occludedRegion": {
+              "x": 0.52,
+              "y": 0.36,
+              "width": 0.08,
+              "height": 0.22
+            }
+          },
+          "expected": {
+            "status": "indeterminate",
+            "finding": "position-not-reliable",
+            "evidenceRefs": [
+              "forklift-1"
+            ]
+          },
+          "asset": {
+            "path": "assets/scenarios/warehouse-ambiguous.png",
+            "width": 800,
+            "height": 600,
+            "provenance": "project-authored schematic fixture",
+            "licenseNote": "Diagrama creado para este repositorio; no incorpora imágenes externas.",
+            "usage": "Visual reference only; annotations are prepared, not inferred",
+            "sha256": "917ef2f2d8ae2a9a1dae18ec5d963e76bac00a1290994eaf1eebd5942c6b97da"
+          }
+        }
+      ],
+      "origin": "demo",
+      "schemaVersion": "scenario-reference-v1",
+      "classLabels": {
+        "box": "Caja",
+        "pallet": "Pallet",
+        "forklift": "Montacargas"
+      }
+    },
+    {
+      "id": "quality-control",
+      "name": "Control de calidad",
+      "version": "1.0.0",
+      "pilot": false,
+      "classes": [
+        "product",
+        "surface-defect"
+      ],
+      "tasks": [
+        "detection",
+        "region-segmentation",
+        "patterns"
+      ],
+      "rule": {
+        "id": "surface-defect-area",
+        "version": "1.0.0",
+        "severity": "warning",
+        "policy": "Defect polygon union / inspected product rectangle > 0.01; complete inspection required",
+        "threshold": 0.01,
+        "operator": ">",
+        "denominator": "product-region"
+      },
+      "evidencePolicy": "Producto piloto rectangular con inspección superficial. La región de defecto es un polígono esquemático; no representa otros tipos de daño.",
+      "reviewRole": "supervisor",
+      "cases": [
+        {
+          "id": "quality-positive",
+          "kind": "positive",
+          "objects": [
+            {
+              "id": "product-1",
+              "classId": "product",
+              "box": {
+                "x": 0.2,
+                "y": 0.25,
+                "width": 0.6,
+                "height": 0.5
+              }
+            },
+            {
+              "id": "defect-1",
+              "classId": "surface-defect",
+              "box": {
+                "x": 0.4,
+                "y": 0.45,
+                "width": 0.1,
+                "height": 0.04
+              },
+              "associatedProductId": "product-1",
+              "polygon": [
+                [
+                  0.4,
+                  0.45
+                ],
+                [
+                  0.5,
+                  0.45
+                ],
+                [
+                  0.5,
+                  0.49
+                ],
+                [
+                  0.4,
+                  0.49
+                ]
+              ]
+            }
+          ],
+          "observations": {
+            "inspectionComplete": true,
+            "productId": "product-1"
+          },
+          "expected": {
+            "status": "triggered",
+            "finding": "defect-area-exceeds-limit",
+            "evidenceRefs": [
+              "product-1",
+              "defect-1"
+            ],
+            "defectProductRatio": 0.013333333333333334
+          },
+          "asset": {
+            "path": "assets/scenarios/quality-positive.png",
+            "width": 800,
+            "height": 600,
+            "provenance": "project-authored schematic fixture",
+            "licenseNote": "Diagrama creado para este repositorio; no incorpora imágenes externas.",
+            "usage": "Visual reference only; annotations are prepared, not inferred",
+            "sha256": "07981d6a580852394028ce4d252eacfbe1d9be096194b2ed58e62d6a7b96e119"
+          }
+        },
+        {
+          "id": "quality-negative",
+          "kind": "negative",
+          "objects": [
+            {
+              "id": "product-1",
+              "classId": "product",
+              "box": {
+                "x": 0.2,
+                "y": 0.25,
+                "width": 0.6,
+                "height": 0.5
+              }
+            }
+          ],
+          "observations": {
+            "inspectionComplete": true,
+            "productId": "product-1"
+          },
+          "expected": {
+            "status": "not-triggered",
+            "finding": "no-annotated-defect",
+            "evidenceRefs": [
+              "product-1"
+            ],
+            "defectProductRatio": 0
+          },
+          "asset": {
+            "path": "assets/scenarios/quality-negative.png",
+            "width": 800,
+            "height": 600,
+            "provenance": "project-authored schematic fixture",
+            "licenseNote": "Diagrama creado para este repositorio; no incorpora imágenes externas.",
+            "usage": "Visual reference only; annotations are prepared, not inferred",
+            "sha256": "67f806f58f53aff4b3df65dd45636a8cf2fe4797c614f163b6c7d46cd0502ae6"
+          }
+        },
+        {
+          "id": "quality-ambiguous",
+          "kind": "ambiguous",
+          "objects": [
+            {
+              "id": "product-1",
+              "classId": "product",
+              "box": {
+                "x": 0.2,
+                "y": 0.25,
+                "width": 0.6,
+                "height": 0.5
+              }
+            }
+          ],
+          "observations": {
+            "inspectionComplete": false,
+            "productId": "product-1",
+            "occludedRegion": {
+              "x": 0.5,
+              "y": 0.25,
+              "width": 0.3,
+              "height": 0.5
+            }
+          },
+          "expected": {
+            "status": "indeterminate",
+            "finding": "incomplete-inspection",
+            "evidenceRefs": [
+              "product-1"
+            ]
+          },
+          "asset": {
+            "path": "assets/scenarios/quality-ambiguous.png",
+            "width": 800,
+            "height": 600,
+            "provenance": "project-authored schematic fixture",
+            "licenseNote": "Diagrama creado para este repositorio; no incorpora imágenes externas.",
+            "usage": "Visual reference only; annotations are prepared, not inferred",
+            "sha256": "d9e199ab3a5895f2e01f87098465956e764f819175f526328661a67475f01884"
+          }
+        }
+      ],
+      "origin": "demo",
+      "schemaVersion": "scenario-reference-v1",
+      "classLabels": {
+        "product": "Producto",
+        "surface-defect": "Defecto superficial"
+      }
+    },
+    {
+      "id": "retail",
+      "name": "Retail",
+      "version": "1.0.0",
+      "pilot": false,
+      "classes": [
+        "person",
+        "shelf",
+        "product"
+      ],
+      "tasks": [
+        "detection",
+        "patterns"
+      ],
+      "rule": {
+        "id": "instant-occupancy",
+        "version": "1.0.0",
+        "severity": "info",
+        "policy": "Person box centers in observation zone; count > 2; uncertain count crossing threshold is indeterminate",
+        "threshold": 2,
+        "operator": ">"
+      },
+      "zone": {
+        "id": "observation-zone-1",
+        "bounds": {
+          "x": 0.15,
+          "y": 0.2,
+          "width": 0.7,
+          "height": 0.6
+        },
+        "boundary": "included",
+        "appliesTo": [
+          "person"
+        ]
+      },
+      "evidencePolicy": "Conteo de personas en una imagen. No implica afluencia durante un periodo, identificación ni seguimiento entre imágenes.",
+      "reviewRole": "supervisor",
+      "cases": [
+        {
+          "id": "retail-positive",
+          "kind": "positive",
+          "objects": [
+            {
+              "id": "person-1",
+              "classId": "person",
+              "box": {
+                "x": 0.25,
+                "y": 0.3,
+                "width": 0.08,
+                "height": 0.35
+              }
+            },
+            {
+              "id": "person-2",
+              "classId": "person",
+              "box": {
+                "x": 0.46,
+                "y": 0.3,
+                "width": 0.08,
+                "height": 0.35
+              }
+            },
+            {
+              "id": "person-3",
+              "classId": "person",
+              "box": {
+                "x": 0.67,
+                "y": 0.3,
+                "width": 0.08,
+                "height": 0.35
+              }
+            },
+            {
+              "id": "shelf-1",
+              "classId": "shelf",
+              "box": {
+                "x": 0.12,
+                "y": 0.82,
+                "width": 0.76,
+                "height": 0.08
+              }
+            }
+          ],
+          "observations": {
+            "uncertainPersonIds": []
+          },
+          "expected": {
+            "status": "triggered",
+            "finding": "occupancy-exceeds-limit",
+            "evidenceRefs": [
+              "person-1",
+              "person-2",
+              "person-3"
+            ],
+            "countRange": [
+              3,
+              3
+            ]
+          },
+          "asset": {
+            "path": "assets/scenarios/retail-positive.png",
+            "width": 800,
+            "height": 600,
+            "provenance": "project-authored schematic fixture",
+            "licenseNote": "Diagrama creado para este repositorio; no incorpora imágenes externas.",
+            "usage": "Visual reference only; annotations are prepared, not inferred",
+            "sha256": "60d211e71daa69e35231cf48e16d67e3831328d31f6debe4065dd8a479b73165"
+          }
+        },
+        {
+          "id": "retail-negative",
+          "kind": "negative",
+          "objects": [
+            {
+              "id": "person-1",
+              "classId": "person",
+              "box": {
+                "x": 0.25,
+                "y": 0.3,
+                "width": 0.08,
+                "height": 0.35
+              }
+            },
+            {
+              "id": "person-2",
+              "classId": "person",
+              "box": {
+                "x": 0.46,
+                "y": 0.3,
+                "width": 0.08,
+                "height": 0.35
+              }
+            },
+            {
+              "id": "shelf-1",
+              "classId": "shelf",
+              "box": {
+                "x": 0.12,
+                "y": 0.82,
+                "width": 0.76,
+                "height": 0.08
+              }
+            }
+          ],
+          "observations": {
+            "uncertainPersonIds": []
+          },
+          "expected": {
+            "status": "not-triggered",
+            "finding": "occupancy-within-limit",
+            "evidenceRefs": [
+              "person-1",
+              "person-2"
+            ],
+            "countRange": [
+              2,
+              2
+            ]
+          },
+          "asset": {
+            "path": "assets/scenarios/retail-negative.png",
+            "width": 800,
+            "height": 600,
+            "provenance": "project-authored schematic fixture",
+            "licenseNote": "Diagrama creado para este repositorio; no incorpora imágenes externas.",
+            "usage": "Visual reference only; annotations are prepared, not inferred",
+            "sha256": "4412f4294c83ed63d88b290c92e7bf7d356183b053c72d0e38620d61910d403e"
+          }
+        },
+        {
+          "id": "retail-ambiguous",
+          "kind": "ambiguous",
+          "objects": [
+            {
+              "id": "person-1",
+              "classId": "person",
+              "box": {
+                "x": 0.25,
+                "y": 0.3,
+                "width": 0.08,
+                "height": 0.35
+              }
+            },
+            {
+              "id": "person-2",
+              "classId": "person",
+              "box": {
+                "x": 0.46,
+                "y": 0.3,
+                "width": 0.08,
+                "height": 0.35
+              }
+            },
+            {
+              "id": "person-3",
+              "classId": "person",
+              "box": {
+                "x": 0.67,
+                "y": 0.3,
+                "width": 0.08,
+                "height": 0.35
+              }
+            }
+          ],
+          "observations": {
+            "uncertainPersonIds": [
+              "person-3"
+            ],
+            "occludedRegion": {
+              "x": 0.67,
+              "y": 0.3,
+              "width": 0.08,
+              "height": 0.18
+            }
+          },
+          "expected": {
+            "status": "indeterminate",
+            "finding": "uncertain-count-crosses-limit",
+            "evidenceRefs": [
+              "person-1",
+              "person-2",
+              "person-3"
+            ],
+            "countRange": [
+              2,
+              3
+            ]
+          },
+          "asset": {
+            "path": "assets/scenarios/retail-ambiguous.png",
+            "width": 800,
+            "height": 600,
+            "provenance": "project-authored schematic fixture",
+            "licenseNote": "Diagrama creado para este repositorio; no incorpora imágenes externas.",
+            "usage": "Visual reference only; annotations are prepared, not inferred",
+            "sha256": "1b71e595a33930cb85f75726c3daeefe882993ebe5836768d07136b9d684dee4"
+          }
+        }
+      ],
+      "origin": "demo",
+      "schemaVersion": "scenario-reference-v1",
+      "classLabels": {
+        "person": "Persona",
+        "shelf": "Estante",
+        "product": "Producto"
+      }
+    }
+  ]
+}

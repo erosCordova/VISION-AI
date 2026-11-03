@@ -28,7 +28,7 @@ Seleccionar imagen o escenario → validar → preparar entrada → ejecutar mot
 | Control de calidad | Un producto y defecto específicos al comenzar | Región defectuosa y condición documentada de revisión. |
 | Retail | Personas, estantes y productos | Conteo u ocupación de un instante; no implica seguimiento. |
 
-Cada escenario necesita, en Fase 3, un caso positivo, uno negativo y uno ambiguo. Las imágenes deben tener procedencia y autorización de uso documentadas. Todavía no se han incorporado recursos visuales ni se han validado anotaciones.
+Cada escenario necesita, en Fase 3, un caso positivo, uno negativo y uno ambiguo. Las imágenes deben tener procedencia y autorización de uso documentadas. En Fase 3 se incorporaron 12 diagramas propios con anotaciones verificadas y resultados preparados; aún no hay fotografías ni anotaciones para evaluar inferencia real.
 
 ## Hito A — Demo funcional
 

@@ -24,3 +24,10 @@ Los casos describen validaciones por ejecutar. No son resultados de una aplicaci
 - [Referencia matemática](../tools/vision_reference.py).
 - [Pruebas unitarias](../tests/test_vision_reference.py).
 - [Evidencias y cierre de fases 1 y 2](evidencias_fases_01_02.md).
+
+## Fase 3
+
+- [Fichas de escenarios y reglas](escenarios.md).
+- [Galería de las 12 referencias](galeria_escenarios.md).
+- [Catálogo y anotaciones](fixtures/scenarios/catalog.json).
+- [Evidencias y cierre](evidencias_fase_03.md).

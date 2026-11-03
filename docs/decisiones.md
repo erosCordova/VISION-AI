@@ -56,3 +56,9 @@ La Fase 1 aprueba el alcance y los presupuestos como hipótesis explícitas, no 
 Impacto: se cierra documentalmente Fase 1; cada medición conserva estado pendiente y permanece obligatoria para el hito correspondiente. No se modifican los valores iniciales ni se afirma que hayan sido alcanzados. Cualquier incumplimiento exige corrección o revisión explícita del presupuesto.
 
 Validación documental AL03: el cambio actualiza alcance, backlog, estado y registro de evidencia. Los casos funcionales de trazabilidad.csv siguen pendientes.
+
+## D09 — Recursos propios de referencia para los escenarios
+
+Fecha: 2026-11-03. Se usan 12 diagramas PNG del proyecto como recursos calibrados de la Fase 3, sin incorporar fotografías de terceros. Cada caso conserva etiquetas, geometría, evidencia y huella del archivo exacto.
+
+Permiten aprobar las fichas y preparar la ejecución demo, pero no constituyen datos de entrenamiento o test de un detector real. La elección de fotografías, anotaciones y modelos se exige por separado al validar IA real en Fase 15. Los recursos preparados permanecen identificados como DEMO.
