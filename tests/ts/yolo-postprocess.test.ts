@@ -56,3 +56,38 @@ describe('YOLOv8n: decodificación de salidas reales y geometría',()=>{
    expect(()=>letterboxFor(0,100)).toThrow();
  });
 });
+
+describe('Fase 15 — equivalencia numérica del decodificador optimizado',()=>{
+ it('conserva el resultado exacto entre tensores CHW y HWC de 80 clases',()=>{
+  const anchors=25,channels=84;
+  const chw=new Float32Array(channels*anchors);
+  for(let a=0;a<anchors;a++){
+   chw[a]=30+(a%5)*110;
+   chw[anchors+a]=25+Math.floor(a/5)*89;
+   chw[2*anchors+a]=56;chw[3*anchors+a]=85;
+   chw[(4+(a%4))*anchors+a]=.61+(a%3)*.08;
+  }
+  const hwc=new Float32Array(chw.length);
+  for(let a=0;a<anchors;a++)
+   for(let c=0;c<channels;c++)hwc[a*channels+c]=chw[c*anchors+a];
+  const geometry=letterboxFor(640,480);
+  const one=decodeYolov8(chw,[1,channels,anchors],geometry,.35);
+  const two=decodeYolov8(hwc,[1,anchors,channels],geometry,.35);
+  expect(one).toEqual(two);
+  expect(one.detections.length).toBeGreaterThan(0);
+ });
+ it('la optimización no transforma celdas NaN/infinitas en predicciones',()=>{
+  const invalid=new Float32Array(84*2);
+  invalid[0]=250;invalid[2]=100;invalid[4]=80;invalid[6]=90;
+  invalid[8]=.7;invalid[9]=Number.NaN;
+  invalid[1]=200;invalid[3]=200;invalid[5]=100;invalid[7]=100;
+  const got=decodeYolov8(invalid,[1,84,2],letterboxFor(640,480));
+  expect(got.detections).toHaveLength(1);
+  expect(got.detections[0].confidence).toBeCloseTo(.7);
+ });
+ it('un tensor vacío de anclas sin señales sigue sin detecciones',()=>{
+  const zero=new Float32Array(84*6300);
+  expect(decodeYolov8(zero,[1,84,6300],letterboxFor(960,540),.25)
+   .detections).toEqual([]);
+ });
+});

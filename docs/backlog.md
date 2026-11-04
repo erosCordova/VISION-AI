@@ -18,8 +18,8 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 | 12 | Historial, reportes y exportación | Tres CSV, JSON auditado y A4 | Aprobada con CI integral |
 | 13 | Seguridad, privacidad y gobierno de datos | Retención y borrado local confirmado, cabeceras y aviso de roles demo | Aprobada con CI integral |
 | 14 | Pruebas integradas, rendimiento y accesibilidad | WebGL optimizado, 12 mediciones CDP, teclado y movimiento reducido | Aprobada por CI integral |
-| 15 | Integración de inteligencia artificial real | Optimización de modelos preentrenados y medición sobre simulaciones 3D, sin datasets externos | Próxima fase |
-| 16 | Despliegue, operación y cierre técnico | Versión entregada, restauración y manuales | Pendiente |
+| 15 | Integración de inteligencia artificial real | Cadencia adaptativa, perfil por etapas, optimización de decodificador y cuatro mediciones ONNX | Aprobada con CI integral |
+| 16 | Despliegue, operación y cierre técnico | Versión entregada, restauración y manuales | Próxima fase |
 
 ## Tareas actuales de Fase 1
 
@@ -33,7 +33,7 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 
 ## Siguiente incremento
 
-Fase 15: optimizar y evaluar YOLO ONNX con fotogramas de las cuatro simulaciones 3D, documentar alcance y limitaciones sin introducir datasets ni presentar mAP inventado. Ver [cierre de Fase 14](fase14_rendimiento_accesibilidad.md).
+Fase 16: verificar frontend Vercel Hobby, API ligera Render Free, plan de reversión, manuales y entrega final sin servicios de pago. Ver [cierre Fase 15](fase15_optimizacion_yolo.md).
 
 ## Ampliación D12: YOLO y tiempo real
 

@@ -4,7 +4,7 @@ Plataforma empresarial de visión computacional con cuatro escenarios exclusivam
 
 ## Estado verificado
 
-**Fases 1 a 14 aprobadas; avance administrativo: 87,5 % (14 de 16). Fase 15 pendiente.** React + Vite ofrecen cuatro simulaciones 3D con humanos animados. YOLO ONNX (COCO y EPP) procesa fotogramas de estas escenas en el navegador; no se admiten datasets, fotografías, videos ni cámaras como entradas. Existen persistencia local IndexedDB, indicadores verificables y revisión humana de indicios EPP. El frontend se publica en Vercel Hobby; Render Free funciona como API ligera, sin inferencia remota. No se declara precisión, mAP ni rendimiento sostenido sin mediciones.
+**Fases 1 a 15 aprobadas; avance administrativo: 93,75 % (15 de 16). Fase 16 pendiente.** React + Vite ofrecen cuatro simulaciones 3D con humanos animados. YOLO ONNX (COCO y EPP) procesa fotogramas de estas escenas en el navegador; no se admiten datasets, fotografías, videos ni cámaras como entradas. Existen persistencia local IndexedDB, indicadores verificables y revisión humana de indicios EPP. El frontend se publica en Vercel Hobby; Render Free funciona como API ligera, sin inferencia remota. No se declara precisión, mAP ni rendimiento sostenido sin mediciones.
 
 ## Ejecutar y validar
 
@@ -101,7 +101,7 @@ El detector EPP de Seguridad tiene **señales temporales de revisión**, visible
 
 ## Progreso de fases — estado vigente 4 de noviembre de 2026
 
-**14 de 16 fases aprobadas = 87,5 %.** Fases 1–14 aprobadas; fase 15 pendiente.
+**15 de 16 fases aprobadas = 93,75 %.** Fases 1–15 aprobadas; fase 16 pendiente.
 La fase 8 validó KPI KP01–KP03, revisión humana EPP y rendimiento con sesiones locales.
 Pruebas: https://github.com/erosCordova/VISION-AI/actions/runs/41882458652 .
 Las fases 9 y 10 validaron YOLO real sobre los cuatro escenarios 3D, sincronización, fallos y reintentos, y máscaras cromáticas por píxel sin alterar evidencias.
@@ -153,3 +153,19 @@ heap JavaScript y FPS de escena) en un JSON adjunto al run,
 sin confundirlas con Core Web Vitals ni FPS garantizados.
 Ver [informe de Fase 14](docs/fase14_rendimiento_accesibilidad.md)
 y [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41935480618).
+
+## Fase 15 — Optimización ONNX sobre simulaciones 3D
+
+El panel de YOLO incluye el modo opcional **Cadencia adaptativa**
+(muestreo ajustado a tiempos reales de captura y ejecución del modelo),
+conservando tres velocidades manuales. Los resultados muestran
+preprocesamiento, tiempo de ONNX/WASM, posprocesamiento y total
+por fotograma. El decodificador evita indexaciones dinámicas en
+la exploración de clases sin alterar evidencias YOLO.
+
+Los cuatro escenarios se procesan en Chromium con ONNX real y
+publican `fase15-inferencia-onnx.json` en los archivos del run CI.
+No se usan datasets, cámaras ni imágenes externas; no se declara
+precision/recall/mAP ni mejora porcentual sin evidencia comparable.
+Ver [Fase 15](docs/fase15_optimizacion_yolo.md)
+y [GitHub Actions](https://github.com/erosCordova/VISION-AI/actions/runs/41936880222).

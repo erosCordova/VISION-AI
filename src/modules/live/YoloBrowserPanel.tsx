@@ -1,7 +1,7 @@
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import type {Detection} from '../../core/domain/model';
 import {analyzeYoloFrame,captureRenderedFrame,loadYoloBrowser} from './yolo-browser';
-import type {YoloFrame,YoloFamily} from './yolo-browser';
+import type {YoloFrame,YoloFamily,YoloPipelineTimings} from './yolo-browser';
 import {ppeColor,ppeFindings} from './ppe-model';
 import {MIN_RAW_YOLO_CONFIDENCE,filterDetectionsForDisplay,classesInDetections} from './detection-filter';
 import type {ScenarioKey} from './simulation-engine';
@@ -11,7 +11,7 @@ import {FrameAnalysisCycle,frameBoxPixels} from './frame-analysis-cycle';
 import {evidencePngName,chromaticMaskPngName,saveEvidencePng} from './yolo-evidence';
 import {segmentByContrast,chromaticMaskPixels,chromaticMaskBoundary} from './chromatic-segmentation';
 import type {ChromaticMask} from './chromatic-segmentation';
-import {captureWaitMs,shouldPauseCapture} from './inference-scheduler';
+import {captureWaitMs,shouldPauseCapture,AdaptiveCapturePacer} from './inference-scheduler';
 import type {CapturePace} from './inference-scheduler';
 import type {FrameAnalysisAttempt,FrameAnalysisOutcome} from './frame-analysis-cycle';
 type Model=Awaited<ReturnType<typeof loadYoloBrowser>>;
@@ -75,6 +75,9 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
  const [message,setMessage]=useState('El modelo solo se descarga cuando presionas Iniciar YOLO.');
  const [confidence,setConfidence]=useState(.35);
  const [capturePace,setCapturePace]=useState<CapturePace>('balanced');
+ const adaptive=useRef(new AdaptiveCapturePacer());
+ const [pipeline,setPipeline]=useState<YoloPipelineTimings|null>(null);
+ const [autoInterval,setAutoInterval]=useState<number|null>(null);
  const [showChromaticMask,setShowChromaticMask]=useState(false);
  const [maskContrast,setMaskContrast]=useState(70);
  const [maskMinPixels,setMaskMinPixels]=useState(4);
@@ -112,7 +115,8 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
   setPhase('loading');setError('');
   onTelemetry({type:'status',phase:'loading',model:family});
   setMessage('Preparando el motor de inferencia…');
-  times.current=[];setSampleCount(0);setObservedFps(null);
+  times.current=[];adaptive.current.reset();setAutoInterval(null);setPipeline(null);
+  setSampleCount(0);setObservedFps(null);
   lastAnalyzed.current=null;lastEvidenceSource.current=null;setExportMessage('');setMaskStats(null);setMaskError('');
   setDetections([]);setInferenceMs(null);setLastFrameAt(null);
   if(preview.current){const ctx=preview.current.getContext('2d');ctx?.clearRect(0,0,preview.current.width,preview.current.height);}
@@ -149,6 +153,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
   setClassFilter('all');
   if(preview.current)preview.current.getContext('2d')?.clearRect(0,0,preview.current.width,preview.current.height);
   setError('');setDetections([]);setSampleCount(0);
+  adaptive.current.reset();setAutoInterval(null);setPipeline(null);
   setObservedFps(null);setInferenceMs(null);setLastFrameAt(null);
   setMessage('Seleccionado '+(next==='ppe'?'YOLOv8s EPP (44,8 MB)':'YOLOv8n COCO (13 MB)')+
    '. Presiona Iniciar YOLO real para cargarlo.');
@@ -186,7 +191,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
      lastAnalyzed.current=result;
      lastEvidenceSource.current=frameSource;
      setDetections(result.detections);
-     setInferenceMs(result.inferenceMs);
+     setInferenceMs(result.inferenceMs);setPipeline(result.timings??null);
      const capturedAtMs=job.capturedAtMs;
      const completedAtMs=Date.now();
      setLastFrameAt(capturedAtMs);
@@ -220,7 +225,11 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
      return;
     }
     const spent=performance.now()-begin;
-    if(!cancelled)await delay(captureWaitMs(capturePace,spent));
+    adaptive.current.observe(spent);
+    if(!cancelled){
+     if(capturePace==='auto')setAutoInterval(adaptive.current.intervalMs);
+     await delay(captureWaitMs(capturePace,spent,adaptive.current.estimateMs));
+    }
    }
   };
   void loop();
@@ -270,6 +279,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
    lastAnalyzed.current=result;
    lastEvidenceSource.current=previousSource;
    setDetections(result.detections);setInferenceMs(result.inferenceMs);
+   setPipeline(result.timings??null);
    const capturedAtMs=job.capturedAtMs;
    const completedAtMs=Date.now();
    setLastFrameAt(capturedAtMs);
@@ -390,9 +400,13 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
     <select id="yolo-capture-pace" value={capturePace}
      onChange={e=>setCapturePace(e.target.value as CapturePace)}>
      <option value="balanced">Equilibrada (750 ms)</option>
+     <option value="auto">Adaptativa (según duración real)</option>
      <option value="fast">Ágil (350 ms)</option>
      <option value="efficient">Ahorro (1500 ms)</option>
     </select>
+    {capturePace==='auto'&&<small className="browser-yolo-adaptive" role="status">
+     Intervalo estimado: {autoInterval??750} ms · una inferencia a la vez.
+    </small>}
     <label htmlFor="yolo-class-filter">Clase visible</label>
     <select id="yolo-class-filter" value={classFilter} onChange={e=>setClassFilter(e.target.value)}>
      <option value="all">Todas las clases</option>
@@ -488,6 +502,17 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
       <div><span>Inferencia</span><strong>{inferenceMs===null?'—':Math.round(inferenceMs)+' ms'}</strong></div>
       <div><span>FPS inferidos</span><strong>{observedFps===null?'—':observedFps.toFixed(1)}</strong></div>
      </div>
+     {pipeline&&<section className="browser-yolo-profile"
+       aria-label="Tiempos reales de la última inferencia YOLO">
+       <h4>Tiempo real por etapa (último fotograma)</h4>
+       <div><span>Preparación</span><strong>{pipeline.preprocessMs.toFixed(1)} ms</strong></div>
+       <div><span>ONNX / WASM</span><strong>{pipeline.runMs.toFixed(1)} ms</strong></div>
+       <div><span>Posproceso</span><strong>{pipeline.postprocessMs.toFixed(1)} ms</strong></div>
+       <div className="browser-yolo-profile-total"><span>Total modelo</span>
+        <strong>{pipeline.totalMs.toFixed(1)} ms</strong></div>
+       <p>Mediciones del navegador; no incluyen descarga ni render 3D.
+        No indican precisión de reconocimiento.</p>
+      </section>}
      {ppe&&sampleCount>0&&<div className="browser-ppe-summary">
        <div><span>EPP observado</span><strong>{ppe.worn.length}</strong></div>
        <div><span>Señales para revisión</span>

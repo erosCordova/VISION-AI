@@ -15,6 +15,33 @@ const artifacts = path.resolve('qa-artifacts');
 fs.mkdirSync(artifacts, { recursive: true });
 const measuredPerformance = [];
 const accessibilityChecks = [];
+const onnxScenarioMeasurements = [];
+/** Solo cifras expuestas por la última inferencia ONNX REAL de cada simulación. */
+async function inspectRealOnnxProfile(cdp,scenario,model){
+ const response=await cdp.send('Runtime.evaluate',{
+  expression:'(() => ({'
+    +'parts:Array.from(document.querySelectorAll(".browser-yolo-profile > div")).map(el=>({'
+    +'name:el.querySelector("span")?.textContent?.trim(),'
+    +'ms:Number.parseFloat(el.querySelector("strong")?.textContent||"")})),'
+    +'frames:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0),'
+    +'predictions:Number(document.querySelector(".browser-yolo-count-evidence b")?.textContent||0),'
+    +'cadence:document.querySelector("#yolo-capture-pace")?.value'
+    +'}))()',returnByValue:true
+ });
+ const info=response.result?.value;
+ if(info?.parts?.length!==4||info.frames<1||!Number.isInteger(info.predictions)||
+    info.parts.some(p=>!Number.isFinite(p.ms)||p.ms<0))
+  throw Error('IA15: perfil ONNX incompleto para '+scenario+': '+JSON.stringify(info));
+ const total=info.parts.at(-1).ms;
+ const summed=info.parts.slice(0,3).reduce((n,p)=>n+p.ms,0);
+ if(Math.abs(summed-total)>0.25||info.parts[1].ms<=0)
+  throw Error('IA15: las etapas ONNX no coinciden en '+scenario+': '+JSON.stringify(info));
+ return {scenario,model,capturedAtUtc:new Date().toISOString(),
+   frames:info.frames,predictions:info.predictions,
+   preprocessMs:info.parts[0].ms,inferenceMs:info.parts[1].ms,
+   postprocessMs:info.parts[2].ms,totalMs:total,cadence:info.cadence};
+}
+
 
 function findBrowser() {
   if (process.env.CHROME_BIN) return process.env.CHROME_BIN;
@@ -767,6 +794,9 @@ try {
             },'OB01 COCO real en '+tab,340);
             if(!verified.run.includes('Origen: simulación 3D'))
               throw Error('OB01: COCO no conservó procedencia 3D en '+tab);
+            const profile=await inspectRealOnnxProfile(cdp,tab,'coco');
+            onnxScenarioMeasurements.push(profile);
+            console.log('IA15 ONNX REAL: '+JSON.stringify(profile));
             await cdp.send('Runtime.evaluate',{
               expression:'(() => {const b=Array.from(document.querySelectorAll(".browser-yolo-actions button"))'
                +'.find(x=>x.textContent?.includes("Detener inferencia"));b?.click();return Boolean(b);})()',
@@ -813,6 +843,9 @@ try {
         }
         if (!firstInference) throw Error('No hubo inferencia ONNX tras esperar: '+JSON.stringify(lastStatus));
         console.log('YOLO EPP REAL OK en Chromium: '+JSON.stringify(firstInference));
+        const ppeProfile=await inspectRealOnnxProfile(cdp,'Seguridad','ppe');
+        onnxScenarioMeasurements.push(ppeProfile);
+        console.log('IA15 ONNX REAL: '+JSON.stringify(ppeProfile));
         const liveRule=await cdp.send('Runtime.evaluate',{
           expression:'(() => ({container:!!document.querySelector(".yolo-monitor-rules"),'
            +'description:document.querySelector(".yolo-rule-card")?.textContent?.trim(),'
@@ -1106,6 +1139,17 @@ try {
         });
         fs.writeFileSync(path.join(artifacts, 'yolo-inferencia-real-1440.png'),
           Buffer.from(inferenceShot.data,'base64'));
+        // IA15: seleccionar cadencia automática antes de reanudar el
+        // mismo modelo en memoria, sin recargar pesos ni alterar predicciones.
+        const adaptiveSelected=await cdp.send('Runtime.evaluate',{
+          expression:'(() => {const s=document.querySelector("#yolo-capture-pace");'
+           +'if(!s)return false;'
+           +'const setter=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,"value").set;'
+           +'setter.call(s,"auto");s.dispatchEvent(new Event("change",{bubbles:true}));'
+           +'return true;})()',returnByValue:true
+        });
+        if(!adaptiveSelected.result?.value)
+          throw Error('IA15: no está disponible la cadencia adaptativa');
         // Un reintento exitoso concluye detenido; comprobar ahora reanudación
         // real del mismo modelo en memoria, no solo la presencia de un botón.
         const resumed=await cdp.send('Runtime.evaluate',{
@@ -1122,6 +1166,19 @@ try {
           const s=result.result?.value;
           return s?.phase?.includes('EJECUTÁNDOSE')&&s.frames>0?s:null;
         },'OB05 reanudación del motor y nuevo fotograma',340);
+        const adaptiveReported=await eventually(async()=>{
+          const result=await cdp.send('Runtime.evaluate',{
+            expression:'(() => ({pace:document.querySelector("#yolo-capture-pace")?.value,'
+             +'info:document.querySelector(".browser-yolo-adaptive")?.textContent?.trim(),'
+             +'frames:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0)}))()',
+            returnByValue:true
+          });
+          const x=result.result?.value;
+          const match=x?.info?.match(/Intervalo estimado: ([0-9]+) ms/);
+          const interval=match?Number(match[1]):null;
+          return x?.pace==='auto'&&x.frames>0&&interval>=500&&interval<=2500?x:null;
+        },'IA15 cadencia auto con intervalo real acotado');
+        console.log('IA15: cadencia adaptativa en ejecución '+JSON.stringify(adaptiveReported));
         const stopClicked=await cdp.send('Runtime.evaluate',{
           expression:'(() => {const b=Array.from(document.querySelectorAll(".browser-yolo-actions button"))'
            +'.find(x=>x.textContent.includes("Detener inferencia"));'
@@ -1330,6 +1387,20 @@ try {
   console.log('PF01/PF02 y A11Y01–A11Y03: '+measuredPerformance.length+
    ' mediciones reales guardadas en fase14-rendimiento-accesibilidad.json');
 
+
+  if(onnxScenarioMeasurements.length!==4||
+    new Set(onnxScenarioMeasurements.map(x=>x.scenario)).size!==4)
+    throw Error('IA15: faltan mediciones reales de cuatro escenarios: '+
+      JSON.stringify(onnxScenarioMeasurements));
+  fs.writeFileSync(path.join(artifacts,'fase15-inferencia-onnx.json'),
+    JSON.stringify({
+      schemaVersion:'vision-ai-onnx-stage-timings-v1',
+      generatedAt:new Date().toISOString(),
+      source:'browser-3d-rendered-frames-only',
+      limitations:'Duraciones de un fotograma por escenario en Chromium CI; sin etiquetas reales de referencia, no son medidas de precisión, recall, mAP ni FPS garantizados.',
+      samples:onnxScenarioMeasurements
+    },null,2)+'\n');
+  console.log('IA15: cuatro escenarios ONNX medidos y auditables en JSON de CI');
   console.log('QA terminado: ' + checked + ' recorridos; capturas en qa-artifacts/');
 } finally {
   cdp?.close();

@@ -2,7 +2,7 @@
 
 Última actualización: 2026-11-04. Referencia: manual avanzado de 16 fases y decisión vigente de utilizar exclusivamente simulaciones 3D.
 
-**ESTADO VIGENTE: 14 de 16 fases aprobadas = 87,5 %. Fase 15 pendiente.** Los registros de incrementos anteriores que aparecen más abajo son históricos y no sustituyen este cierre.
+**ESTADO VIGENTE: 15 de 16 fases aprobadas = 93,75 %. Fase 16 pendiente.** Los registros de incrementos anteriores que aparecen más abajo son históricos y no sustituyen este cierre.
 
 | Fase | Alcance validado | Evidencia |
 | --- | --- | --- |
@@ -20,13 +20,14 @@
 | 12 | Historial filtrado, tres CSV, auditoría JSON y reporte A4 | [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41931298826) |
 | 13 | Retención manual, borrado transaccional IndexedDB, aviso de roles demo y cabeceras HTTP | [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41933824408) |
 | 14 | Optimización de WebGL, métricas CDP en 12 rutas y pruebas A11Y01–03 | [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41935480618) |
+| 15 | Cadencia adaptativa y perfil ONNX por etapas en cuatro escenas 3D, decodificador optimizado | [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41936880222) |
 
-**Avance administrativo vigente: 87,5 % (14 de 16 fases aprobadas).** No mide precisión del modelo, mAP ni exactitud de los objetos estilizados.
+**Avance administrativo vigente: 93,75 % (15 de 16 fases aprobadas).** No mide precisión del modelo, mAP ni exactitud de los objetos estilizados.
 
 ## Verificación integral vigente
 
 Los valores de pruebas y FPS se toman del último run aprobado de
-[GitHub Actions](https://github.com/erosCordova/VISION-AI/actions/runs/41935480618).
+[GitHub Actions](https://github.com/erosCordova/VISION-AI/actions/runs/41936880222).
 Se ejecutan contratos TypeScript, Vitest, 66 pruebas Python, Vite
 y Chromium responsive 360/768/1440. El archivo
 `fase14-rendimiento-accesibilidad.json` guarda 12 muestras reales
@@ -35,8 +36,6 @@ Las mediciones de CI no equivalen a FPS garantizados de producción.
 
 ## Alcance que continúa pendiente
 
-- **Fase 15:** optimización de inferencia ONNX y evaluación técnica
-  sobre las cuatro simulaciones 3D, sin introducir datasets externos.
 - **Fase 16:** manuales finales, revisión de operación gratuita
   Vercel/Render y cierre verificable con rollback.
 - La aplicación todavía no proporciona cuentas autenticadas ni permisos
@@ -48,8 +47,7 @@ Las mediciones de CI no equivalen a FPS garantizados de producción.
 
 ## Próximo incremento
 
-**Fase 15: optimización y evaluación técnica de YOLO/ONNX usando
-exclusivamente fotogramas de las simulaciones 3D.**
+**Fase 16: despliegue y cierre técnico, manuales, verificación de Render Free y procedimiento de recuperación.**
 
 ## Estado de la ampliación en vivo
 
@@ -394,3 +392,24 @@ Se conserva la regresión ONNX real sobre las cuatro escenas,
 IndexedDB, filtros/exportación, revisión humana y borrado atómico.
 No se generan datos ni se usan cámaras o datasets.
 Las mediciones de CI son de referencia, no benchmarks de hardware final.
+
+## Cierre de Fase 15 — 4 de noviembre de 2026
+
+**15/16 = 93,75 % de avance administrativo.** Validación integral:
+https://github.com/erosCordova/VISION-AI/actions/runs/41936880222 .
+
+El motor YOLO ONNX/WASM utiliza únicamente fotogramas de los cuatro
+escenarios 3D. Se agregó cadencia adaptativa basada en mediciones
+locales, con protección contra inferencias simultáneas y sin modificar
+la selección de modelo. El visor muestra tiempos reales y separados
+de preprocesamiento, ONNX/WASM, posprocesamiento y ciclo de modelo.
+El decodificador reduce llamadas en el bucle caliente de anclas
+y mantiene geometría, clases, umbral y NMS.
+
+El JSON de GitHub Actions `fase15-inferencia-onnx.json` incluye
+cuatro lecturas reales (una por escenario), con modelo, predicciones,
+número de frames y tiempos observados. No contiene datos subidos.
+No se afirma un porcentaje de mejora ni precisión/mAP sin etiquetas
+de referencia, ni se interpreta ausencia de detecciones como conformidad.
+
+Próxima y última: **Fase 16 — despliegue, operación y cierre técnico**.
