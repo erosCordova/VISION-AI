@@ -7,6 +7,8 @@ import {MIN_RAW_YOLO_CONFIDENCE,filterDetectionsForDisplay,classesInDetections} 
 import type {ScenarioKey} from './simulation-engine';
 import type {YoloTelemetryEvent} from './yolo-telemetry';
 import {FrameAnalysisCycle,frameBoxPixels} from './frame-analysis-cycle';
+import {captureWaitMs,shouldPauseCapture} from './inference-scheduler';
+import type {CapturePace} from './inference-scheduler';
 import type {FrameAnalysisAttempt,FrameAnalysisOutcome} from './frame-analysis-cycle';
 type Model=Awaited<ReturnType<typeof loadYoloBrowser>>;
 type Phase='idle'|'loading'|'running'|'stopped'|'failed';
@@ -48,6 +50,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
  const [phase,setPhase]=useState<Phase>('idle');
  const [message,setMessage]=useState('El modelo solo se descarga cuando presionas Iniciar YOLO.');
  const [confidence,setConfidence]=useState(.35);
+ const [capturePace,setCapturePace]=useState<CapturePace>('balanced');
  const [classFilter,setClassFilter]=useState('all');
  const [model,setModel]=useState<Model|null>(null);
  const [family,setFamily]=useState<YoloFamily>(scenarioId==='safety'?'ppe':'coco');
@@ -63,7 +66,6 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
  const cycle=useRef(new FrameAnalysisCycle());
  const failedCanvas=useRef<HTMLCanvasElement|null>(null);
  const [lastRun,setLastRun]=useState<FrameAnalysisOutcome|null>(null);
- const frameNumber=useRef(0);
  const times=useRef<number[]>([]);
  const [error,setError]=useState('');
  const start=useCallback(async()=>{
@@ -73,7 +75,6 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   cycle.current.reset();failedCanvas.current=null;setLastRun(null);
   setPhase('loading');setError('');
   onTelemetry({type:'status',phase:'loading',model:family});
-  frameNumber.current=0;
   setMessage('Preparando el motor de inferencia…');
   times.current=[];setSampleCount(0);setObservedFps(null);
   lastAnalyzed.current=null;
@@ -122,7 +123,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   const token=generation.current;
   const loop=async()=>{
    while(!cancelled&&generation.current===token){
-    if(paused){await delay(450);continue;}
+    if(shouldPauseCapture(paused,document.hidden)){await delay(450);continue;}
     const begin=performance.now();
     let job:FrameAnalysisAttempt|null=null;
     let frame:HTMLCanvasElement|null=null;
@@ -133,9 +134,10 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
       await delay(350);continue;
      }
      frame=captureRenderedFrame(source);
-     onTelemetry({type:'capture',model:model.family,capturedAtMs:Date.now()});
-     job=cycle.current.begin(scenarioId,model.family,frame.width,frame.height,Date.now());
+     const captureAt=Date.now();
+     job=cycle.current.begin(scenarioId,model.family,frame.width,frame.height,captureAt);
      if(!job){await delay(120);continue;}
+     onTelemetry({type:'capture',model:model.family,capturedAtMs:captureAt});
      const result=await analyzeYoloFrame(model,frame,MIN_RAW_YOLO_CONFIDENCE);
      if(cancelled||generation.current!==token){cycle.current.discard(job);return;}
      const accepted=cycle.current.complete(job,result.detections,Date.now());
@@ -144,9 +146,9 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
      lastAnalyzed.current=result;
      setDetections(result.detections);
      setInferenceMs(result.inferenceMs);
-     const capturedAtMs=Date.now();
+     const capturedAtMs=job.capturedAtMs;
      setLastFrameAt(capturedAtMs);
-     onTelemetry({type:'frame',observation:{frameNumber:++frameNumber.current,
+     onTelemetry({type:'frame',observation:{frameNumber:job.frameId,
        capturedAtMs,inferenceMs:result.inferenceMs,detections:result.detections,
        model:model.family}});
      const now=performance.now();
@@ -175,12 +177,12 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
      return;
     }
     const spent=performance.now()-begin;
-    if(!cancelled)await delay(Math.max(100,750-spent));
+    if(!cancelled)await delay(captureWaitMs(capturePace,spent));
    }
   };
   void loop();
   return ()=>{cancelled=true;};
- },[phase,model,getSource,paused,family,onTelemetry,scenarioId]);
+ },[phase,model,getSource,paused,family,onTelemetry,scenarioId,capturePace]);
  useEffect(()=>{onTelemetry({type:'status',phase:'idle',model:family});
   return ()=>{generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;};
   // One status reset per mounted detector instance; state changes send events explicitly.
@@ -198,20 +200,22 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   if(phase!=='failed'||!model||!previous)return;
   const job=cycle.current.retry(Date.now());
   if(!job)return;
+  const token=generation.current;
   setPhase('loading');setError('');
   setMessage('Reintentando el mismo fotograma de la simulación…');
   try{
    const result=await analyzeYoloFrame(model,previous,MIN_RAW_YOLO_CONFIDENCE);
+   if(generation.current!==token){cycle.current.discard(job);return;}
    const accepted=cycle.current.complete(job,result.detections,Date.now());
    if(!accepted)return;
    setLastRun(accepted);failedCanvas.current=null;
    lastAnalyzed.current=result;
    setDetections(result.detections);setInferenceMs(result.inferenceMs);
-   const capturedAtMs=Date.now();
+   const capturedAtMs=job.capturedAtMs;
    setLastFrameAt(capturedAtMs);
    onTelemetry({type:'status',phase:'running',model:family});
    onTelemetry({type:'frame',observation:{
-    frameNumber:++frameNumber.current,capturedAtMs,
+    frameNumber:job.frameId,capturedAtMs,
     inferenceMs:result.inferenceMs,detections:result.detections,model:family
    }});
    onTelemetry({type:'status',phase:'stopped',model:family});
@@ -219,6 +223,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
    setPhase('stopped');
    setMessage('Fotograma reintentado correctamente. Resultado disponible para guardar.');
   }catch(e){
+   if(generation.current!==token){cycle.current.discard(job);return;}
    const failed=cycle.current.fail(job,e,Date.now());
    if(failed)setLastRun(failed);
    setPhase('failed');setError(explainError(e));
@@ -277,6 +282,13 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
     <input id="yolo-confidence" type="range" min="15" max="85" step="5"
      value={Math.round(confidence*100)}
      onChange={e=>setConfidence(Number(e.target.value)/100)}/>
+    <label htmlFor="yolo-capture-pace">Cadencia de captura</label>
+    <select id="yolo-capture-pace" value={capturePace}
+     onChange={e=>setCapturePace(e.target.value as CapturePace)}>
+     <option value="balanced">Equilibrada (750 ms)</option>
+     <option value="fast">Ágil (350 ms)</option>
+     <option value="efficient">Ahorro (1500 ms)</option>
+    </select>
     <label htmlFor="yolo-class-filter">Clase visible</label>
     <select id="yolo-class-filter" value={classFilter} onChange={e=>setClassFilter(e.target.value)}>
      <option value="all">Todas las clases</option>
@@ -285,7 +297,8 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
       <option value={classFilter}>{classFilter} (sin detecciones nuevas)</option>}
     </select>
    </div>
-   <p className="browser-yolo-modelnote">Los filtros cambian solo las cajas visibles.
+   <p className="browser-yolo-modelnote">La cadencia es el intervalo mínimo objetivo entre capturas; el tiempo real depende del equipo. Al ocultar la pestaña se suspenden nuevas capturas.
+    Los filtros cambian solo las cajas visibles.
     Las inferencias originales, desde {Math.round(MIN_RAW_YOLO_CONFIDENCE*100)} % de confianza, se conservan para el monitor y la sesión.
    </p>
    <p className="browser-yolo-status" role="status">{message}</p>

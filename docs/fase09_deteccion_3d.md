@@ -66,3 +66,25 @@ la salida ONNX. Las pruebas AN01–AN04 del coordinador comprueban
 antiduplicación, invalidación de respuestas anteriores, geometría
 al redimensionar, error y reintento. Falta todavía demostrar AN03/AN04
 con fallos de motor y persistencia en navegador para aprobar la fase.
+
+## Incremento 3: procedencia y cadencia, preparado sin despliegue
+
+La captura tiene una hora propia `capturedAtMs` separada del inicio
+de cada intento `startedAtMs`. Los reintentos conservan el ID y la
+hora de captura originales; las estadísticas y la bitácora de revisión
+no confunden un fotograma reintentado con una nueva observación.
+Las capturas solo se contabilizan cuando el ciclo acepta un intento
+activo; los resultados posteriores a detener o cambiar de detector
+se descartan también en la ruta de error del reintento.
+
+La cadencia objetivo ahora puede ser **Ágil (350 ms)**,
+**Equilibrada (750 ms)** o **Ahorro (1500 ms)**. No es una promesa de
+FPS: la inferencia puede tardar más y nunca se procesan dos capturas
+en paralelo. Si la simulación se pausa o el documento no es visible,
+no se capturan nuevas imágenes hasta reanudar.
+
+**Estado del bloque:** cambios preparados para validación local/CI
+y posterior publicación conjunta. No debe declararse aprobado
+hasta ejecutar el paquete de pruebas y revisar los cuatro escenarios
+en Chromium. La fase se mantiene abierta y el avance oficial
+continúa en 8/16 = 50 %.

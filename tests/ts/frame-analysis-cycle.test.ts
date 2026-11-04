@@ -59,11 +59,14 @@ describe('Fase 9 — ejecución correlacionada de fotogramas 3D',()=>{
   expect(failure?.run.token).toBe(first.token);
   expect(retry.token).not.toBe(first.token);
   expect(retry.frameId).toBe(first.frameId);
+  expect(retry.capturedAtMs).toBe(100);
+  expect(retry.startedAtMs).toBe(200);
   expect(retry.scenarioId).toBe(first.scenarioId);
   expect(retry.attempt).toBe(2);
   expect(cycle.complete(first,[good],210)).toBeNull();
   expect(cycle.complete(retry,[good],230)?.phase).toBe('completed');
   expect(cycle.retry(240)).toBeNull();
+  expect(cycle.complete(retry,[good],300)).toBeNull();
  });
  it('AN04: descartar un frame cancelado permite el siguiente sin dejar dos activas',()=>{
   const cycle=new FrameAnalysisCycle();
