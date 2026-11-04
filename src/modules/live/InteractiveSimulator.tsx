@@ -171,7 +171,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
        </div>
      </div>
      {analysisMode==='yolo'&&<YoloBrowserPanel key={scenarioId+'-'+graphics}
-       getSource={getRenderedSource} scenarioName={config.name} paused={paused}/>}
+       getSource={getRenderedSource} scenarioName={config.name} scenarioId={scenarioId} paused={paused}/>}
      {analysisMode==='synthetic'&&<div className={'simulator-event '+(snapshot.alert?'is-alert':'')} role="status">
        <span className="simulator-event-dot"/>
        <span>{snapshot.event}</span>

@@ -73,3 +73,8 @@ Assets externos: Gobkit CC0 (https://gobkit.com/api/free). Se descargan bajo dem
 ## YOLO sobre el simulador 3D (piloto ONNX)
 
 En «Análisis en vivo» → «Simulador 3D» se puede elegir entre **Simulación visual** (anotaciones sintéticas) y **YOLO real (navegador)**. La segunda modalidad descarga un modelo YOLOv8n ONNX sólo si se presiona «Iniciar YOLO real»; comprueba su hash, infiere píxeles capturados de la escena sin etiquetas, y presenta las cajas generadas por el modelo sobre el mismo fotograma. Si no detecta personas, no se inventan resultados. Este detector COCO no reconoce cascos, chalecos ni defectos industriales específicos. [Alcance, licencias y arquitectura](docs/yolo_simulador_3d.md).
+
+
+### Detector EPP para Seguridad Industrial
+
+El simulador 3D permite elegir **YOLOv8s EPP (14 clases)** o **YOLOv8n COCO (80 clases)**. El especializado se descarga cuando se solicita (44.8 MB; SHA256 verificado), identifica personas, cascos, chalecos y ciertas señales explícitas de EPP ausente. También se puede elegir una imagen real local sin subirla a servidor. Las observaciones EPP solo sirven para revisión; resultados vacíos no demuestran cumplimiento. Datos, límites y licencia AGPL-3.0: [manual del piloto](docs/yolo_simulador_3d.md).

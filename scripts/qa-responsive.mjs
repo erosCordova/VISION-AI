@@ -222,6 +222,17 @@ try {
         }, 'panel YOLO real');
         if (!yoloUi.start || !yoloUi.source || yoloUi.syntheticStatus)
           throw Error('El motor YOLO no está correctamente separado: '+JSON.stringify(yoloUi));
+        const safetyModelCheck=await cdp.send('Runtime.evaluate',{
+          expression:'(() => ({ selected:Array.from(document.querySelectorAll(".browser-yolo-picker button"))'
+            + '.find(b=>b.textContent.includes("EPP industrial"))?.getAttribute("aria-pressed"),'
+            + ' photoOption:!!Array.from(document.querySelectorAll(".browser-yolo-picker button"))'
+            + '.find(b=>b.textContent.includes("Imagen real local"))'
+            + ' }))()',
+          returnByValue:true
+        });
+        console.log('Detector EPP seleccionado: '+JSON.stringify(safetyModelCheck.result?.value));
+        if(safetyModelCheck.result?.value?.selected!=='true'||!safetyModelCheck.result?.value?.photoOption)
+          throw Error('Seguridad no eligió el detector EPP ni permite imágenes reales');
         await cdp.send('Runtime.evaluate', {
           expression: 'document.querySelector(".browser-yolo-panel")?.scrollIntoView({block:"center"})'
         });
@@ -260,7 +271,7 @@ try {
           await sleep(200);
         }
         if (!firstInference) throw Error('No hubo inferencia ONNX tras esperar: '+JSON.stringify(lastStatus));
-        console.log('YOLO REAL OK en Chromium: '+JSON.stringify(firstInference));
+        console.log('YOLO EPP REAL OK en Chromium: '+JSON.stringify(firstInference));
         const inferenceShot = await cdp.send('Page.captureScreenshot', {
           format: 'png', captureBeyondViewport: false
         });

@@ -1,7 +1,8 @@
 /** Adaptador ONNX Runtime Web en WASM; no instala nada en Render y no fabrica predicciones. */
-import {decodeYolov8,letterboxFor,YOLO_INPUT,YOLO_MODEL_URL,
+import {decodeYolov8,decodeYoloClasses,letterboxFor,YOLO_INPUT,YOLO_MODEL_URL,
  YOLO_RUNTIME_URL,YOLO_WASM_BASE,YOLO_SHA256} from './yolo-postprocess';
 import type {Detection} from '../../core/domain/model';
+import {PPE_CLASSES,PPE_MODEL} from './ppe-model';
 
 interface OrtTensor {
  readonly dims: readonly number[];
@@ -20,7 +21,9 @@ interface OrtApi {
  readonly InferenceSession: {create(bytes:Uint8Array,
   options:{executionProviders:readonly string[];graphOptimizationLevel:string}):Promise<OrtSession>};
 }
-const shared:{runtime?:Promise<OrtApi>;session?:Promise<{ort:OrtApi;session:OrtSession}>}={};
+export type YoloFamily='coco'|'ppe';
+export interface LoadedYolo {readonly ort:OrtApi;readonly session:OrtSession;readonly family:YoloFamily}
+const shared:{runtime?:Promise<OrtApi>;session?:Promise<LoadedYolo>;ppeSession?:Promise<LoadedYolo>}={};
 export interface YoloFrame {
  readonly source:HTMLCanvasElement;
  readonly width:number;
@@ -49,7 +52,8 @@ function loadScript():Promise<OrtApi>{
  }).catch(error=>{shared.runtime=undefined;throw error;});
  return shared.runtime;
 }
-export async function loadYoloBrowser(onProgress:(status:string)=>void):Promise<{ort:OrtApi;session:OrtSession}>{
+export async function loadYoloBrowser(onProgress:(status:string)=>void,family:YoloFamily='coco'):Promise<LoadedYolo>{
+ if(family==='ppe')return loadPpeBrowser(onProgress);
  if(shared.session)return shared.session;
  shared.session=(async()=>{
   onProgress('Descargando motor de inferencia WASM…');
@@ -73,10 +77,41 @@ export async function loadYoloBrowser(onProgress:(status:string)=>void):Promise<
   });
   if(session.inputNames.length!==1||session.outputNames.length<1)
    throw Error('El modelo no expone un contrato de detección válido.');
-  return {ort,session};
+  return {ort,session,family:'coco' as const};
  })().catch(error=>{shared.session=undefined;throw error;});
  return shared.session;
 }
+
+/** Pesos especializados solo para Seguridad. Verificación SHA256 obligatoria. */
+async function loadPpeBrowser(onProgress:(status:string)=>void):Promise<LoadedYolo>{
+ if(shared.ppeSession)return shared.ppeSession;
+ shared.ppeSession=(async()=>{
+  onProgress('Preparando ONNX Runtime para seguridad industrial…');
+  const ort=await loadScript();
+  ort.env.wasm.wasmPaths=YOLO_WASM_BASE;
+  ort.env.wasm.numThreads=1;
+  ort.env.wasm.proxy=false;
+  onProgress('Descargando modelo especializado EPP (44,8 MB) en tu dispositivo…');
+  const response=await fetch(PPE_MODEL.url,{mode:'cors',cache:'force-cache'});
+  if(!response.ok)throw Error('No se pudieron descargar los pesos de seguridad (HTTP '+response.status+').');
+  const buffer=await response.arrayBuffer();
+  if(buffer.byteLength<PPE_MODEL.minBytes||buffer.byteLength>PPE_MODEL.maxBytes)
+   throw Error('El archivo ONNX EPP no coincide con el tamaño esperado.');
+  onProgress('Verificando integridad SHA256 del modelo industrial…');
+  const hash=await crypto.subtle.digest('SHA-256',buffer);
+  const checksum=[...new Uint8Array(hash)].map(x=>x.toString(16).padStart(2,'0')).join('');
+  if(checksum!==PPE_MODEL.sha256)throw Error('SHA256 del detector EPP inválido. Se rechazó el modelo.');
+  onProgress('Inicializando YOLOv8s EPP mediante WebAssembly…');
+  const session=await ort.InferenceSession.create(new Uint8Array(buffer),{
+   executionProviders:['wasm'],graphOptimizationLevel:'all'
+  });
+  if(session.inputNames.length!==1||session.outputNames.length<1)
+   throw Error('El detector especializado no expone entradas y salidas válidas.');
+  return {ort,session,family:'ppe' as const};
+ })().catch(error=>{shared.ppeSession=undefined;throw error;});
+ return shared.ppeSession;
+}
+
 export function captureRenderedFrame(canvas:HTMLCanvasElement):HTMLCanvasElement{
  if(canvas.width<2||canvas.height<2)throw Error('El motor 3D todavía no tiene fotogramas.');
  const captured=document.createElement('canvas');
@@ -89,12 +124,13 @@ export function captureRenderedFrame(canvas:HTMLCanvasElement):HTMLCanvasElement
  return captured;
 }
 /** Letterbox: preservar la proporción de la escena frente a la entrada fija de YOLO. */
-export function toYoloTensor(canvas:HTMLCanvasElement):{
+export function toYoloTensor(canvas:HTMLCanvasElement,
+ target:{width:number;height:number}=YOLO_INPUT):{
  readonly data:Float32Array;readonly letterbox:ReturnType<typeof letterboxFor>
 }{
- const letterbox=letterboxFor(canvas.width,canvas.height);
+ const letterbox=letterboxFor(canvas.width,canvas.height,target);
  const resized=document.createElement('canvas');
- resized.width=YOLO_INPUT.width;resized.height=YOLO_INPUT.height;
+ resized.width=target.width;resized.height=target.height;
  const ctx=resized.getContext('2d',{willReadFrequently:true});
  if(!ctx)throw Error('No se pudo preparar el tensor del modelo.');
  ctx.fillStyle='rgb(114,114,114)';ctx.fillRect(0,0,resized.width,resized.height);
@@ -112,10 +148,11 @@ export function toYoloTensor(canvas:HTMLCanvasElement):{
  return {data:tensor,letterbox};
 }
 export async function analyzeYoloFrame(
- model:{ort:OrtApi;session:OrtSession},captured:HTMLCanvasElement,
+ model:LoadedYolo,captured:HTMLCanvasElement,
  threshold:number):Promise<YoloFrame>{
- const {data,letterbox}=toYoloTensor(captured);
- const input=new model.ort.Tensor('float32',data,[1,3,YOLO_INPUT.height,YOLO_INPUT.width]);
+ const target=model.family==='ppe'?PPE_MODEL.input:YOLO_INPUT;
+ const {data,letterbox}=toYoloTensor(captured,target);
+ const input=new model.ort.Tensor('float32',data,[1,3,target.height,target.width]);
  try {
   const before=performance.now();
   const output=await model.session.run({[model.session.inputNames[0]]:input});
@@ -124,7 +161,9 @@ export async function analyzeYoloFrame(
    const value=output[model.session.outputNames[0]];
    if(!value||value.type!=='float32'||!value.data)
     throw Error('El motor devolvió una salida incompatible con YOLOv8n.');
-   const decoded=decodeYolov8(value.data,value.dims,letterbox,threshold);
+   const decoded=model.family==='ppe'
+    ?decodeYoloClasses(value.data,value.dims,letterbox,PPE_CLASSES,threshold)
+    :decodeYolov8(value.data,value.dims,letterbox,threshold);
    return {source:captured,width:captured.width,height:captured.height,
     detections:decoded.detections,candidates:decoded.candidates,
     inferenceMs,createdAt:performance.now()};

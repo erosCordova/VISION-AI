@@ -60,3 +60,25 @@ Para culminar el proyecto se necesitarán pesos especializados y su validación 
 - Las pruebas automáticas verifican el postprocesamiento. La ejecución efectiva en navegador con los pesos, el rendimiento por CPU y las detecciones bajo cada escenario deben quedar documentados con capturas o logs del runtime. La compilación TypeScript **no** demuestra por sí sola que se haya ejecutado YOLO.
 
 Referencia: https://huggingface.co/unileon-robotics/YOLO8-ONNX/blob/main/yolov8n.onnx
+
+
+## Extensión especializada: Seguridad Industrial / EPP
+
+Además del detector general COCO, el escenario Seguridad incorpora **YOLOv8s EPP v0.3**, cargado solo por decisión expresa del usuario en el navegador:
+
+- Fuente: https://huggingface.co/constructelligence/construction-site-safety-hazards
+- Archivo: `buildvision-hazards-v0.3.onnx`; 44.8 MB descargados bajo demanda.
+- Integridad SHA256 publicada: `55f4dd2f53158eac4ff093d938b9fbda80c99454a03672145bbc36f539988249`.
+- Licencia de los pesos: **AGPL-3.0**; datos de entrenamiento bajo CC BY 4.0 según el publicador. Antes de una explotación cerrada/comercial es necesario evaluar obligaciones de la licencia.
+- Entrada: RGB `float32[1,3,640,640]`, normalizado 0–1, con letterbox gris 114.
+- Salida: `float32[1,18,N]` sin NMS, con cuatro coordenadas y catorce puntuaciones de clases. El decodificador genérico soporta 4+C, proyección espacial y NMS por clase.
+
+Clases en el orden oficial: persona, casco, sin casco, chaleco, sin chaleco, sin mascarilla, guantes, calzado de seguridad, excavadora, cargadora, camión volquete, gafas, sin gafas y sin guantes.
+
+La interfaz **no deduce incumplimiento cuando un casco o chaleco no aparece**: solo contabiliza como indicio para revisión las predicciones positivas de clases explícitas `no-hardhat`, `no-safety vest`, `no-goggles` y `no-gloves`. Se excluye `no-mask` de las señales de revisión, ya que el autor advierte que esa clase no fue aprendida de forma fiable. No se asocia automáticamente una prenda a una persona concreta; una inferencia espacial de asociación requeriría calibración y evaluación separadas.
+
+Se admite una **imagen local JPG, PNG o WebP de hasta 12 MB** para probar escenas fotográficas reales, además de la captura de fotogramas 3D. Se escala localmente a 960 px como máximo, no se envía a Render y se descarta al desmontar el panel. La inferencia de imagen local se ejecuta una vez por inicio (no se hacen repeticiones innecesarias de una imagen estática).
+
+La ficha del publicador informa un mAP@50 global de 0.634 en su evaluación; **NO es un resultado medido en VISION-AI**. Para poder afirmar precisión en los escenarios sintéticos necesitamos un banco de pruebas etiquetado manualmente e independiente, con precisión, recall, mAP y matriz de confusión. Hasta contar con él, los conteos de EPP y las advertencias se consideran exclusivamente resultados exploratorios sin uso para prevención de riesgos ni cumplimiento normativo.
+
+La carga de 44.8 MB y la ejecución CPU/WASM pueden ser más lentas en un ordenador de recursos limitados. El modelo COCO liviano sigue disponible. Backend Render Free sin cambios. No se han añadido dependencias npm ni API de pago.

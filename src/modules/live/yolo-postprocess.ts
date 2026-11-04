@@ -35,11 +35,11 @@ export const COCO_ES=[
 export interface Letterbox { readonly sourceWidth:number;readonly sourceHeight:number;
  readonly scale:number;readonly padX:number;readonly padY:number;}
 export interface DecodedYolo {readonly detections:readonly Detection[];readonly candidates:number;}
-export function letterboxFor(width:number,height:number):Letterbox{
+export function letterboxFor(width:number,height:number,target:{width:number;height:number}=YOLO_INPUT):Letterbox{
  if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0)throw Error('Resolución de captura no válida');
- const scale=Math.min(YOLO_INPUT.width/width,YOLO_INPUT.height/height);
+ const scale=Math.min(target.width/width,target.height/height);
  return {sourceWidth:width,sourceHeight:height,scale,
-  padX:(YOLO_INPUT.width-width*scale)/2,padY:(YOLO_INPUT.height-height*scale)/2};
+  padX:(target.width-width*scale)/2,padY:(target.height-height*scale)/2};
 }
 interface Pred {classIndex:number;score:number;x:number;y:number;width:number;height:number}
 function overlap(a:Pred,b:Pred):number{
@@ -59,25 +59,27 @@ export function suppressOverlaps(preds:readonly Pred[],iou=.45,limit=35):Pred[]{
  return retained;
 }
 /**
- * YOLOv8 sin NMS: [1,84,6300] para 640x480, o [1,6300,84] en exportación transpuesta.
- * La salida incluye 4 coordenadas (cx,cy,w,h) y 80 scores; NO tiene objectness adicional.
+ * Decodificador YOLOv8 para un contrato ONNX de 4+C canales (sin NMS).
+ * Requiere lista de clases explícita y valida que el tensor coincida; no inventa etiquetas.
  */
-export function decodeYolov8(
+export function decodeYoloClasses(
  data:Float32Array|readonly number[],dims:readonly number[],letterbox:Letterbox,
- threshold=.35
+ classes:readonly {id:string;label:string}[],threshold=.35
 ):DecodedYolo{
+ if(!classes.length||classes.length>100)throw Error('El catálogo de clases está vacío o excede el límite');
+ const channels=4+classes.length;
  if(dims.length!==3||dims[0]!==1)throw Error('La salida del modelo YOLO tiene dimensiones inesperadas');
- const channelsFirst=dims[1]===84;
+ const channelsFirst=dims[1]===channels;
  const anchors=channelsFirst?dims[2]:dims[1];
- if((!channelsFirst&&dims[2]!==84)||anchors<1||anchors>30000||
-  data.length!==anchors*84)throw Error('La salida YOLO no coincide con 80 clases COCO');
+ if((!channelsFirst&&dims[2]!==channels)||anchors<1||anchors>30000||
+  data.length!==anchors*channels)throw Error('La salida YOLO no coincide con el catálogo del modelo');
  if(letterbox.scale<=0||letterbox.sourceWidth<=0||letterbox.sourceHeight<=0)throw Error('Escala de captura inválida');
  const confidence=Math.max(.01,Math.min(.99,threshold));
- const at=(a:number,c:number)=>Number(data[channelsFirst?c*anchors+a:a*84+c]);
+ const at=(a:number,c:number)=>Number(data[channelsFirst?c*anchors+a:a*channels+c]);
  const raw:Pred[]=[];
  for(let i=0;i<anchors;i++){
   let best=-1,score=-Infinity;
-  for(let c=4;c<84;c++){
+  for(let c=4;c<channels;c++){
    const p=at(i,c);
    if(p>score){score=p;best=c-4;}
   }
@@ -93,9 +95,16 @@ export function decodeYolov8(
   if(xmax<=x||ymax<=y)continue;
   raw.push({classIndex:best,score,x,y,width:xmax-x,height:ymax-y});
  }
- const filtered=suppressOverlaps(raw,.45,35);
- return {candidates:raw.length,detections:filtered.map((p,i)=>({
-  id:'yolo-'+(i+1),classId:COCO_EN[p.classIndex],label:COCO_ES[p.classIndex],
+ return {candidates:raw.length,detections:suppressOverlaps(raw,.45,35).map((p,i)=>({
+  id:'yolo-'+(i+1),classId:classes[p.classIndex].id,
+  label:classes[p.classIndex].label,
   confidence:p.score,box:{x:p.x,y:p.y,width:p.width,height:p.height}
  }))};
+}
+const COCO_CLASSES=COCO_EN.map((id,index)=>({id,label:COCO_ES[index]}));
+export function decodeYolov8(
+ data:Float32Array|readonly number[],dims:readonly number[],letterbox:Letterbox,
+ threshold=.35
+):DecodedYolo{
+ return decodeYoloClasses(data,dims,letterbox,COCO_CLASSES,threshold);
 }

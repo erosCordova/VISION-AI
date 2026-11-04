@@ -106,3 +106,10 @@ La escena sigue expresamente etiquetada como sintética: los recuadros y eventos
 ## Undécimo incremento — YOLO ONNX sobre fotogramas de la simulación 3D
 
 Se añade un segundo origen de anotación independiente: las cajas de YOLO proceden de tensores de un modelo COCO de 80 clases, no del estado geométrico del simulador. La captura usa canvas del renderizador 3D sin el canvas de HUD, de modo que las predicciones no pueden copiar etiquetas sintéticas. La interfaz presenta el resultado sobre la imagen procesada (no sobre la animación que ya avanzó), registra latencia de inferencia y detecciones, permite umbral, inicio y detención. Se exige SHA256 de los pesos descargados y se documenta licencia AGPL-3.0 y limitación por cambio de dominio. El modelo no predice cascos ni defectos, y los KPI existentes siguen describiendo únicamente la simulación sintética. La ejecución real en navegador requiere evidencia separada de una compilación correcta.
+
+
+## Duodécimo incremento — adaptación a EPP real en Seguridad
+
+Se seleccionó un detector YOLOv8s de 14 clases (modelo Constructelligence v0.3, archivo ONNX 44.8 MB, SHA256 fijado). Se parametrizó la preparación de imágenes para 640×640 y la decodificación de tensores de 4+C canales. Seguridad ofrece selección EPP/COCO, pruebas con imágenes JPG/PNG/WebP locales, salida rotulada como fuente real, indicios EPP observados y señales positivas para revisión. La ausencia de una detección no se transforma en infracción inventada.
+
+Las pruebas unitarias validan 14 clases, coordenadas, NMS, salidas vacías, etiquetas precisas, rechazo de tensores incompatibles y manejo explícito de ausencia de EPP. QA en Chromium verifica acceso al selector de modelo y ejecución real del ONNX. La evaluación de precisión del modelo en el dominio de nuestro simulador debe documentarse por separado.

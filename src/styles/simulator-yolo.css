@@ -62,3 +62,34 @@
  .browser-yolo-actions{gap:9px}
  .browser-yolo-actions input[type="range"]{width:100%}
 }
+
+/* Selector de modelos real y origen de imágenes, sin mezclas con simulación. */
+.browser-yolo-selectors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:13px 0 8px}
+.browser-yolo-picker{background:#102c38;border:1px solid #35646a;border-radius:9px;padding:12px;min-width:0;display:grid;gap:9px}
+.browser-yolo-picker>span{font-weight:800;font-size:9px;letter-spacing:1.2px;color:#9bcbbf}
+.browser-yolo-picker>div{display:flex;flex-wrap:wrap;gap:5px}
+.browser-yolo-picker button{padding:9px 11px;border:1px solid #41646b;background:#173642;
+color:#c3e2d9;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
+.browser-yolo-picker button[aria-pressed="true"]{background:#267965;border-color:#53cda6;color:#effff6}
+.browser-yolo-picker button:hover{background:#27535b}
+.browser-yolo-picker button:focus-visible{outline:2px solid #b8ffe5;outline-offset:2px}
+.browser-yolo-modelnote{background:#363829;border:1px solid #77704b;padding:11px 13px;
+ border-radius:8px;font-size:10px;color:#e3d6ae;line-height:1.65;margin:9px 0}
+.browser-yolo-upload{border:1px solid #3c6367;background:#12353e;border-radius:9px;
+ padding:13px;margin:10px 0;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.browser-yolo-upload label{font-weight:800;color:#e4f8ec;font-size:11px}
+.browser-yolo-upload input{font-size:10px;color:#cee9e2;max-width:100%;min-width:0}
+.browser-yolo-upload input::file-selector-button{border-radius:7px;border:1px solid #4c9e8b;
+ background:#226d60;padding:8px 10px;color:#f4fff9;cursor:pointer;margin-right:10px}
+.browser-yolo-upload small{font-size:10px;color:#9fc9c0;max-width:100%;overflow-wrap:anywhere}
+.browser-ppe-summary{margin:12px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.browser-ppe-summary>div{padding:10px;border:1px solid #3c6867;background:#174039;border-radius:7px}
+.browser-ppe-summary>div span{display:block;font-size:9px;color:#b9d9ca;line-height:1.3}
+.browser-ppe-summary>div strong{display:block;margin-top:5px;font:800 24px Manrope,sans-serif;color:#80f4c6}
+.browser-ppe-summary>div strong.is-review{color:#ffad9a}
+.browser-ppe-summary>p{grid-column:1/-1;color:#e7d9b3;font-size:10px;line-height:1.6;margin:4px 0}
+@media(max-width:690px){
+ .browser-yolo-selectors{grid-template-columns:1fr}
+ .browser-yolo-picker>div{width:100%}
+ .browser-yolo-picker button{flex:1}
+}

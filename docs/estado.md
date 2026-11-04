@@ -91,3 +91,10 @@ Las trayectorias y eventos siguen siendo los definidos por el simulador sintéti
 ## Undécimo incremento de Fase 6 — integración de modelo YOLO en navegador
 
 Se añade un modo separado para capturar fotogramas del simulador 3D **sin overlays** y realizar inferencia real con un modelo YOLOv8n ONNX y runtime WASM del navegador. No se utilizan posiciones programadas para crear detecciones. La salida de red se valida, filtra por confianza e IoU y se superpone solo al fotograma inferido. El piloto distingue fallos y resultados vacíos de las anotaciones sintéticas. La descarga es opcional por botón y verifica SHA256. Debe comprobarse en navegador real la disponibilidad del modelo externo, su latencia y reconocimiento efectivo. Manual técnico: [YOLO sobre simulador 3D](yolo_simulador_3d.md). Render sigue sin procesar video. Avance administrativo 31.25 %; fase 6 aún abierta.
+
+
+## Duodécimo incremento de Fase 6 — reconocimiento EPP especializado
+
+Se amplió YOLO de 80 clases generales COCO a un **modelo especializado de 14 clases** para Seguridad Industrial, sin modificar el backend Render. Los pesos ONNX verificados se descargan desde Hugging Face solo a solicitud del usuario. El preprocesamiento ahora admite entrada variable 640×480 o 640×640; el decodificador valida el número de clases para impedir etiquetas ficticias. El simulador tiene selector de modelo y fuente de imagen (escena 3D o fotografía local), conteos de EPP y posibles ausencias explícitamente detectadas, nunca inferidas por silencio del detector. La clase sin mascarilla del proveedor se excluye de señales de revisión.
+
+**No declarar precisión o mAP del proyecto sin datos de prueba etiquetados** ni considerar un resultado vacío como cumplimiento. Falta validar el ONNX especializado en Chromium y obtener métricas con fotos reales; la Fase 6 sigue abierta, 31.25% administrativo.
