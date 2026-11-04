@@ -184,10 +184,32 @@ try {
         }
       }
       if (name === 'analisis' && width === 1440) {
-        await cdp.send('Runtime.evaluate', {
-          expression: 'Array.from(document.querySelectorAll(".simulator-ai-switch button"))'
-            + '.find(button => button.textContent.includes("YOLO real"))?.click()'
+        const clicked = await cdp.send('Runtime.evaluate', {
+          expression: '(() => {'
+            + 'window.__yoloQaErrors=[];'
+            + 'window.addEventListener("error", event => window.__yoloQaErrors.push(event.message));'
+            + 'window.addEventListener("unhandledrejection", event => window.__yoloQaErrors.push(String(event.reason)));'
+            + 'const buttons=Array.from(document.querySelectorAll(".simulator-ai-switch button"));'
+            + 'const b=buttons.find(button=>button.textContent.includes("YOLO real"));'
+            + 'if(b) b.click();'
+            + 'return { found:!!b, buttons:buttons.map(x=>x.textContent),'
+            + ' selected:b?.getAttribute("aria-pressed") };'
+            + '})()',
+          returnByValue: true
         });
+        console.log('DIAGNÓSTICO CTA YOLO: '+JSON.stringify(clicked.result?.value));
+        await sleep(900);
+        const modeState = await cdp.send('Runtime.evaluate', {
+          expression: '(() => ({'
+            + ' selected:document.querySelector(".simulator-ai-switch button:nth-child(2)")?.getAttribute("aria-pressed"),'
+            + ' panel:!!document.querySelector(".browser-yolo-panel"),'
+            + ' root:!!document.querySelector("#root"),'
+            + ' pageText:document.body?.textContent?.slice(-500),'
+            + ' errors:window.__yoloQaErrors||[]'
+            + ' }))()',
+          returnByValue: true
+        });
+        console.log('DIAGNÓSTICO DESPUÉS DEL CAMBIO: '+JSON.stringify(modeState.result?.value));
         const yoloUi = await eventually(async () => {
           const state = await cdp.send('Runtime.evaluate', {
             expression: '({ visible:!!document.querySelector(".browser-yolo-panel"),'
