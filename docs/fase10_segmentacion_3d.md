@@ -84,3 +84,20 @@ no modifica el historial original y se genera localmente sin subir datos.
 La acción verifica que la máscara corresponde al fotograma actual.
 Se añaden pruebas para transparencia, integridad geométrica y
 nombres de los cuatro escenarios.
+
+## Incremento 4: estimación robusta del fondo
+
+La referencia de color para cada región pasa de la media de las cuatro
+esquinas a la **mediana superior por canal RGB**. Así, una esquina
+ocupada por un objeto oscuro ya no desplaza indebidamente todo el
+fondo claro y evita resaltar un rectángulo completo por contaminación
+de una única muestra. Se añaden pruebas de esquinas atípicas, ruido
+aislado y consistencia de componentes. La operación sigue siendo
+experimental y no equivale a segmentación por IA.
+
+El ensayo Chromium corrige tres falsas alarmas del propio QA:
+comparar un estado de ejecución con un conteo, ocultar la máscara
+antes de revisar sus controles y confirmar «Detener» sin pulsarlo.
+Ahora exige una reanudación real que produce una nueva lectura
+antes de detener el motor. También verifica que el 85 % del filtro
+sea un valor de estado React y no solo un atributo DOM alterado.

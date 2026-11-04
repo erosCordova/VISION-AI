@@ -21,6 +21,24 @@ describe('Fase 10 — máscaras de contraste obtenidas de píxeles reales',()=>{
   expect(m.binary[7*20+7]).toBe(1);
   expect(m.binary[2*20+2]).toBe(0);
  });
+ it('una esquina de la ROI ocupada por objeto no contamina todo el fondo',()=>{
+  const rgba=prepare(20,20);
+  // La esquina superior izquierda de la ROI es (2,2).
+  const i=(2*20+2)*4;rgba[i]=0;rgba[i+1]=0;rgba[i+2]=0;
+  const m=segmentByContrast(rgba,20,20,[box],70,1);
+  expect(m.selectedPixels).toBe(1);
+  expect(m.binary[2*20+2]).toBe(1);
+  expect(m.binary[2*20+3]).toBe(0);
+ });
+ it('filtrado tras esquina atípica mantiene regiones conectadas',()=>{
+  const rgba=prepare(20,20);
+  for(const [x,y] of [[2,2],[9,9],[9,10],[10,9],[10,10]]){
+   const i=(y*20+x)*4;rgba[i]=10;rgba[i+1]=45;rgba[i+2]=10;
+  }
+  const result=segmentByContrast(rgba,20,20,[box],70,4);
+  expect(result.selectedPixels).toBe(4);
+  expect(result.regions[0].selectedPixels).toBe(4);
+ });
  it('las regiones superpuestas no duplican el área del fotograma',()=>{
   const rgba=prepare(20,20);
   for(let y=6;y<14;y++)for(let x=6;x<14;x++){

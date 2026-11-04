@@ -651,12 +651,15 @@ try {
            +'frames:Number(document.querySelector(".browser-yolo-count b")?.textContent||0),'
            +'monitor:document.querySelector(".yolo-monitor-kpi.primary strong")?.textContent?.trim(),'
            +'visual:Number(document.querySelector(".browser-yolo-kpis strong")?.textContent||0),'
-           +'confidence:document.querySelector("#yolo-confidence")?.value'
+           +'confidence:document.querySelector("#yolo-confidence")?.value,'
+           +'confidenceLabel:Array.from(document.querySelectorAll("label"))'
+           +'.find(x=>x.htmlFor==="yolo-confidence")?.textContent?.trim()'
            +'}))()',returnByValue:true
         });
         const filtered=afterFilters.result?.value;
         if(filtered.frames!==baseline.frames||filtered.monitor!==baseline.original||
-          filtered.visual>Number(filtered.monitor)||filtered.confidence!=='85')
+          filtered.visual>Number(filtered.monitor)||filtered.confidence!=='85'||
+          !filtered.confidenceLabel?.includes('85 %'))
           throw Error('OB02: el filtro afectó datos originales o activó inferencia: '+JSON.stringify({baseline,filtered}));
         console.log('OB02/OB05: confianza visual filtrada con detector pausado sin alterar evidencia');
 
@@ -708,6 +711,7 @@ try {
              +'error:document.querySelector(".browser-yolo-error")?.textContent?.trim(),'
              +'phase:document.querySelector(".browser-yolo-phase")?.textContent?.trim(),'
              +'monitor:document.querySelector(".yolo-monitor-status")?.textContent?.trim(),'
+             +'objects:document.querySelector(".yolo-monitor-kpi.primary strong")?.textContent?.trim(),'
              +'frames:Number(document.querySelector(".browser-yolo-count b")?.textContent||0)'
              +'}))()',returnByValue:true
           });
@@ -766,9 +770,7 @@ try {
         if(maskInfo.count!==afterRetry.frames||!maskInfo.summary.includes('píxeles')||
            !maskInfo.source.includes('simulación 3D'))
           throw Error('SG01: máscara no corresponde al fotograma YOLO');
-        await cdp.send('Runtime.evaluate',{
-          expression:'document.querySelector("#yolo-chromatic-mask")?.click()'
-        });
+        // Mantener la capa activa hasta concluir SG05 y SG06.
         // Las opciones de ruido y silueta transforman únicamente el render,
         // no crean frames nuevos ni modifican la bitácora del monitor.
         const beforeMaskControls=maskInfo.count;
@@ -790,7 +792,8 @@ try {
           returnByValue:true
         });
         if(filterUnchanged.result?.value?.count!==beforeMaskControls||
-          filterUnchanged.result?.value?.monitor!==afterRetry.monitor)
+          filterUnchanged.result?.value?.monitor!==afterRetry.objects||
+          !filterUnchanged.result?.value?.mask)
           throw Error('SG05: cambio de vista alteró inferencias o monitor original');
         console.log('SG05: limpieza y silueta no causan nuevas inferencias');
 
@@ -806,6 +809,19 @@ try {
           throw Error('SG06: exportación transparente no corresponde al último fotograma');
         console.log('SG06: opción de PNG de máscara disponible sin alterar lecturas YOLO');
         console.log('SG01: máscara RGB calculada con evidencia YOLO real, sin ONNX adicional');
+        await cdp.send('Runtime.evaluate',{
+          expression:'document.querySelector("#yolo-chromatic-mask")?.click()'
+        });
+        const maskIsHidden=await cdp.send('Runtime.evaluate',{
+          expression:'(() => ({active:document.querySelector("#yolo-chromatic-mask")?.checked,'
+           +'controls:!!document.querySelector("#yolo-mask-style"),'
+           +'count:Number(document.querySelector(".browser-yolo-count b")?.textContent||0)}))()',
+          returnByValue:true
+        });
+        if(maskIsHidden.result?.value?.active!==false||
+          maskIsHidden.result?.value?.controls||
+          maskIsHidden.result?.value?.count!==afterRetry.frames)
+          throw Error('SG06: desactivar la máscara alteró el conteo o dejó controles activos');
         const runTag=await cdp.send('Runtime.evaluate',{
           expression:'document.querySelector(".browser-yolo-run")?.textContent?.trim()||""',
           returnByValue:true
@@ -860,22 +876,39 @@ try {
         });
         fs.writeFileSync(path.join(artifacts, 'yolo-inferencia-real-1440.png'),
           Buffer.from(inferenceShot.data,'base64'));
-        await cdp.send('Runtime.evaluate', {
-          expression: 'Array.from(document.querySelectorAll(".browser-yolo-panel button"))'
-            + '.find(b=>b.textContent.includes("Detener inferencia"))?.click()'
+        // Un reintento exitoso concluye detenido; comprobar ahora reanudación
+        // real del mismo modelo en memoria, no solo la presencia de un botón.
+        const resumed=await cdp.send('Runtime.evaluate',{
+          expression:'(() => {const button=document.querySelector(".browser-yolo-actions button.primary");'
+            +'button?.click();return !!button;})()',returnByValue:true
         });
+        if(!resumed.result?.value)throw Error('OB05: no existe reanudación YOLO');
         await eventually(async()=>{
-          const status=await cdp.send('Runtime.evaluate',{
-            expression:'(() => ({'
-              +'panel:document.querySelector(".browser-yolo-phase")?.textContent?.trim(),'
-              +'monitor:document.querySelector(".yolo-monitor-status")?.textContent?.trim(),'
-              +'restart:!!document.querySelector(".browser-yolo-actions button.primary")'
-              +'}))()',returnByValue:true
+          const result=await cdp.send('Runtime.evaluate',{
+            expression:'(() => ({phase:document.querySelector(".browser-yolo-phase")?.textContent?.trim(),'
+             +'frames:Number(document.querySelector(".browser-yolo-count b")?.textContent||0)}))()',
+            returnByValue:true
           });
-          const s=status.result?.value;
+          const s=result.result?.value;
+          return s?.phase?.includes('EJECUTÁNDOSE')&&s.frames>0?s:null;
+        },'OB05 reanudación del motor y nuevo fotograma',340);
+        const stopClicked=await cdp.send('Runtime.evaluate',{
+          expression:'(() => {const b=Array.from(document.querySelectorAll(".browser-yolo-actions button"))'
+           +'.find(x=>x.textContent.includes("Detener inferencia"));'
+           +'b?.click();return Boolean(b);})()',returnByValue:true
+        });
+        if(!stopClicked.result?.value)throw Error('OB05: control Detener no disponible');
+        await eventually(async()=>{
+          const result=await cdp.send('Runtime.evaluate',{
+            expression:'(() => ({panel:document.querySelector(".browser-yolo-phase")?.textContent?.trim(),'
+             +'monitor:document.querySelector(".yolo-monitor-status")?.textContent?.trim(),'
+             +'restart:!!document.querySelector(".browser-yolo-actions button.primary")}))()',
+            returnByValue:true
+          });
+          const s=result.result?.value;
           return s?.panel?.includes('DETENIDO')&&s.monitor?.includes('DETENIDA')&&s.restart?true:null;
-        },'OB05 inferencia detenida y reanudación disponible');
-        console.log('OB05: la inferencia se detiene sin perder el control de reanudación');
+        },'OB05 parar tras reanudar');
+        console.log('OB05: inferencia YOLO se reanudó, produjo otro fotograma y se detuvo correctamente');
 
       }
       console.log('QA OK: ' + name + ' a ' + width + ' px; sin desbordamiento horizontal');

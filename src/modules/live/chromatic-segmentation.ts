@@ -42,8 +42,10 @@ export function segmentByContrast(
   roiBounds.push({x0,y0,x1,y1});
   if(roiPixels>0){
    const corners=[pixel(x0,y0),pixel(x1-1,y0),pixel(x0,y1-1),pixel(x1-1,y1-1)];
-   const back=[0,0,0];
-   for(const index of corners)for(let ch=0;ch<3;ch++)back[ch]+=rgba[index+ch]/4;
+   // Mediana superior de cuatro esquinas: tolera una esquina ocupada por objeto.
+   // La media común desplazaba el fondo e iluminaba casi toda la ROI por error.
+   const back=[0,1,2].map(channel=>
+    corners.map(index=>rgba[index+channel]).sort((a,b)=>a-b)[2]);
    for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){
     const at=pixel(x,y);
     const dr=rgba[at]-back[0],dg=rgba[at+1]-back[1],db=rgba[at+2]-back[2];

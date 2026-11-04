@@ -214,3 +214,13 @@ No pertenece a la salida de YOLOv8-det ni sustituye la aceptación
 pendiente de OB01–OB05. El trabajo se documenta en
 [segmentación de escenarios 3D](fase10_segmentacion_3d.md).
 Se mantienen la validación de fase 9 y el avance oficial de 50 %.
+
+## Endurecimiento del cierre de aceptación
+
+La batería Chromium del bloque incorpora comprobación de reanudación
+real del motor después del fallo, al menos una lectura nueva,
+detención efectiva, continuidad de las métricas originales y
+persistencia de controles de máscara durante su validación. Se
+eliminan aserciones que podían dar falsos positivos o fallar por
+comparar tipos de datos distintos. Queda por **ejecutar** la batería
+completa antes de aprobar la fase.
