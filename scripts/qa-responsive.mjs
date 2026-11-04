@@ -120,8 +120,10 @@ try {
           + 'hasFocusableMain: !!document.querySelector("main[tabindex=\\\"-1\\\"]"), '
           + 'hasSkip: !!document.querySelector("a.skip"), hasText: !!element.textContent.trim(), '
           + 'hasSimulationModes: !!document.querySelector(".simulation-source-tabs button[aria-pressed=true]"), '
-          + 'hasSimulatorStage: !!document.querySelector(".simulator-svg"), '
+          + 'hasSimulatorStage: !!document.querySelector(".simulator-3d-stage canvas"), '
           + 'hasSimulatorControls: !!document.querySelector(".simulator-controls input[type=range]"), '
+          + 'hasCameraPresets: document.querySelectorAll(".simulator-view-group button").length === 3, '
+          + 'hasSyntheticDisclosure: !!document.querySelector(".simulator-footnote"), '
           + 'hasSyntheticLabel: !!document.querySelector(".simulator-mode"), '
           + 'hasScenarioTabs: document.querySelectorAll(".simulator-scenarios button").length === 4 }; '
           + '})()';
@@ -131,7 +133,7 @@ try {
       if (view.viewport !== width || view.pageWidth > width + 1
           || view.elementLeft < -1 || view.elementLeft + view.elementWidth > width + 1
           || !view.hasFocusableMain || !view.hasSkip || !view.hasText
-          || (name === 'analisis' && (!view.hasSimulationModes || !view.hasSimulatorStage || !view.hasSimulatorControls || !view.hasSyntheticLabel || !view.hasScenarioTabs))) {
+          || (name === 'analisis' && (!view.hasSimulationModes || !view.hasSimulatorStage || !view.hasSimulatorControls || !view.hasCameraPresets || !view.hasSyntheticDisclosure || !view.hasSyntheticLabel || !view.hasScenarioTabs))) {
         throw Error('QA falló (' + width + ' px, ' + name + '): ' + JSON.stringify(view));
       }
       const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });

@@ -74,3 +74,14 @@ Pruebas unitarias para métricas, contrato de respuesta y lecturas por escenario
 El usuario precisó que «simulación en tiempo real» significa escena digital animada con múltiples objetos rastreados visualmente, zonas punteadas, cajas, información lateral, pausa y captura, semejante a una consola industrial. Se agregó el simulador 2D interactivo y autocontenido con SVG y un motor geométrico determinista: seguridad, manufactura, retail y logística. La interfaz incluye filtros de puntuación sintética y capas, alerta ilustrativa derivada de la posición conocida de los objetos y serie temporal, sin presentarlo como YOLO.
 
 Se mantiene otro modo para reproducir video y cámara con inferencia real, condicionado a disponibilidad del backend. Las comprobaciones de UI automatizadas cubren controles clave del simulador. **No es validación de inferencia real**; Fase 6 continúa en revisión.
+
+
+## Octavo incremento — sustitución de SVG por escena 3D real
+
+Cambio solicitado: experiencia significativamente más compleja y profesional, con visión tridimensional genuina, objetos volumétricos y controles avanzados. Se crea un renderizador WebGL2 nativo con shaders, iluminación direccional y ambiente, z-buffer, mallas por lotes, cámara orbital acotada y proyección de cajas sobre geometría 3D.
+
+En Seguridad se representan trabajadores con casco/chaleco y áreas restringidas; en Manufactura se instala línea de inspección y piezas móviles; en Retail, góndolas y personas; en Logística, racks, pallets y montacargas. Las trayectorias y eventos proceden del motor determinista preexistente, no de YOLO.
+
+UI: selección de cámara isométrica/frontal/superior, giro por arrastre y teclado, zoom por rueda o botones, línea de tiempo navegable, velocidades 0.5× a 4×, reproducción, pausa, reinicio, pantalla completa, filtros de anotación, máscaras visuales esquemáticas, registro y exportación PNG. Pruebas puras de cámara, proyección y mallas 3D; QA responsive verifica el lienzo y controles de los escenarios. La disponibilidad real de WebGL2 depende del dispositivo.
+
+**Separación de dominios:** la vista 3D se denomina simulación sintética, no inferencia YOLO. El backend Render Free sigue sin PyTorch y sin procesamiento visual. Se mantiene la fase abierta hasta validación física y accesibilidad completa.

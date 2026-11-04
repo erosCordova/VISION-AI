@@ -47,7 +47,7 @@ export function LiveAnalysisPage({ scenarios, scenarioId, onScenarioChange, role
   };
   return <>
     <div className="simulation-source-tabs" role="group" aria-label="Modalidad de simulación y análisis">
-      <button aria-pressed={source === 'simulator'} onClick={() => selectSource('simulator')}>◈ Simulador interactivo</button>
+      <button aria-pressed={source === 'simulator'} onClick={() => selectSource('simulator')}>◈ Simulador 3D</button>
       <button aria-pressed={source === 'video'} onClick={() => selectSource('video')}>▣ Video con YOLO</button>
       <button aria-pressed={source === 'camera'} onClick={() => selectSource('camera')}>◎ Cámara con YOLO</button>
     </div>

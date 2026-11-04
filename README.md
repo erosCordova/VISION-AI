@@ -49,3 +49,12 @@ Consulta [alcance y configuración de la publicación gratuita](docs/despliegue_
 ## Simulador visual interactivo
 
 En **Análisis en vivo → Simulador interactivo** aparecen los cuatro escenarios animados con zonas, objetos y anotaciones, controles de capas, velocidad, pausa y captura PNG. Es una escena sintética **sin detecciones YOLO**; el motor real se mantiene en las otras dos modalidades y no está disponible en Render Free. Ver [funcionamiento detallado](docs/simulacion_interactiva.md).
+
+
+## Laboratorio 3D avanzado (Fase 6)
+
+**Análisis en vivo → Simulador 3D** abre una instalación interactiva WebGL2: geometría volumétrica de personas, EPP, montacargas, racks, cajas, productos, cinta y zonas en suelo. Incorpora tres vistas de cámara (isométrica, frontal y superior), rotación con ratón y flechas, zoom de rueda, ajustes de visualización, cronología, cambio de velocidad, pausa, reinicio, pantalla completa y captura PNG. Su renderizador es WebGL2 nativo con shaders y mallas 3D generadas localmente, sin bibliotecas adicionales ni coste de GPU remota.
+
+Las puntuaciones, escenas y alertas del simulador siguen siendo **datos sintéticos** y están rotulados como tales. Las otras dos modalidades son **Video con YOLO** y **Cámara con YOLO**, que no pretenden inferencia disponible en Render Free.
+
+Ver [manual técnico del laboratorio 3D](docs/simulacion_interactiva_3d.md).

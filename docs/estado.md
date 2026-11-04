@@ -67,3 +67,10 @@ Se introduce un modo **API de estado sin inferencia** para Render Free. Esto per
 ## Incremento de Fase 6 — simulador visual interactivo
 
 Se implementa una escena digital SVG animada y autocontenida en «Análisis en vivo» (modalidad inicial), con cuatro escenarios, elementos móviles, zonas, cajas, anotaciones, capas, umbral sintético, velocidades, pausa y captura PNG. No descarga modelos ni utiliza inferencia YOLO; marca sus resultados como **datos sintéticos** y conserva por separado las modalidades de video/cámara reales. Ver [guía del simulador](simulacion_interactiva.md). CI responsive y pruebas unitarias deben verificarse antes de cerrar este incremento. Avance administrativo 31.25 %.
+
+
+## Octavo incremento Fase 6 — laboratorio 3D WebGL2
+
+Se sustituye la escena 2D por un escenario tridimensional con mallas procedurales, luces por normales, perspectiva y profundidad de WebGL2, cámara orbital controlable, vistas isométrica/frontal/superior y decorado industrial específico para los cuatro sectores. Se incorporan controles de pausa, velocidad, línea de tiempo, cámara, captura PNG, capas y registro de eventos. El motor de geometría y sus eventos son sintéticos y no se presentan como inferencia real.
+
+Se conserva la aplicación Vercel Hobby y la API de estado en Render Free, sin costes de servidor de GPU. Las pruebas de geometría 3D y QA responsive verifican los componentes disponibles; la calidad visual y WebGL2 hardware requieren validación en distintos dispositivos. **No declarar Fase 6 cerrada ni variar el 31.25 %** sin completar sus criterios.

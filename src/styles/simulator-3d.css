@@ -1,0 +1,103 @@
+/* Fase 06 — consola 3D: estilos adicionales sobre simulador.css */
+.simulator-v2{background:#0b1e29;border:1px solid #294c5a;box-shadow:0 28px 90px rgba(14,37,52,.20);}
+.simulator-v2 .simulator-topline{padding:25px 29px;background:linear-gradient(115deg,#123746 0%,#0f2a38 64%,#183643 100%);}
+.simulator-v2 .simulator-topline h2{letter-spacing:-.8px;font-size:26px}
+.simulator-v2 .simulator-mode{background:#173a37;border-color:#397d6b;color:#8af1c9}
+.simulator-v2 .simulator-scenarios{padding:12px 20px;background:#0b2330}
+.simulator-v2 .simulator-scenarios button{font-size:12px;gap:12px;min-height:47px}
+.simulator-3d-summary{display:grid;grid-template-columns:1.48fr 1fr .94fr 1.05fr .94fr;gap:0;border-bottom:1px solid #294856;background:#0e2532}
+.simulator-3d-summary>div{padding:17px 18px;border-right:1px solid #2e4956;min-width:0;display:grid;gap:8px;align-content:center}
+.simulator-3d-summary>div:last-child{border:0}
+.simulator-3d-summary>div>span{font-size:9px;letter-spacing:1.2px;font-weight:800;color:#82a6ab}
+.simulator-3d-summary strong{font-family:Manrope,sans-serif;font-size:14px;line-height:1.25;color:#e7f8f6;overflow-wrap:anywhere}
+.simulator-3d-summary strong small{font-family:DM Sans,sans-serif;font-size:9px;color:#82adb1}
+.simulator-3d-summary strong.sim-status-normal{font-size:11px;color:#72e8bc;letter-spacing:.4px}
+.simulator-3d-summary strong.sim-status-alert{font-size:11px;color:#ffc08c;letter-spacing:.4px}
+.simulator-v2 .simulator-content{grid-template-columns:minmax(0,1.9fr) minmax(298px,.90fr)}
+.simulator-v2 .simulator-visual{background:#0c202d;padding:22px 19px 17px}
+.simulator-v2 .simulator-controls{background:#122b39;padding:24px 20px 12px;display:block;min-width:0;border-left:1px solid #2d5060}
+.simulator-v2 .simulator-control-section{padding-bottom:17px;margin-bottom:18px;border-bottom-color:#31505e}
+.simulator-v2 .simulator-controls>.simulator-kicker{margin-bottom:21px;color:#8cbcb5}
+.simulator-v2 .simulator-visual-head h3{font-size:21px;margin-top:8px}
+.simulator-v2 .simulator-canvas-wrap{border:1px solid #416a77;border-radius:12px;background:#081823;overflow:hidden;box-shadow:0 20px 44px rgba(0,6,13,.4)}
+.simulator-3d-stage{position:relative;overflow:hidden;aspect-ratio:960/550;width:100%;height:auto;background:radial-gradient(ellipse at 56% 38%,#24485a,#0a1b28 73%);border-radius:11px}
+.simulator-3d-stage>canvas:first-child{display:block;width:100%;height:100%;outline:0;cursor:grab;touch-action:none;position:absolute;inset:0}
+.simulator-3d-stage.dragging>canvas:first-child{cursor:grabbing}
+.simulator-3d-stage>canvas:first-child:focus-visible{outline:3px solid #5de5c1;outline-offset:-3px}
+.simulator-3d-stage>canvas.simulator-3d-hud{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.simulator-3d-stage::after{content:"";pointer-events:none;position:absolute;inset:0;border-radius:11px;box-shadow:inset 0 0 80px 14px rgba(5,21,29,.18);background:repeating-linear-gradient(to bottom,transparent 0,transparent 4px,rgba(12,33,42,.055) 4px,rgba(12,33,42,.055) 5px)}
+.simulator-v2 .simulator-canvas-badge{right:auto;left:16px;top:64px;border-color:#295e60;color:#aaf6dc;background:#092934d8}
+.simulator-3d-top,.simulator-3d-bottom{position:absolute;left:17px;right:17px;display:flex;justify-content:space-between;align-items:center;gap:14px;z-index:1;pointer-events:none;color:#a4d6cd;text-shadow:0 1px 4px #061b28;font:700 9px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:1.2px}
+.simulator-3d-top{top:18px}
+.simulator-3d-bottom{bottom:17px;color:#a9d8d0}
+.simulator-3d-live{color:#6ef2c3}
+.simulator-3d-error{position:absolute;inset:0;background:#102633eb;z-index:4;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:26px;text-align:center;color:#ffddd2}
+.simulator-3d-error strong{font-size:16px}
+.simulator-3d-error p{font-size:12px;line-height:1.6;max-width:460px}
+.simulator-runtime{display:flex;gap:9px;align-items:center;flex-wrap:wrap;font-size:10px;letter-spacing:.7px;font-weight:800;color:#83e9c8}
+.simulator-runtime-dot{width:7px;height:7px;border-radius:50%;background:#5ee6b7}
+.simulator-runtime strong{background:#173840;border:1px solid #2d615a;border-radius:6px;padding:8px 10px;font:700 13px ui-monospace,Consolas,monospace;color:#d9f5e8}
+.simulator-camera-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:11px 0 14px;flex-wrap:wrap}
+.simulator-view-group,.simulator-view-tools{display:flex;gap:4px;flex-wrap:wrap;border:1px solid #345460;border-radius:9px;background:#0b2a36;padding:3px}
+.simulator-view-group button,.simulator-view-tools button{font-size:10px;color:#a6c9c7;background:transparent;border:1px solid transparent;padding:9px 11px;border-radius:6px}
+.simulator-view-group button:hover,.simulator-view-tools button:hover{color:#f4fffa;background:#224754;border-color:#40796d}
+.simulator-view-group button[aria-pressed=true]{background:#245b56;color:#a9f7dc;border-color:#418d80}
+.simulator-view-tools button{font-size:16px;padding:5px 10px;min-width:32px}
+.simulator-v2 .simulator-event{margin-top:0;padding:12px 14px}
+.simulator-timeline{border:1px solid #2f505c;border-radius:10px;background:#112b37;padding:15px 16px;margin-bottom:12px}
+.simulator-timeline-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#92b9b6;font-size:9px;letter-spacing:1.1px;font-weight:800}
+.simulator-timeline input{display:block;width:100%;margin:16px 0 12px;accent-color:#61e3bb;cursor:pointer}
+.simulator-timeline-actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.simulator-timeline-actions>div{display:flex;gap:7px}
+.simulator-timeline-actions button{font-size:11px;background:#244453;border-color:#416a72;color:#d8efeb;padding:9px 13px}
+.simulator-timeline-actions button:hover{background:#2c5b64;border-color:#6eb9a6;color:white}
+.simulator-timeline-actions button.simulator-pause{background:#246856;border-color:#4cb797;color:#e7fff1}
+.simulator-action-error{font-size:11px;color:#ffc5a4}
+.simulator-v2 .simulator-health{display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px dashed #375766;padding:9px 0;font-size:10px;color:#96b9b8}
+.simulator-v2 .simulator-health:first-of-type{margin-top:10px}
+.simulator-v2 .simulator-health b{color:#97eace;font-size:10px}
+.simulator-v2 .simulator-health:last-child b{color:#e1b582}
+.simulator-v2 .simulator-speed{grid-template-columns:repeat(4,minmax(0,1fr))}
+.simulator-v2 .simulator-trend svg{width:100%;height:60px}
+.simulator-events{min-width:0}
+.simulator-event-item{display:flex;gap:11px;border-left:1px solid #3a5960;padding:7px 0 10px 13px;position:relative}
+.simulator-event-light{width:8px;height:8px;display:block;background:#5edabb;border-radius:50%;position:absolute;left:-4px;top:13px}
+.simulator-event-light.danger{background:#ffa285}
+.simulator-event-item>div{min-width:0}
+.simulator-event-item small{font-size:9px;color:#64d9be}
+.simulator-event-item p{font-size:11px;color:#afc8c3;line-height:1.5;margin:5px 0 0;overflow-wrap:anywhere}
+.simulator-alert-toggle{font-size:11px;margin-top:10px;width:100%;padding:10px;border-color:#47736f;background:#1c4a48;color:#bbf4e3}
+.simulator-alert-toggle:hover{background:#275e58}
+.simulator-events-note{color:#f5c08c!important}
+.simulator-v2 .simulator-footnote{padding:16px 24px;background:#0a1f2c}
+@media(max-width:1040px){
+ .simulator-v2 .simulator-content{grid-template-columns:1fr}
+ .simulator-v2 .simulator-controls{border-top:1px solid #36515c;border-left:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 24px}
+ .simulator-v2 .simulator-controls>.simulator-kicker{grid-column:1/-1;margin:0}
+ .simulator-v2 .simulator-control-section{margin:0}
+ .simulator-3d-summary{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .simulator-3d-summary>div{padding:13px 14px;border-bottom:1px solid #2c4954}
+}
+@media(max-width:650px){
+ .simulator-v2 .simulator-topline{padding:19px 16px}
+ .simulator-v2 .simulator-topline h2{font-size:21px}
+ .simulator-3d-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .simulator-3d-summary>div{padding:12px 12px}
+ .simulator-3d-summary strong{font-size:12px}
+ .simulator-v2 .simulator-visual{padding:15px 10px}
+ .simulator-3d-stage{aspect-ratio:1.35}
+ .simulator-3d-top,.simulator-3d-bottom{left:11px;right:11px;font-size:8px}
+ .simulator-3d-bottom>span:last-child{display:none}
+ .simulator-v2 .simulator-controls{display:block;padding:20px 16px}
+ .simulator-v2 .simulator-control-section{margin-bottom:18px}
+ .simulator-timeline-meta{flex-wrap:wrap}
+ .simulator-timeline{padding:13px}
+ .simulator-timeline-actions button{padding:8px 10px}
+ .simulator-v2 .simulator-canvas-badge{left:10px;top:46px;font-size:7px}
+ .simulator-view-group,.simulator-view-tools{width:100%;justify-content:center}
+ .simulator-camera-toolbar{gap:7px}
+ .simulator-view-group button{flex:1}
+}
+@media(prefers-reduced-motion:reduce){.simulator-v2 *, .simulator-v2 *::before,.simulator-v2 *::after{animation:none!important;transition:none!important}}
+:fullscreen.simulator-v2{width:100vw;height:100vh;overflow:auto;border-radius:0;background:#091f2c}
+:fullscreen.simulator-v2 .simulator-3d-stage{aspect-ratio:16/9}
