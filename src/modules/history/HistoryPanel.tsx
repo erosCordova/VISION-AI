@@ -175,6 +175,26 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
     Puede haber cero detecciones YOLO. La confianza del modelo no es precisión
     y una revisión humana no confirma infracciones.</p>
   </section>
+  <section className="history-print-report" aria-label="Versión imprimible del informe">
+   <h2>VISION-AI · Informe local de sesiones</h2>
+   <p>Emisión: {timestamp} · Fuente: IndexedDB local · {metrics.total} sesiones filtradas</p>
+   <p>Sesiones con YOLO: {metrics.yolo} · Detecciones: {metrics.detections} ·
+    Por revisar: {metrics.open} · Revisadas: {metrics.closed}</p>
+   <table><thead><tr><th>Escenario</th><th>Sesiones</th></tr></thead>
+    <tbody>{metrics.byScenario.map(item=><tr key={item.id}>
+     <td>{SCENARIOS.find(s=>s.id===item.id)?.label}</td><td>{item.count}</td>
+    </tr>)}</tbody></table>
+   <h3>Registros incluidos</h3>
+   <table><thead><tr><th>ID sesión</th><th>Escenario</th><th>Origen</th>
+    <th>Guardado UTC</th><th>Detecciones</th></tr></thead>
+    <tbody>{filtered.map(item=><tr key={item.id}>
+     <td>{item.id}</td><td>{item.scenarioName}</td><td>{item.mode}</td>
+     <td>{item.savedAt}</td><td>{item.inference?.detections.length??0}</td>
+    </tr>)}</tbody></table>
+   <p>Reporte informativo local; no almacena fotogramas, no mide exactitud,
+    no declara infracciones ni fabrica detecciones. La huella de escena
+    no acredita los píxeles originales del detector.</p>
+  </section>
   {corruptIds.length>0&&<section className="session-history-integrity" role="alert"
    aria-label="Registros dañados o incompatibles">
    <h3>{corruptIds.length} registro(s) en revisión</h3>

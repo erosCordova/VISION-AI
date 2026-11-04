@@ -42,3 +42,12 @@ datasets ni resultados fabricados.
 **Para aprobar:** TypeScript, Vitest, Python, Vite y Chromium 360/768/1440
 con verificación de filtros, datos exportados, integridad e inexistencia
 de archivos externos.
+
+## Interfaz terminada para validación
+
+Historial ofrece tarjetas con métricas calculadas exclusivamente de las
+sesiones válidas, filtros combinables de búsqueda, escenario, origen,
+periodo y revisión humana, tres CSV específicos, JSON auditable y
+una vista A4 imprimible. Los detalles individuales incorporan
+CSV, JSON y estado de revisión. Las sesiones dañadas se aíslan antes
+de cualquier exportación; nunca se exportan de manera implícita.
