@@ -6,6 +6,8 @@ export type MonitorPhase='idle'|'loading'|'running'|'stopped'|'failed';
 export interface YoloObservation {
  readonly frameNumber:number;
  readonly capturedAtMs:number;
+ /** Hora en que la inferencia terminó, separada de la captura original. */
+ readonly completedAtMs?:number;
  readonly inferenceMs:number;
  readonly detections:readonly Detection[];
  readonly model:YoloFamily;
@@ -99,6 +101,13 @@ export function updateYoloTelemetry(previous:YoloTelemetry,event:YoloTelemetryEv
    ...previous.captureTimestamps.slice(-19),event.capturedAtMs]};
  }
  if(previous.phase!=='running'||event.observation.model!==previous.model)return previous;
+ const incoming=event.observation;
+ if(!Number.isSafeInteger(incoming.frameNumber)||incoming.frameNumber<1||
+  !Number.isFinite(incoming.capturedAtMs)||!Number.isFinite(incoming.inferenceMs)||
+  incoming.inferenceMs<0||
+  (incoming.completedAtMs!==undefined&&
+   (!Number.isFinite(incoming.completedAtMs)||incoming.completedAtMs<incoming.capturedAtMs)))
+  return previous;
  const last=previous.observations.at(-1);
  if(last && (event.observation.frameNumber<=last.frameNumber ||
    event.observation.capturedAtMs<last.capturedAtMs))return previous;
@@ -135,11 +144,19 @@ export function observedCaptureFps(stamps:readonly number[]):number|null{
  const delta=latest.at(-1)!-latest[0];
  return delta>0?1000*(latest.length-1)/delta:null;
 }
+/** Inferencias terminadas por segundo; distinto de la tasa de captura. */
 export function observedYoloFps(samples:readonly YoloObservation[]):number|null{
  const latest=samples.slice(-12);
  if(latest.length<2)return null;
- const delta=latest.at(-1)!.capturedAtMs-latest[0].capturedAtMs;
- return delta>0?1000*(latest.length-1)/delta:null;
+ const stamp=(item:YoloObservation)=>item.completedAtMs??item.capturedAtMs;
+ const delta=stamp(latest.at(-1)!)-stamp(latest[0]);
+ return Number.isFinite(delta)&&delta>0?1000*(latest.length-1)/delta:null;
+}
+/** Edad de la lectura desde el resultado terminado, no desde el frame capturado. */
+export function observationAgeSeconds(item:YoloObservation|null,now:number):number|null{
+ if(!item||!Number.isFinite(now))return null;
+ const time=item.completedAtMs??item.capturedAtMs;
+ return Number.isFinite(time)?Math.max(0,(now-time)/1000):null;
 }
 export function reviewSignals(model:YoloFamily,detections:readonly Detection[]):number{
  if(model!=='ppe')return 0;

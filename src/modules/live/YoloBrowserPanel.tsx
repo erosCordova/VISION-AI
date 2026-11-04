@@ -147,9 +147,10 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
      setDetections(result.detections);
      setInferenceMs(result.inferenceMs);
      const capturedAtMs=job.capturedAtMs;
+     const completedAtMs=Date.now();
      setLastFrameAt(capturedAtMs);
      onTelemetry({type:'frame',observation:{frameNumber:job.frameId,
-       capturedAtMs,inferenceMs:result.inferenceMs,detections:result.detections,
+       capturedAtMs,completedAtMs,inferenceMs:result.inferenceMs,detections:result.detections,
        model:model.family}});
      const now=performance.now();
      times.current=[...times.current.filter(t=>t>now-10_000),now].slice(-20);
@@ -212,10 +213,11 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
    lastAnalyzed.current=result;
    setDetections(result.detections);setInferenceMs(result.inferenceMs);
    const capturedAtMs=job.capturedAtMs;
+   const completedAtMs=Date.now();
    setLastFrameAt(capturedAtMs);
    onTelemetry({type:'status',phase:'running',model:family});
    onTelemetry({type:'frame',observation:{
-    frameNumber:job.frameId,capturedAtMs,
+    frameNumber:job.frameId,capturedAtMs,completedAtMs,
     inferenceMs:result.inferenceMs,detections:result.detections,model:family
    }});
    onTelemetry({type:'status',phase:'stopped',model:family});
