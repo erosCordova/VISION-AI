@@ -71,10 +71,24 @@ export function InteractiveSimulator({scenarioId,onScenarioChange,sessionReposit
    const now=performance.now();
    const delta=Math.min(180,now-frameRef.current.previous);
    frameRef.current.previous=now;
+   if(document.hidden)return; // No recalcular React/3D cuando la pestaña no está visible.
    setElapsed(value=>value+delta*speed/1000);
   },75);
-  return ()=>window.clearInterval(timer);
+  const resetClock=()=>{frameRef.current.previous=performance.now();};
+  document.addEventListener('visibilitychange',resetClock);
+  return ()=>{
+   window.clearInterval(timer);
+   document.removeEventListener('visibilitychange',resetClock);
+  };
  },[paused,speed]);
+ useEffect(()=>{
+  // La preferencia del sistema detiene la animación; el usuario puede
+  // reanudar desde el botón de pausa/continuar cuando lo necesite.
+  const mq=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const honorPreference=()=>{if(mq.matches)setPaused(true);};
+  honorPreference();mq.addEventListener('change',honorPreference);
+  return ()=>mq.removeEventListener('change',honorPreference);
+ },[]);
  const snapshot=useMemo(()=>simulationSnapshot(scenarioId,elapsed),[scenarioId,elapsed]);
  const filterCount=snapshot.entities.filter(entity=>entity.score>=threshold).length;
  const yoloLatest=yoloTelemetry.observations.at(-1)??null;
