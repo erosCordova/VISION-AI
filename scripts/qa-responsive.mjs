@@ -1125,6 +1125,9 @@ try {
   if(!aged.result?.value?.id)throw Error('PR03: falta sesión antigua de QA');
   const agedId=aged.result.value.id,initialCount=aged.result.value.initial;
   await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Privacidad'});
+  // El último recorrido ya estaba en esta misma ruta. CDP edita IndexedDB
+  // fuera del árbol React; recargar obliga a reconsultar los datos reales.
+  await cdp.send('Page.reload',{ignoreCache:true});
   const initialPrivacy=await eventually(async()=>{
     const r=await cdp.send('Runtime.evaluate',{
       expression:'(() => ({values:Array.from(document.querySelectorAll(".privacy-metrics strong"))'
