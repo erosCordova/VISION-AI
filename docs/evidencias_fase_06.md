@@ -149,3 +149,19 @@ El sistema visual, los estados vacíos, los errores y controles de escena están
 en `docs/diseno_ui.md`. Cierre condicionado a CI satisfactoria del commit de transición.
 Los requisitos previos de cámara física y cargas de video fueron sustituidos por la decisión
 expresa del usuario de trabajar solo con simulaciones.
+
+
+## Veredicto CI — Fase 6 APROBADA
+
+Resultado verificado del commit `36afbb0b64445772c4fd240807aa31b06bc6b758`:
+https://github.com/erosCordova/VISION-AI/actions/runs/41869875516
+
+- UI01: seis rutas directas y el flujo de Análisis en vivo comprobados.
+- UI02: salto al contenido accesible con Enter.
+- UI03: 9/9 recorridos a 360, 768 y 1440 píxeles.
+- UI04: movimiento reducido emulado, controles y tarjetas conservados.
+- 171 pruebas TypeScript, 66 Python, arquitectura y compilación aprobadas.
+- YOLO EPP ejecutó dos inferencias en el navegador sin errores.
+
+**Aprobación formal:** Fase 6 aprobada, 6/16 fases = 37,5 %.
+Quedan las pruebas amplias de accesibilidad visual dentro de Fase 14.

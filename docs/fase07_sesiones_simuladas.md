@@ -61,7 +61,7 @@ stores históricos durante un `onupgradeneeded`.
 
 | Caso | Comprobación | Estado |
 | --- | --- | --- |
-| DA01 | Guardar, navegar, recargar y recuperar relaciones | Implementado; validar en CI |
+| DA01 | Guardar, navegar, recargar y recuperar relaciones | **Aprobado en Chromium, ejecución 41869875516** |
 | DA02 | Mismo escenario y tiempo → misma huella; IDs distintos | Prueba unitaria |
 | DA03 | Etiqueta histórica conservada tras cambiar catálogo vivo | Prueba unitaria |
 | DA04 | Rechazo de cuota y fallo sin afirmar persistencia | Validación de código; prueba automatizada de cuota pendiente |

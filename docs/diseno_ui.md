@@ -1,6 +1,6 @@
 # Fase 6 — Interfaz empresarial y cámara
 
-Estado: implementación inicial verificada; fase en curso, sin cierre integral.
+Estado vigente: **Fase 6 APROBADA (4 de noviembre de 2026)**, según ejecución CI 41869875516. Las notas de pendencia que siguen son históricas y se interpretan según el alcance 3D actualizado.
 
 ## Sistema visual
 
@@ -63,3 +63,16 @@ UI01–UI04 se verifican con `scripts/qa-responsive.mjs`; las nuevas comprobacio
 de teclado y movimiento reducido no sustituyen una auditoría integral de
 lector de pantalla y contraste. El cierre formal se registra en `docs/estado.md`
 solo si las verificaciones automatizadas finalizan correctamente.
+
+
+## Registro de cierre definitivo — Fase 6
+
+UI01, UI02, UI03 y UI04 aprobados en Chromium, con 9 recorridos responsive,
+prueba de Enter en el enlace de salto y emulación de movimiento reducido. Ver
+https://github.com/erosCordova/VISION-AI/actions/runs/41869875516 .
+
+El foco de Fase 6 es interfaz y navegación, no construir todo el motor IA.
+La integración del motor se ejecuta por módulos según las fases siguientes.
+No se reintroduce la cámara física ni carga de archivos: esas entradas fueron
+excluidas a solicitud expresa del usuario. Las auditorías exhaustivas de
+contraste y lectores de pantalla permanecen en Fase 14.

@@ -97,3 +97,15 @@ Al iniciar **YOLO real** en cualquiera de los cuatro escenarios 3D, la barra lat
 ### Alertas de revisión basadas en YOLO (sin inventar infracciones)
 
 El detector EPP de Seguridad tiene **señales temporales de revisión**, visibles solo en modo YOLO: exige 2 de los últimos 3 fotogramas con predicciones explícitas de la misma clase de posible ausencia, confianza >=55 % y separación máxima de 30 segundos. Mantiene un historial local de indicios y deja de mostrar la señal activa cuando desaparece. Una lectura puntual o la ausencia de detecciones no se convierten en infracción o cumplimiento. No realiza seguimiento individual de personas ni usa datos geométricos del simulador para estos eventos. No se requieren datasets, imágenes ni videos del usuario.
+
+
+## Progreso de fases — estado vigente 4 de noviembre de 2026
+
+**6 de 16 fases aprobadas = 37,5 %.**
+La **Fase 6 (Interfaz UX/UI)** quedó aprobada con pruebas UI01–UI04.
+La **Fase 7 (Modelo de datos y escenarios reproducibles)** está en curso:
+IndexedDB guarda sesiones de los cuatro escenarios 3D con metadatos de
+simulación y, si se ejecutó YOLO, sus predicciones e indicios reales.
+El registro sobrevive a recarga; no hay cargas de datasets ni videos.
+Pruebas: https://github.com/erosCordova/VISION-AI/actions/runs/41869875516 .
+Consulta [estado](docs/estado.md) y [Fase 7](docs/fase07_sesiones_simuladas.md).

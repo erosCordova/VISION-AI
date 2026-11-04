@@ -9,8 +9,9 @@ Fecha: 2026-11-03. Referencia: manual 5.0 y decisiones D08 a D12.
 | 3 | Cuatro escenarios y 12 recursos calibrados | [Cierre de escenarios](evidencias_fase_03.md) |
 | 4 | Casos de uso, estados, permisos y errores | [Cierre de negocio](evidencias_fase_04.md) |
 | 5 | React, contratos, arquitectura, instalación limpia y build | [Cierre técnico](evidencias_fase_05.md) |
+| 6 | Interfaz navegable, cuatro simulaciones 3D, teclado, responsive y movimiento reducido | [Cierre UX](evidencias_fase_06.md) |
 
-**Avance administrativo: 31.25 % (5 de 16 fases).** No mide precisión de un modelo ni porcentaje de interfaz terminada.
+**Avance administrativo vigente: 37,5 % (6 de 16 fases aprobadas).** No mide precisión de un modelo ni porcentaje de interfaz terminada.
 
 ## Verificación local
 
@@ -138,3 +139,34 @@ Se reorganiza el trabajo conforme al **Manual avanzado v5.0**:
   Al aprobar UI01–UI04, el total pasa de 5/16 a **6/16 = 37,5 %**.
 - La Fase 7 queda **en curso**, sin contabilizarse como aprobada hasta DA01–DA04
   y recuperación/migración verificadas.
+
+
+## Estado vigente y registro de aprobación — 4 de noviembre de 2026
+
+**Fase 6: APROBADA.** El Manual avanzado v5.0 establece que la Fase 6 es
+«Diseño UX UI empresarial y construcción de la interfaz». Los casos UI01–UI04
+han superado la verificación automatizada en Chromium:
+
+- UI01: acceso a rutas y títulos, con regreso a la interfaz desde navegación.
+- UI02: salto al contenido mediante Enter del teclado.
+- UI03: nueve recorridos a 360, 768 y 1440 px sin desbordamientos.
+- UI04: emulación de `prefers-reduced-motion: reduce` conservando los controles.
+
+Evidencia: https://github.com/erosCordova/VISION-AI/actions/runs/41869875516 .
+**237 pruebas unitarias (171 TypeScript y 66 Python)**; Vercel desplegado
+correctamente. No se afirma cobertura total de lector de pantalla o auditoría
+WCAG certificada; queda como validación transversal de Fase 14.
+
+**Fase 7: EN CURSO.** El modelo de datos de sesiones reproducibles e
+IndexedDB v1 está implementado. DA01 ha sido comprobada en Chromium:
+guardar sesión sintética, cambiar a Historial, recargar el navegador y recuperar
+el registro. DA02 y DA03 cuentan con pruebas unitarias; DA04 (simulación de
+agotamiento de cuota y recuperación controlada) sigue pendiente, junto con
+la validación de corrupción y versiones/migraciones. No se aprueba la Fase 7
+anticipadamente.
+
+**Avance oficial: 6/16 = 37,5 %.** Las notas antiguas de este documento
+sobre Fase 6 en curso y porcentaje 31,25 % son registros históricos
+superados por esta actualización. El alcance vigente son exclusivamente
+los cuatro escenarios 3D y YOLO sobre sus fotogramas: sin cargas de datasets
+ni fuentes externas, frontend en Vercel y backend ligero en Render.
