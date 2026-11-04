@@ -1,0 +1,64 @@
+/* Inferencia neural browser / anotaciones visuales separadas */
+.simulator-ai-select{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+ padding:12px 14px;margin:3px 0 9px;border:1px solid #39666c;border-radius:9px;
+ background:linear-gradient(120deg,#133e47,#112c3b)}
+.simulator-ai-select>div:first-child{display:grid;gap:5px}
+.simulator-ai-select>div:first-child strong{font-size:10px;letter-spacing:1.1px;color:#b9f5d9}
+.simulator-ai-select>div:first-child span{font-size:10px;color:#9fbdc5}
+.simulator-ai-switch{display:flex;gap:5px;background:#102833;border-radius:8px;padding:4px;border:1px solid #325660}
+.simulator-ai-switch button{font-size:11px;border-radius:6px;background:transparent;color:#b8cfd0;border:1px solid transparent;
+ padding:9px 10px;min-height:37px}
+.simulator-ai-switch button[aria-pressed="true"]{background:#267c67;color:#f6fff9;border-color:#4bcaa7}
+.simulator-ai-switch button:focus-visible{outline:2px solid #c1ffe9;outline-offset:2px}
+.browser-yolo-panel{border:1px solid #34816c;border-radius:12px;background:linear-gradient(145deg,#0d3039,#102a37);
+ padding:17px 15px 15px;margin:12px 0 15px;min-width:0;color:#deefe7}
+.browser-yolo-heading{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;
+ border-bottom:1px solid #315d60;padding-bottom:13px}
+.browser-yolo-heading h3{font-size:18px;color:#e5fff2;margin:5px 0 6px;font-family:Manrope,sans-serif}
+.browser-yolo-heading p{font-size:11px;color:#9bbdc0;max-width:620px;line-height:1.65;margin:0}
+.browser-yolo-phase{font-size:9px;letter-spacing:.8px;font-weight:800;color:#e9bc93;border:1px solid #72553f;
+ padding:8px 10px;border-radius:18px;background:#372f30;white-space:nowrap}
+.browser-yolo-phase.is-live{color:#9df4ce;background:#184e42;border-color:#4eac88}
+.browser-yolo-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:14px 0 7px}
+.browser-yolo-actions button{background:#1c4e55;border:1px solid #4c8077;color:#d6fff0;
+ font-size:12px;font-weight:800;padding:11px 16px}
+.browser-yolo-actions button.primary{background:#257f65;border-color:#56ca98;color:#f1fff6}
+.browser-yolo-actions button:hover{background:#2e6d68}
+.browser-yolo-actions label{font-size:11px;color:#bedbd3;display:flex;gap:8px;align-items:center}
+.browser-yolo-actions label strong{color:#81ecc6;font-size:12px}
+.browser-yolo-actions input[type="range"]{width:145px;accent-color:#72e9c5;cursor:pointer}
+.browser-yolo-status{font-size:11px;margin:9px 0 13px;color:#a7e7d3;line-height:1.5}
+.browser-yolo-error{color:#ffd4b9;background:#492b30;border:1px solid #ae6656;border-radius:6px;padding:10px;font-size:11px}
+.browser-yolo-result{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(180px,.75fr);gap:13px}
+.browser-yolo-preview,.browser-yolo-summary{border-radius:9px;border:1px solid #305661;background:#102b37;padding:12px;min-width:0}
+.browser-yolo-subhead{display:flex;justify-content:space-between;gap:7px;flex-wrap:wrap;margin-bottom:10px;
+ font-size:9px;letter-spacing:.55px;color:#c5efe0}
+.browser-yolo-subhead span{color:#79cbb2}
+.browser-yolo-preview-frame{position:relative;background:#0a1e2a;border:1px solid #294e5b;border-radius:7px;overflow:hidden}
+.browser-yolo-preview-frame canvas{width:100%;height:auto;aspect-ratio:960/550;object-fit:contain;display:block}
+.browser-yolo-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;margin:0;
+ padding:15px;color:#97c6be;background:#092431d8;font-size:11px}
+.browser-yolo-preview>p{font-size:10px;line-height:1.6;color:#92babb;margin:9px 0 0}
+.browser-yolo-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:9px 0 12px}
+.browser-yolo-kpis>div{background:#173d48;border:1px solid #35636a;border-radius:7px;padding:11px 9px;min-width:0}
+.browser-yolo-kpis span{display:block;font-size:10px;color:#afd1ca;line-height:1.35}
+.browser-yolo-kpis strong{display:block;margin-top:6px;color:#74ebc1;font:800 19px Manrope,sans-serif}
+.browser-yolo-summary .eyebrow{font-size:9px;letter-spacing:1.2px;color:#9fe0c9}
+.browser-yolo-count,.browser-yolo-empty,.browser-yolo-limit{font-size:10px;color:#a2c5bf;line-height:1.7}
+.browser-yolo-count b{color:#d2f5dd}
+.browser-yolo-empty{border:1px solid #45606d;background:#1b3d45;padding:9px;border-radius:7px}
+.browser-yolo-limit{border-top:1px solid #32545f;margin-top:14px;padding-top:12px;color:#c6ad8f}
+.browser-yolo-classes{display:grid;gap:5px}
+.browser-yolo-classes>div{display:flex;justify-content:space-between;gap:9px;border-bottom:1px solid #2c4b53;
+ padding:7px 0;color:#c3e0d5;font-size:10px}
+.browser-yolo-classes strong{color:#91eec7}
+@media(max-width:1180px){.browser-yolo-result{grid-template-columns:1fr}}
+@media(max-width:690px){
+ .simulator-ai-select{flex-direction:column;align-items:stretch}
+ .simulator-ai-switch{width:100%}
+ .simulator-ai-switch button{flex:1;min-width:0;padding:9px 6px;font-size:10px}
+ .browser-yolo-panel{padding:13px 10px}
+ .browser-yolo-result{grid-template-columns:minmax(0,1fr)}
+ .browser-yolo-actions{gap:9px}
+ .browser-yolo-actions input[type="range"]{width:100%}
+}

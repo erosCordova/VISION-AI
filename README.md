@@ -69,3 +69,7 @@ El modo de simulación usa rutas multidirigidas, paradas de inspección, comport
 La modalidad inicial «Simulador 3D» ahora ofrece la opción **Humanos animados**: personajes humanos GLB gratuitos con animaciones de esqueleto, entorno iluminado con Three.js, variaciones de empleados y clientes, movimiento multirruta, captura PNG y los indicadores del tablero. Para equipos modestos se conserva «Modo ligero» con la vista WebGL2 anterior.
 
 Assets externos: Gobkit CC0 (https://gobkit.com/api/free). Se descargan bajo demanda; puede verse un humano alternativo si la red o el proveedor no responden. Este modo no usa YOLO. Los modelos EPP, el movimiento y las alertas son simulaciones visuales; no constituyen seguridad certificada ni pruebas de detección real. [Detalles técnicos y licencias](docs/simulacion_interactiva_3d.md).
+
+## YOLO sobre el simulador 3D (piloto ONNX)
+
+En «Análisis en vivo» → «Simulador 3D» se puede elegir entre **Simulación visual** (anotaciones sintéticas) y **YOLO real (navegador)**. La segunda modalidad descarga un modelo YOLOv8n ONNX sólo si se presiona «Iniciar YOLO real»; comprueba su hash, infiere píxeles capturados de la escena sin etiquetas, y presenta las cajas generadas por el modelo sobre el mismo fotograma. Si no detecta personas, no se inventan resultados. Este detector COCO no reconoce cascos, chalecos ni defectos industriales específicos. [Alcance, licencias y arquitectura](docs/yolo_simulador_3d.md).

@@ -120,6 +120,7 @@ try {
           + 'hasFocusableMain: !!document.querySelector("main[tabindex=\\\"-1\\\"]"), '
           + 'hasSkip: !!document.querySelector("a.skip"), hasText: !!element.textContent.trim(), '
           + 'hasSimulationModes: !!document.querySelector(".simulation-source-tabs button[aria-pressed=true]"), '
+          + 'hasYoloModeSwitch: Array.from(document.querySelectorAll(".simulator-ai-switch button")).some(b=>b.textContent.includes("YOLO real")), '
           + 'hasSimulatorStage: !!document.querySelector(".simulator-3d-stage canvas"), '
           + 'hasSimulatorControls: !!document.querySelector(".simulator-controls input[type=range]"), '
           + 'hasCameraPresets: document.querySelectorAll(".simulator-view-group button").length === 4, '
@@ -139,7 +140,7 @@ try {
       if (view.viewport !== width || view.pageWidth > width + 1
           || view.elementLeft < -1 || view.elementLeft + view.elementWidth > width + 1
           || !view.hasFocusableMain || !view.hasSkip || !view.hasText
-          || (name === 'analisis' && (!view.hasSimulationModes || !view.hasSimulatorStage || !view.hasSimulatorControls || !view.hasCameraPresets || !view.hasHumanMode || !view.hasHumanCanvas || !view.hasSyntheticDisclosure || !view.hasSyntheticLabel || !view.hasScenarioTabs || !view.hasAnalytics || !view.hasActivityChart || !view.hasMiniMap || !view.hasKPIs))) {
+          || (name === 'analisis' && (!view.hasSimulationModes || !view.hasYoloModeSwitch || !view.hasSimulatorStage || !view.hasSimulatorControls || !view.hasCameraPresets || !view.hasHumanMode || !view.hasHumanCanvas || !view.hasSyntheticDisclosure || !view.hasSyntheticLabel || !view.hasScenarioTabs || !view.hasAnalytics || !view.hasActivityChart || !view.hasMiniMap || !view.hasKPIs))) {
         throw Error('QA falló (' + width + ' px, ' + name + '): ' + JSON.stringify(view));
       }
       const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
@@ -181,6 +182,34 @@ try {
             Buffer.from(closeUp.data, 'base64'));
           console.log('Primer plano del personaje capturado correctamente');
         }
+      }
+      if (name === 'analisis' && width === 1440) {
+        await cdp.send('Runtime.evaluate', {
+          expression: 'Array.from(document.querySelectorAll(".simulator-ai-switch button"))'
+            + '.find(button => button.textContent.includes("YOLO real"))?.click()'
+        });
+        const yoloUi = await eventually(async () => {
+          const state = await cdp.send('Runtime.evaluate', {
+            expression: '({ visible:!!document.querySelector(".browser-yolo-panel"),'
+              + ' start:!!document.querySelector(".browser-yolo-panel button.primary"),'
+              + ' source:!!document.querySelector(".simulator-human-stage canvas"),'
+              + ' syntheticStatus:!!document.querySelector(".simulator-visual .simulator-event") })()',
+            returnByValue: true
+          });
+          return state.result?.value?.visible ? state.result.value : null;
+        }, 'panel YOLO real');
+        if (!yoloUi.start || !yoloUi.source || yoloUi.syntheticStatus)
+          throw Error('El motor YOLO no está correctamente separado: '+JSON.stringify(yoloUi));
+        await cdp.send('Runtime.evaluate', {
+          expression: 'document.querySelector(".browser-yolo-panel")?.scrollIntoView({block:"center"})'
+        });
+        await sleep(450);
+        const yoloScreen = await cdp.send('Page.captureScreenshot', {
+          format: 'png', captureBeyondViewport: false
+        });
+        fs.writeFileSync(path.join(artifacts, 'modo-yolo-1440.png'),
+          Buffer.from(yoloScreen.data, 'base64'));
+        console.log('UI YOLO OK: modo independiente, sin overlays sintéticos');
       }
       console.log('QA OK: ' + name + ' a ' + width + ' px; sin desbordamiento horizontal');
       checked++;

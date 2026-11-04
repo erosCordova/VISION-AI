@@ -190,6 +190,7 @@ export const HumanizedScene3D=forwardRef<IndustrialSceneHandle,Props>(function H
  const [assets,setAssets]=useState({loaded:0,total:0,failed:0});
  useEffect(()=>{orbit.current={...presets[props.view]};},[props.view]);
  useImperativeHandle(ref,()=>({
+  rawCanvas(){return canvas.current;},
   resetCamera(){orbit.current={...presets[state.current.view]};},
   zoom(delta){orbit.current=boundedOrbit({...orbit.current,distance:orbit.current.distance+delta});},
   async capture(){

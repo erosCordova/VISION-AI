@@ -8,6 +8,8 @@ import { IndustrialRenderer, makeScene } from './industrial-renderer';
 
 export type LayerName = 'boxes' | 'labels' | 'masks' | 'zones';
 export interface IndustrialSceneHandle {
+ /** Lienzo GPU sin rótulos sintéticos: fuente de pixeles para la inferencia YOLO. */
+ rawCanvas():HTMLCanvasElement|null;
  capture():Promise<Blob>;
  resetCamera():void;
  zoom(delta:number):void;
@@ -170,6 +172,7 @@ export const IndustrialScene3D=forwardRef<IndustrialSceneHandle,Props>(function 
  const dirty=useRef(true);
  useEffect(()=>{cameraOrbit.current={...presets[props.view]};dirty.current=true;},[props.view]);
  useImperativeHandle(ref,()=>({
+  rawCanvas(){return gpu.current;},
   resetCamera(){cameraOrbit.current={...presets[propsRef.current.view]};dirty.current=true;},
   zoom(delta){cameraOrbit.current=boundedOrbit({...cameraOrbit.current,distance:cameraOrbit.current.distance+delta});dirty.current=true;},
   async capture(){

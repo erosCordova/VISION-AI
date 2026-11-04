@@ -102,3 +102,7 @@ Evolución de simulador: elección entre motor ligero y «Humanos animados» com
 Los modelos están publicados bajo licencia CC0 por Gobkit. La aplicación los carga bajo demanda desde URLs documentadas; si no pueden cargarse, usa geometría humana articulada local y muestra el estado. No almacena ni envía datos personales ni video en esta modalidad.
 
 La escena sigue expresamente etiquetada como sintética: los recuadros y eventos no proceden de detección YOLO. Pruebas agregadas para mapa de modelos y selección de clips; QA Chromium ampliado para ambas modalidades. CI confirma compilación y responsive, pero la carga remota de GLB y suavidad en cada GPU física requieren comprobación adicional.
+
+## Undécimo incremento — YOLO ONNX sobre fotogramas de la simulación 3D
+
+Se añade un segundo origen de anotación independiente: las cajas de YOLO proceden de tensores de un modelo COCO de 80 clases, no del estado geométrico del simulador. La captura usa canvas del renderizador 3D sin el canvas de HUD, de modo que las predicciones no pueden copiar etiquetas sintéticas. La interfaz presenta el resultado sobre la imagen procesada (no sobre la animación que ya avanzó), registra latencia de inferencia y detecciones, permite umbral, inicio y detención. Se exige SHA256 de los pesos descargados y se documenta licencia AGPL-3.0 y limitación por cambio de dominio. El modelo no predice cascos ni defectos, y los KPI existentes siguen describiendo únicamente la simulación sintética. La ejecución real en navegador requiere evidencia separada de una compilación correcta.
