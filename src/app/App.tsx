@@ -4,7 +4,7 @@ import { HistoryPanel } from '../modules/history/HistoryPanel';
 import { SessionSettings } from '../modules/settings/SessionSettings';
 import { ErrorBoundary } from '../shared/ui/ErrorBoundary';
 import { LiveAnalysisPage } from '../modules/live/LiveAnalysisPage';
-import {listSimulationSessions} from '../infrastructure/persistence/simulation-session-store';
+import type {SimulationSessionRepository} from '../core/ports/simulation-session-repository';
 const pages = ['Resumen', 'Análisis en vivo', 'Visión IA', 'Operaciones', 'Historial', 'Configuración', 'Administración'] as const;
 type Page = typeof pages[number];
 const scenarios = [
@@ -14,7 +14,7 @@ const scenarios = [
   { id: 'retail', name: 'Retail', icon: '▥', text: 'Conteo y ocupación de espacios', rule: 'Conteo de personas dentro de una zona', classes: 'Persona · Estante · Producto' },
 ];
 function currentPage(): Page { let value = ''; try { value = decodeURIComponent(location.hash.slice(1)); } catch { return 'Resumen'; } return pages.find(p => p === value) ?? 'Resumen'; }
-export function App({ origin, apiBaseUrl }: { origin: Origin; apiBaseUrl: string | null }) {
+export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin; apiBaseUrl: string | null; sessionRepository:SimulationSessionRepository }) {
   const [page, setPage] = useState<Page>(currentPage);
   const [scenarioId, setScenarioId] = useState('safety');
   const [menu, setMenu] = useState(false);
@@ -22,13 +22,13 @@ export function App({ origin, apiBaseUrl }: { origin: Origin; apiBaseUrl: string
   const [savedStats,setSavedStats] = useState<{total:number;indicios:number}|null>(null);
   useEffect(()=>{
    let active=true;
-   const reload=()=>{void listSimulationSessions().then(records=>{
+   const reload=()=>{void sessionRepository.list().then(records=>{
     if(active)setSavedStats({total:records.length,
      indicios:records.reduce((sum,r)=>sum+(r.inference?.reviewLog.length??0),0)});
    }).catch(()=>{if(active)setSavedStats(null);});};
    reload();window.addEventListener('vision-ai-sessions-updated',reload);
    return()=>{active=false;window.removeEventListener('vision-ai-sessions-updated',reload);};
-  },[page]);
+  },[page,sessionRepository]);
   useEffect(() => { const update = () => { setPage(currentPage()); setMenu(false); }; window.addEventListener('hashchange', update); return () => window.removeEventListener('hashchange', update); }, []);
   const navigate = (p: Page) => { location.hash = p; setPage(p); setMenu(false); };
   return <div className="app-shell">
@@ -43,8 +43,8 @@ export function App({ origin, apiBaseUrl }: { origin: Origin; apiBaseUrl: string
       <main id="contenido" tabIndex={-1}><div className="page-heading"><div><span className="eyebrow">VISIÓN COMPUTACIONAL</span><h1>{page === 'Resumen' ? 'Una visión clara de tu operación' : page}</h1><p>{page === 'Resumen' ? 'Cuatro escenarios. Un espacio para observar, analizar y revisar.' : page === 'Análisis en vivo' ? 'Cuatro simulaciones industriales 3D con análisis YOLO real de sus fotogramas.' : page === 'Historial' ? 'Sesiones y evidencias de tus análisis.' : 'Estado del entorno y capacidades disponibles.'}</p></div>{page === 'Resumen' && <button className="primary" onClick={() => navigate('Análisis en vivo')}>Abrir análisis <span aria-hidden="true">↗</span></button>}</div>
       <ErrorBoundary key={page + role}>
       {page === 'Resumen' && <><div className="stats">{[['Escenarios','04','Simulaciones 3D'],['Motor de visión','YOLO','ONNX en navegador'],['Sesiones guardadas',savedStats?savedStats.total.toString():'—','IndexedDB local'],['Indicios conservados',savedStats?savedStats.indicios.toString():'—','Señales YOLO guardadas']].map(([title,value,detail]) => <section className="stat" key={title}><span>{title}</span><strong>{value}</strong><small>{detail}</small></section>)}</div><section className="section-heading"><div><h2>Elige tu escenario</h2><p>Un flujo de trabajo adaptado a cada operación.</p></div><span>01 — 04</span></section><div className="scenario-grid">{scenarios.map((s,i) => <button className={'scenario-card scenario-'+i} key={s.id} onClick={() => { setScenarioId(s.id); navigate('Análisis en vivo'); }}><div className="card-top"><span className="scenario-icon">{s.icon}</span><span className="card-index">0{i+1} ↗</span></div><h3>{s.name}</h3><p>{s.text}</p><div className="card-footer">Abrir simulación <span>→</span></div></button>)}</div><section className="ready-banner"><div className="banner-icon">◉</div><div><h2>De la simulación a la evidencia</h2><p>Explora escenarios 3D, ejecuta YOLO sobre sus fotogramas y guarda los resultados en tu navegador.</p></div><button onClick={() => navigate('Análisis en vivo')}>Preparar sesión →</button></section></>}
-      {page === 'Análisis en vivo' && <LiveAnalysisPage scenarios={scenarios} scenarioId={scenarioId} onScenarioChange={setScenarioId} role={role} apiBaseUrl={origin === 'real' ? apiBaseUrl : null} />}
-      {page === 'Historial' && <HistoryPanel onAnalyze={() => navigate('Análisis en vivo')} />}
+      {page === 'Análisis en vivo' && <LiveAnalysisPage scenarios={scenarios} scenarioId={scenarioId} onScenarioChange={setScenarioId} sessionRepository={sessionRepository} role={role} apiBaseUrl={origin === 'real' ? apiBaseUrl : null} />}
+      {page === 'Historial' && <HistoryPanel onAnalyze={() => navigate('Análisis en vivo')} sessionRepository={sessionRepository} />}
       {page === 'Visión IA' && <section className="panel settings"><h2>Detección sobre simulaciones</h2>
    <dl><dt>Tecnología</dt><dd>YOLOv8n general y YOLOv8s EPP</dd>
    <dt>Motor</dt><dd>ONNX Runtime Web / WebAssembly en el navegador</dd>

@@ -1,6 +1,7 @@
 import {useEffect,useMemo,useState} from 'react';
-import {deleteSimulationSession,listSimulationSessions} from '../../infrastructure/persistence/simulation-session-store';
-import type {SimulationSession} from '../../infrastructure/persistence/simulation-session-store';
+import type {SimulationSessionRepository} from '../../core/ports/simulation-session-repository';
+import {validateReproducibility} from '../live/simulation-session-model';
+import type {SimulationSession} from '../../core/domain/simulation-session';
 
 const SCENARIOS=[
  {id:'safety',label:'Seguridad industrial'},
@@ -14,7 +15,7 @@ function timeLabel(date:string):string{
 }
 const formatElapsed=(ms:number)=>Math.floor(ms/60000).toString().padStart(2,'0')+':'+
  Math.floor(ms%60000/1000).toString().padStart(2,'0');
-export function HistoryPanel({onAnalyze}:{onAnalyze:()=>void}){
+export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;sessionRepository:SimulationSessionRepository}){
  const [records,setRecords]=useState<readonly SimulationSession[]>([]);
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState('');
@@ -29,7 +30,8 @@ export function HistoryPanel({onAnalyze}:{onAnalyze:()=>void}){
   let alive=true;
   const load=async()=>{
    try{
-    const data=await listSimulationSessions();
+    const data=await sessionRepository.list();
+    for(const record of data)validateReproducibility(record);
     if(alive){setRecords(data);setError('');}
    }catch(e){
     if(alive)setError(e instanceof Error?e.message:String(e));
@@ -39,7 +41,7 @@ export function HistoryPanel({onAnalyze}:{onAnalyze:()=>void}){
   const refresh=()=>{void load();};
   window.addEventListener('vision-ai-sessions-updated',refresh);
   return()=>{alive=false;window.removeEventListener('vision-ai-sessions-updated',refresh);};
- },[]);
+ },[sessionRepository]);
  const filtered=useMemo(()=>records.filter(r=>{
   const search=query.trim().toLowerCase();
   return (!search||(r.id+' '+r.scenarioName+' '+r.mode).toLowerCase().includes(search))&&
@@ -51,7 +53,7 @@ export function HistoryPanel({onAnalyze}:{onAnalyze:()=>void}){
  const details=records.find(item=>item.id===selected)??null;
  async function remove(id:string){
   try{
-   await deleteSimulationSession(id);
+   await sessionRepository.remove(id);
    setRecords(current=>current.filter(item=>item.id!==id));
    setSelected(v=>v===id?null:v);
    setPendingDelete(null);

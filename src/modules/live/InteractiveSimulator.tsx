@@ -10,7 +10,8 @@ import type { IndustrialSceneHandle,LayerName } from './IndustrialScene3D';
 import { simulationSnapshot } from './simulation-engine';
 import type { ScenarioKey } from './simulation-engine';
 import type { CameraView } from './scene-math';
-import {buildSimulationSession,saveSimulationSession} from '../../infrastructure/persistence/simulation-session-store';
+import {buildSimulationSession} from './simulation-session-model';
+import type {SimulationSessionRepository} from '../../core/ports/simulation-session-repository';
 
 const SCENES:{id:ScenarioKey;tab:string;name:string;description:string;icon:string}[]=[
  {id:'safety',tab:'Seguridad',name:'Seguridad industrial',description:'Personal, cascos, chalecos y zonas restringidas.',icon:'◈'},
@@ -32,7 +33,8 @@ const blankLayers:Record<LayerName,boolean>={boxes:true,labels:true,masks:false,
 const secondsText=(seconds:number)=>Math.floor(seconds/60).toString().padStart(2,'0')+
  ':'+Math.floor(seconds%60).toString().padStart(2,'0');
 
-export function InteractiveSimulator({scenarioId,onScenarioChange}:{
+export function InteractiveSimulator({scenarioId,onScenarioChange,sessionRepository}:{
+ sessionRepository:SimulationSessionRepository;
  scenarioId:ScenarioKey;
  onScenarioChange:(id:ScenarioKey)=>void;
 }){
@@ -102,7 +104,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
   try{
    const record=buildSimulationSession({scenarioId,scenarioName:config.name,
     elapsed,graphics,camera:view,mode:analysisMode,telemetry:yoloTelemetry});
-   await saveSimulationSession(record);
+   await sessionRepository.save(record);
    setSaveMessage('Sesión guardada en este navegador. Puedes verla en Historial.');
    window.dispatchEvent(new Event('vision-ai-sessions-updated'));
   }catch(error){

@@ -1,6 +1,7 @@
 import {describe,it,expect} from 'vitest';
-import {buildSimulationSession,validateSimulationSession,SCENE_VERSION,
- sameScenarioSnapshot,snapshotFingerprint} from '../../src/infrastructure/persistence/simulation-session-store';
+import {buildSimulationSession,validateReproducibility,
+ sameScenarioSnapshot,snapshotFingerprint} from '../../src/modules/live/simulation-session-model';
+import {SCENE_VERSION,validateSimulationSession} from '../../src/core/domain/simulation-session';
 import {simulationSnapshot} from '../../src/modules/live/simulation-engine';
 import {INITIAL_YOLO_TELEMETRY,updateYoloTelemetry} from '../../src/modules/live/yolo-telemetry';
 const input=(scenarioId:'safety'|'quality'|'retail'|'warehouse'='safety')=>({
@@ -31,9 +32,9 @@ describe('Fase 7: sesiones versionadas y reproducibles de cuatro simulaciones',(
  });
  it('si se altera el estado de la simulación, no se puede validar el historial',()=>{
   const record=buildSimulationSession(input(),new Date('2026-11-04T15:20:00Z'),'s-001');
-  expect(()=>validateSimulationSession({...record,source:{
+  expect(()=>validateReproducibility({...record,source:{
    ...record.source,fingerprint:'00000000'}})).toThrow(/alterada/);
-  expect(()=>validateSimulationSession({...record,source:{
+  expect(()=>validateReproducibility({...record,source:{
    ...record.source,syntheticObjectCount:200}})).toThrow(/alterada/);
   expect(()=>validateSimulationSession({...record,schemaVersion:2})).toThrow(/esquema/);
  });
