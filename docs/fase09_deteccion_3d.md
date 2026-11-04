@@ -151,3 +151,20 @@ de ejecución integral de TypeScript/Chromium; fase 9 no aprobada.
 Validación adicional: el origen de un fotograma se comprueba también
 cuando llega como dato corrupto (incluido `null`); el monitor no falla
 ni registra inferencia inválida. No se altera la compatibilidad histórica.
+
+## Incremento 7: aceptación de filtros sin nueva inferencia
+
+El ensayo Chromium de Seguridad espera el primer fotograma EPP real,
+pausa la simulación, registra el número de lecturas y el conteo original,
+sube la confianza visual al 85 % y comprueba que el monitor mantiene sus
+predicciones y que no hubo otra inferencia. El ensayo también revisa que
+los objetos visibles no superen la cantidad retenida por el modelo.
+Las pruebas unitarias incorporan filtros independientes de la evidencia
+persistida en los cuatro escenarios y la ausencia de alertas EPP
+sintéticas. No se usan archivos externos.
+
+Se verificaron **10 casos aislados** ejecutando la lógica extraída
+directamente de las funciones de validación del origen y del regulador
+de cadencia. Esta comprobación *no sustituye* `npm run check`, el
+paquete completo de Vitest ni Chromium. El commit queda preparado sin
+actualizar `main` y sin activar ningún despliegue.

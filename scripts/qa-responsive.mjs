@@ -615,6 +615,50 @@ try {
         }
         if (!firstInference) throw Error('No hubo inferencia ONNX tras esperar: '+JSON.stringify(lastStatus));
         console.log('YOLO EPP REAL OK en Chromium: '+JSON.stringify(firstInference));
+        // OB02/OB05: pausar la animación detiene nuevas capturas; filtrar no
+        // altera la telemetría ni ejecuta el modelo una vez más.
+        const pauseResult=await cdp.send('Runtime.evaluate',{
+          expression:'(() => {const b=Array.from(document.querySelectorAll(".simulator-timeline-actions button"))'
+           +'.find(item=>item.textContent?.includes("Pausar"));b?.click();return !!b;})()',
+          returnByValue:true
+        });
+        if(!pauseResult.result?.value)throw Error('OB05: no existe control de pausa');
+        await sleep(1800);
+        const pausedBaseline=await cdp.send('Runtime.evaluate',{
+          expression:'(() => ({'
+           +'paused:document.querySelector(".simulator-runtime")?.textContent?.includes("EN PAUSA"),'
+           +'frames:Number(document.querySelector(".browser-yolo-count b")?.textContent||0),'
+           +'original:document.querySelector(".yolo-monitor-kpi.primary strong")?.textContent?.trim()'
+           +'}))()',returnByValue:true
+        });
+        const baseline=pausedBaseline.result?.value;
+        if(!baseline?.paused||baseline.frames<1)
+          throw Error('OB05: simulación no se pausó: '+JSON.stringify(baseline));
+        const filterChange=await cdp.send('Runtime.evaluate',{
+          expression:'(() => {'
+            +'const slider=document.querySelector("#yolo-confidence");'
+            +'const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value").set;'
+            +'setter.call(slider,"85");slider.dispatchEvent(new Event("input",{bubbles:true}));'
+            +'slider.dispatchEvent(new Event("change",{bubbles:true}));'
+            +'return {newValue:slider.value,monitor:document.querySelector(".yolo-monitor-kpi.primary strong")?.textContent?.trim()};'
+            +'})()',returnByValue:true
+        });
+        if(filterChange.result?.value?.newValue!=='85')
+          throw Error('OB02: no fue posible modificar el filtro visual');
+        await sleep(600);
+        const afterFilters=await cdp.send('Runtime.evaluate',{
+          expression:'(() => ({'
+           +'frames:Number(document.querySelector(".browser-yolo-count b")?.textContent||0),'
+           +'monitor:document.querySelector(".yolo-monitor-kpi.primary strong")?.textContent?.trim(),'
+           +'visual:Number(document.querySelector(".browser-yolo-kpis strong")?.textContent||0),'
+           +'confidence:document.querySelector("#yolo-confidence")?.value'
+           +'}))()',returnByValue:true
+        });
+        const filtered=afterFilters.result?.value;
+        if(filtered.frames!==baseline.frames||filtered.monitor!==baseline.original||
+          filtered.visual>Number(filtered.monitor)||filtered.confidence!=='85')
+          throw Error('OB02: el filtro afectó datos originales o activó inferencia: '+JSON.stringify({baseline,filtered}));
+        console.log('OB02/OB05: confianza visual filtrada con detector pausado sin alterar evidencia');
         const runTag=await cdp.send('Runtime.evaluate',{
           expression:'document.querySelector(".browser-yolo-run")?.textContent?.trim()||""',
           returnByValue:true
