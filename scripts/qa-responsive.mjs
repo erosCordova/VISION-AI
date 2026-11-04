@@ -552,6 +552,40 @@ try {
         fs.writeFileSync(path.join(artifacts, 'modo-yolo-1440.png'),
           Buffer.from(yoloScreen.data, 'base64'));
         console.log('UI YOLO OK: simulación 3D exclusiva, sin cargas ni overlays sintéticos');
+
+        // OB01/OB03/OB04: cada simulación utiliza exclusivamente el canvas 3D.
+        // No se descargan modelos durante el cambio de escenario.
+        for (const [tab, expected] of [
+          ['Manufactura','YOLOv8n'], ['Retail','YOLOv8n'],
+          ['Logística','YOLOv8n'], ['Seguridad','YOLOv8s']
+        ]) {
+          const navigation=await cdp.send('Runtime.evaluate',{
+            expression:'(() => {const b=Array.from(document.querySelectorAll(".simulator-scenarios button"))'
+              +'.find(x=>x.textContent.includes('+JSON.stringify(tab)+'));'
+              +'b?.click();return Boolean(b);})()',
+            returnByValue:true
+          });
+          if(!navigation.result?.value)throw Error('OB03: falta escenario '+tab);
+          const state=await eventually(async()=>{
+            const response=await cdp.send('Runtime.evaluate',{
+              expression:'(() => ({'
+                +'selected:Array.from(document.querySelectorAll(".simulator-scenarios button"))'
+                +'.find(b=>b.getAttribute("aria-pressed")==="true")?.textContent?.trim(),'
+                +'model:document.querySelector(".browser-yolo-heading h3")?.textContent?.trim(),'
+                +'count:document.querySelector(".yolo-monitor-kpi.primary strong")?.textContent?.trim(),'
+                +'noImports:!document.querySelector(".browser-yolo-panel input[type=file]"),'
+                +'noSynthetic:!document.querySelector(".sim-analytics"),'
+                +'cadence:document.querySelector("#yolo-capture-pace")?.value,'
+                +'filter:document.querySelector("#yolo-class-filter")?.value'
+                +'}))()',returnByValue:true
+            });
+            const x=response.result?.value;
+            return x?.selected?.includes(tab)&&x.model?.includes(expected)&&x.count==='—'&&
+              x.noImports&&x.noSynthetic&&x.cadence==='balanced'&&x.filter==='all'?x:null;
+          },'OB03/OB04 selector '+tab);
+          console.log('OB03/OB04: '+tab+' sin datos residuales; detector '+state.model);
+        }
+        // El último escenario es Seguridad; ejecutar ahora el detector EPP real.
         // Prueba real: ONNX + WASM debe ejecutar al menos un frame GPU.
         // No exigimos detecciones: un modelo COCO puede devolver cero objetos 3D.
         const startResponse = await cdp.send('Runtime.evaluate', {
@@ -639,6 +673,18 @@ try {
           expression: 'Array.from(document.querySelectorAll(".browser-yolo-panel button"))'
             + '.find(b=>b.textContent.includes("Detener inferencia"))?.click()'
         });
+        await eventually(async()=>{
+          const status=await cdp.send('Runtime.evaluate',{
+            expression:'(() => ({'
+              +'panel:document.querySelector(".browser-yolo-phase")?.textContent?.trim(),'
+              +'monitor:document.querySelector(".yolo-monitor-status")?.textContent?.trim(),'
+              +'restart:!!document.querySelector(".browser-yolo-actions button.primary")'
+              +'}))()',returnByValue:true
+          });
+          const s=status.result?.value;
+          return s?.panel?.includes('DETENIDO')&&s.monitor?.includes('DETENIDA')&&s.restart?true:null;
+        },'OB05 inferencia detenida y reanudación disponible');
+        console.log('OB05: la inferencia se detiene sin perder el control de reanudación');
 
       }
       console.log('QA OK: ' + name + ' a ' + width + ' px; sin desbordamiento horizontal');

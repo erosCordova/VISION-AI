@@ -88,3 +88,24 @@ y posterior publicación conjunta. No debe declararse aprobado
 hasta ejecutar el paquete de pruebas y revisar los cuatro escenarios
 en Chromium. La fase se mantiene abierta y el avance oficial
 continúa en 8/16 = 50 %.
+
+## Incremento 4: validación de escenarios y tiempos independientes
+
+Se añade una hora de finalización opcional `completedAtMs` a las
+observaciones YOLO. El panel distingue claramente **FPS de capturas**
+de **FPS de inferencias terminadas**, y calcula la antigüedad del
+resultado desde que está disponible, no desde que se fotografió la escena.
+La revisión EPP conserva su hora de captura y no mezcla eventos
+programados con predicciones.
+
+La ampliación de QA Chromium realiza una inspección de los **cuatro
+escenarios** (Manufactura, Retail, Logística y Seguridad), revisando:
+modelo COCO/EPP apropiado, ausencia de entradas externas, cero datos
+anteriores al activar un nuevo escenario y filtros reiniciados. Después
+mantiene la comprobación con ONNX real en Seguridad y prueba que el
+motor puede detenerse y ofrecer reanudación.
+
+**Estado:** pruebas e implementación añadidas a un commit de trabajo
+sin asignar a `main`, para no activar Vercel. Se deben ejecutar la
+batería TypeScript, la compilación y la prueba Chromium con el nuevo
+paquete antes de considerar la fase aprobada. Avance oficial 50 %.
