@@ -122,3 +122,16 @@ La actualización por el evento de cierre se refleja en la lista reciente,
 los contadores abiertos/cerrados y en la vista Operaciones. La prueba
 de Chromium valida la serie con una sesión guardada y la evolución
 de un episodio desde pendiente a revisado, sin afectar la fuente.
+
+## Cierre aprobado de Fase 8 — 4 de noviembre de 2026
+
+**KP01, KP02 y KP03 aprobados.** La última ejecución de GitHub Actions
+[41882458652](https://github.com/erosCordova/VISION-AI/actions/runs/41882458652)
+finalizó correctamente: contratos y pruebas TypeScript, referencias Python,
+compilación y recorrido de Chromium a tres anchuras. El conjunto incluye
+pruebas del tablero con 100 sesiones y 1 200 indicios y revisión EPP
+idempotente con persistencia IndexedDB.
+
+La aprobación acredita el comportamiento probado, no datos productivos,
+precisión YOLO, capacidad remota ni disponibilidad universal del navegador.
+**Avance oficial: 8/16 = 50 %. Siguiente: Fase 9.**

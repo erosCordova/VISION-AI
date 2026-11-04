@@ -1,8 +1,9 @@
-import {useCallback,useEffect,useRef,useState} from 'react';
+import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import type {Detection} from '../../core/domain/model';
 import {analyzeYoloFrame,captureRenderedFrame,loadYoloBrowser} from './yolo-browser';
 import type {YoloFrame,YoloFamily} from './yolo-browser';
 import {ppeColor,ppeFindings} from './ppe-model';
+import {MIN_RAW_YOLO_CONFIDENCE,filterDetectionsForDisplay,classesInDetections} from './detection-filter';
 import type {ScenarioKey} from './simulation-engine';
 import type {YoloTelemetryEvent} from './yolo-telemetry';
 type Model=Awaited<ReturnType<typeof loadYoloBrowser>>;
@@ -46,6 +47,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
  const [phase,setPhase]=useState<Phase>('idle');
  const [message,setMessage]=useState('El modelo solo se descarga cuando presionas Iniciar YOLO.');
  const [confidence,setConfidence]=useState(.35);
+ const [classFilter,setClassFilter]=useState('all');
  const [model,setModel]=useState<Model|null>(null);
  const [family,setFamily]=useState<YoloFamily>(scenarioId==='safety'?'ppe':'coco');
  const [detections,setDetections]=useState<readonly Detection[]>([]);
@@ -54,6 +56,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
  const [observedFps,setObservedFps]=useState<number|null>(null);
  const [lastFrameAt,setLastFrameAt]=useState<number|null>(null);
  const preview=useRef<HTMLCanvasElement>(null);
+ const lastAnalyzed=useRef<YoloFrame|null>(null);
  const generation=useRef(0);
  const frameNumber=useRef(0);
  const times=useRef<number[]>([]);
@@ -66,6 +69,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   frameNumber.current=0;
   setMessage('Preparando el motor de inferencia…');
   times.current=[];setSampleCount(0);setObservedFps(null);
+  lastAnalyzed.current=null;
   setDetections([]);setInferenceMs(null);setLastFrameAt(null);
   if(preview.current){const ctx=preview.current.getContext('2d');ctx?.clearRect(0,0,preview.current.width,preview.current.height);}
   try{
@@ -96,6 +100,9 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   generation.current++;
   setPhase('idle');setModel(null);setFamily(next);
   onTelemetry({type:'status',phase:'idle',model:next});
+  lastAnalyzed.current=null;
+  setClassFilter('all');
+  if(preview.current)preview.current.getContext('2d')?.clearRect(0,0,preview.current.width,preview.current.height);
   setError('');setDetections([]);setSampleCount(0);
   setObservedFps(null);setInferenceMs(null);setLastFrameAt(null);
   setMessage('Seleccionado '+(next==='ppe'?'YOLOv8s EPP (44,8 MB)':'YOLOv8n COCO (13 MB)')+
@@ -117,9 +124,9 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
      }
      const frame=captureRenderedFrame(source);
      onTelemetry({type:'capture',model:model.family,capturedAtMs:Date.now()});
-     const result=await analyzeYoloFrame(model,frame,confidence);
+     const result=await analyzeYoloFrame(model,frame,MIN_RAW_YOLO_CONFIDENCE);
      if(cancelled||generation.current!==token)return;
-     if(preview.current)drawFrame(result,preview.current,model.family);
+     lastAnalyzed.current=result;
      setDetections(result.detections);
      setInferenceMs(result.inferenceMs);
      const capturedAtMs=Date.now();
@@ -149,12 +156,20 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   };
   void loop();
   return ()=>{cancelled=true;};
- },[phase,model,getSource,confidence,paused,family,onTelemetry]);
+ },[phase,model,getSource,paused,family,onTelemetry]);
  useEffect(()=>{onTelemetry({type:'status',phase:'idle',model:family});
   return ()=>{generation.current++;};
   // One status reset per mounted detector instance; state changes send events explicitly.
  },[onTelemetry]);
- const personCount=detections.filter(d=>d.classId==='person').length;
+ const visibleDetections=useMemo(()=>filterDetectionsForDisplay(detections,{
+  minConfidence:confidence,classId:classFilter==='all'?null:classFilter
+ }),[detections,confidence,classFilter]);
+ const availableClasses=useMemo(()=>classesInDetections(detections),[detections]);
+ useEffect(()=>{
+  const frame=lastAnalyzed.current;
+  if(frame&&preview.current)drawFrame({...frame,detections:visibleDetections},preview.current,family);
+ },[visibleDetections,family]);
+ const personCount=visibleDetections.filter(d=>d.classId==='person').length;
  const ppe=family==='ppe'?ppeFindings(detections):null;
  return <section className="browser-yolo-panel" aria-label="YOLO real en el navegador">
    <div className="browser-yolo-heading">
@@ -195,13 +210,23 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
       </button>}
     {(phase==='running'||phase==='loading')&&
       <button type="button" onClick={stop}>Ⅱ Detener inferencia</button>}
-    <label htmlFor="yolo-confidence">Confianza mínima
+    <label htmlFor="yolo-confidence">Confianza visual mínima
       <strong>{Math.round(confidence*100)} %</strong>
     </label>
     <input id="yolo-confidence" type="range" min="15" max="85" step="5"
      value={Math.round(confidence*100)}
      onChange={e=>setConfidence(Number(e.target.value)/100)}/>
+    <label htmlFor="yolo-class-filter">Clase visible</label>
+    <select id="yolo-class-filter" value={classFilter} onChange={e=>setClassFilter(e.target.value)}>
+     <option value="all">Todas las clases</option>
+     {availableClasses.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}
+     {classFilter!=='all'&&!availableClasses.some(item=>item.id===classFilter)&&
+      <option value={classFilter}>{classFilter} (sin detecciones nuevas)</option>}
+    </select>
    </div>
+   <p className="browser-yolo-modelnote">Los filtros cambian solo las cajas visibles.
+    Las inferencias originales, desde {Math.round(MIN_RAW_YOLO_CONFIDENCE*100)} % de confianza, se conservan para el monitor y la sesión.
+   </p>
    <p className="browser-yolo-status" role="status">{message}</p>
    {error&&<p className="browser-yolo-error" role="alert">{error}</p>}
    <div className="browser-yolo-result">
@@ -222,7 +247,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
     <div className="browser-yolo-summary">
      <span className="eyebrow">LECTURA DEL MODELO</span>
      <div className="browser-yolo-kpis">
-      <div><span>Detecciones</span><strong>{sampleCount?detections.length:'—'}</strong></div>
+      <div><span>Detecciones visibles</span><strong>{sampleCount?visibleDetections.length:'—'}</strong></div>
       <div><span>Personas</span><strong>{sampleCount?personCount:'—'}</strong></div>
       <div><span>Inferencia</span><strong>{inferenceMs===null?'—':Math.round(inferenceMs)+' ms'}</strong></div>
       <div><span>FPS inferidos</span><strong>{observedFps===null?'—':observedFps.toFixed(1)}</strong></div>
@@ -238,12 +263,14 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
       </div>}
      <p className="browser-yolo-count">Fotogramas procesados: <b>{sampleCount}</b>
       {lastFrameAt&&<> · último: <b>{new Date(lastFrameAt).toLocaleTimeString('es-PE')}</b></>}</p>
+     {sampleCount>0&&detections.length>0&&visibleDetections.length===0&&
+      <p className="browser-yolo-empty">Hay predicciones YOLO, pero ninguna cumple los filtros visuales actuales.</p>}
      {sampleCount>0&&detections.length===0&&<p className="browser-yolo-empty">
       Ningún objeto superó el umbral. Un modelo entrenado en fotografías puede no reconocer
       modelos 3D estilizados. No se añadirán detecciones artificiales.
      </p>}
-     {detections.length>0&&<div className="browser-yolo-classes">
-      {detections.slice(0,8).map(d=><div key={d.id}>
+     {visibleDetections.length>0&&<div className="browser-yolo-classes">
+      {visibleDetections.slice(0,8).map(d=><div key={d.id}>
        <span>{d.label}</span><strong>{Math.round(d.confidence*100)} %</strong></div>)}
      </div>}
      <p className="browser-yolo-limit"><b>Limitaciones:</b>

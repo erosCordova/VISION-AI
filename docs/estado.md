@@ -242,3 +242,20 @@ Se añadieron pruebas KP02 de cálculo, protección contra doble cierre,
 consistencia tras recarga, QA de Chromium y una prueba de rendimiento
 con 100 sesiones. **Fase 8 permanece abierta hasta aprobar CI.**
 Avance administrativo vigente: **43,75 % (7 de 16)**.
+
+## Cierre Fase 8 e inicio Fase 9 — 4 de noviembre de 2026
+
+**Fase 8 APROBADA.** Ejecución CI satisfactoria:
+https://github.com/erosCordova/VISION-AI/actions/runs/41882458652
+(KP01–KP03, cálculos desde IndexedDB, cierre EPP único,
+filtros, serie temporal, pruebas de 100 sesiones / 1 200 episodios,
+comprobaciones de Chromium, contratos y compilación).
+
+**Avance administrativo: 8 de 16 fases = 50 %.**
+**Fase 9 EN CURSO:** se añade un filtro de confianza/clase
+exclusivamente visual en el panel YOLO. El decodificador conserva las
+predicciones disponibles desde el umbral base del 15 %, y la vista
+aplica sus filtros sin reescribir resultados del monitor ni sesiones.
+Los casos de sincronización de fotogramas, errores de ejecución y
+aceptación integral de Fase 9 siguen pendientes. El sistema solo
+analiza fotogramas generados por los cuatro escenarios 3D.

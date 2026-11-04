@@ -4,7 +4,7 @@ Plataforma empresarial de visión computacional con cuatro escenarios de anális
 
 ## Estado verificado
 
-**Fases 1 a 5 aprobadas; avance administrativo: 31.25 % (5 de 16). Fase 6 en curso.** El repositorio contiene React, Vite, un simulador 2D interactivo de cuatro escenarios, controles de cámara, reproducción de videos en bucle, un visor de fotogramas analizados y un piloto opcional FastAPI + YOLO26n en CPU. El frontend y los contratos están cubiertos por CI; no se ha acreditado aún inferencia en el hardware final, precisión ni FPS sostenidos con un modelo real. No se ha declarado despliegue productivo.
+**Fases 1 a 8 aprobadas; avance administrativo: 50 % (8 de 16). Fase 9 en curso.** React + Vite ofrecen cuatro simulaciones 3D con humanos animados. YOLO ONNX (COCO y EPP) procesa fotogramas de estas escenas en el navegador; no se admiten datasets, fotografías, videos ni cámaras como entradas. Existen persistencia local IndexedDB, indicadores verificables y revisión humana de indicios EPP. El frontend se publica en Vercel Hobby; Render Free funciona como API ligera, sin inferencia remota. No se declara precisión, mAP ni rendimiento sostenido sin mediciones.
 
 ## Ejecutar y validar
 
@@ -101,13 +101,9 @@ El detector EPP de Seguridad tiene **señales temporales de revisión**, visible
 
 ## Progreso de fases — estado vigente 4 de noviembre de 2026
 
-**7 de 16 fases aprobadas = 43,75 %.**
-Fases 1–7 aprobadas. La **Fase 8 (Dashboard e indicadores verificables)**
-está en desarrollo: los KPI se calculan exclusivamente a partir de las
-sesiones 3D guardadas en IndexedDB, con filtros por escenario, origen y
-periodo, sin datos demo ni carga de datasets.
-La Fase 7 aprobó DA01–DA04 (persistencia, reproducibilidad,
-integridad y recuperación de capacidad).
-Pruebas: https://github.com/erosCordova/VISION-AI/actions/runs/41873829082 .
-Consulta [estado](docs/estado.md), [cierre Fase 7](docs/fase07_sesiones_simuladas.md)
-e [indicadores Fase 8](docs/indicadores.md).
+**8 de 16 fases aprobadas = 50 %.** Fases 1–8 aprobadas; fase 9 en ejecución.
+La fase 8 validó KPI KP01–KP03, revisión humana EPP y rendimiento con sesiones locales.
+Pruebas: https://github.com/erosCordova/VISION-AI/actions/runs/41882458652 .
+La fase 9 empieza con filtros visuales de confianza y clases sin alterar las inferencias originales.
+Consulta [estado](docs/estado.md), [indicadores Fase 8](docs/indicadores.md)
+y [plan Fase 9](docs/fase09_deteccion_3d.md).

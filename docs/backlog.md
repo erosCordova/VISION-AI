@@ -9,10 +9,10 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 | 03 | Escenarios empresariales y criterios operativos | Cuatro fichas con casos positivo, negativo y ambiguo | Aprobada con referencias esquemáticas |
 | 04 | Requisitos funcionales y reglas de negocio | Casos de uso, reglas, estados y alternativas de error | Aprobada con referencia de negocio |
 | 05 | Arquitectura modular y base técnica | Repositorio técnico, contratos, entorno y scripts | Aprobada con build y contratos |
-| 06 | Diseño UX/UI empresarial y construcción de la interfaz | Frontend navegable, componentes y sistema visual | Pendiente |
-| 07 | Modelo de datos y escenarios reproducibles | Repositorio local, catálogos, migraciones y semillas | Pendiente |
-| 08 | Dashboard e indicadores verificables | KPI y gráficos verificados desde el repositorio | Pendiente |
-| 09 | Centro de análisis y detección de objetos | Carga, ejecución y detecciones alineadas | Pendiente |
+| 06 | Diseño UX/UI empresarial y construcción de la interfaz | Frontend navegable, componentes y sistema visual | Aprobada |
+| 07 | Modelo de datos y escenarios reproducibles | Sesiones 3D reproducibles, IndexedDB y migración aditiva | Aprobada |
+| 08 | Dashboard e indicadores verificables | KPI y gráficos verificados desde el repositorio | Aprobada |
+| 09 | Centro de análisis y detección de objetos | Captura 3D, YOLO, cajas y filtros sin pérdida de evidencia | En curso |
 | 10 | Segmentación de imágenes y capas visuales | Máscaras, capas y cálculo de área | Pendiente |
 | 11 | Patrones, reglas y gestión de alertas | Motor de reglas y ciclo de revisión de alertas | Pendiente |
 | 12 | Historial, reportes y exportación | Historial, detalle y CSV | Pendiente |
@@ -33,7 +33,7 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 
 ## Siguiente incremento
 
-Fase 6: construir interfaz empresarial, sistema visual, navegación por módulos, estados y componentes reutilizables sobre la base técnica validada. No afirmar persistencia durable antes de Fase 7 ni inferencia real antes de Fase 15.
+Fase 9: reforzar el ciclo de análisis YOLO sobre capturas exclusivas de los cuatro escenarios 3D. Filtros de clase/confianza exclusivamente visuales; sincronía fotograma–resultado; estados del motor; pruebas de errores y detecciones vacías. Nunca introducir archivos externos ni métricas inventadas. Ver [plan de Fase 9](fase09_deteccion_3d.md).
 
 ## Ampliación D12: YOLO y tiempo real
 

@@ -49,7 +49,7 @@ export function SessionsDashboard({repository,onHistory,onOperations}:{
   <div className="section-heading">
    <div><h2>Indicadores del historial</h2>
     <p>Datos confirmados de IndexedDB · solo sesiones que guardaste explícitamente</p></div>
-   <span>FASE 08 · EN DESARROLLO</span>
+   <span>FASE 08 · VALIDADA</span>
   </div>
   <div className="saved-dashboard-filters">
    <label>Escenario
