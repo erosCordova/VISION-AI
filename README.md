@@ -4,7 +4,7 @@ Plataforma empresarial de visión computacional con cuatro escenarios exclusivam
 
 ## Estado verificado
 
-**Fases 1 a 11 aprobadas; avance administrativo: 68,75 % (11 de 16). Fase 12 pendiente.** React + Vite ofrecen cuatro simulaciones 3D con humanos animados. YOLO ONNX (COCO y EPP) procesa fotogramas de estas escenas en el navegador; no se admiten datasets, fotografías, videos ni cámaras como entradas. Existen persistencia local IndexedDB, indicadores verificables y revisión humana de indicios EPP. El frontend se publica en Vercel Hobby; Render Free funciona como API ligera, sin inferencia remota. No se declara precisión, mAP ni rendimiento sostenido sin mediciones.
+**Fases 1 a 12 aprobadas; avance administrativo: 75 % (12 de 16). Fase 13 pendiente.** React + Vite ofrecen cuatro simulaciones 3D con humanos animados. YOLO ONNX (COCO y EPP) procesa fotogramas de estas escenas en el navegador; no se admiten datasets, fotografías, videos ni cámaras como entradas. Existen persistencia local IndexedDB, indicadores verificables y revisión humana de indicios EPP. El frontend se publica en Vercel Hobby; Render Free funciona como API ligera, sin inferencia remota. No se declara precisión, mAP ni rendimiento sostenido sin mediciones.
 
 ## Ejecutar y validar
 
@@ -101,7 +101,7 @@ El detector EPP de Seguridad tiene **señales temporales de revisión**, visible
 
 ## Progreso de fases — estado vigente 4 de noviembre de 2026
 
-**11 de 16 fases aprobadas = 68,75 %.** Fases 1–11 aprobadas; fase 12 pendiente.
+**12 de 16 fases aprobadas = 75 %.** Fases 1–12 aprobadas; fase 13 pendiente.
 La fase 8 validó KPI KP01–KP03, revisión humana EPP y rendimiento con sesiones locales.
 Pruebas: https://github.com/erosCordova/VISION-AI/actions/runs/41882458652 .
 Las fases 9 y 10 validaron YOLO real sobre los cuatro escenarios 3D, sincronización, fallos y reintentos, y máscaras cromáticas por píxel sin alterar evidencias.
@@ -117,3 +117,14 @@ de personas en Retail y Logística; defectos no verificables con COCO.
 Operaciones registra decisiones y notas opcionales en IndexedDB sin
 cambiar las detecciones. No hay sanciones automáticas ni seguimiento
 personal. Ver [fase 11](docs/fase11_reglas_alertas.md) y [CI aprobada](https://github.com/erosCordova/VISION-AI/actions/runs/41928837022).
+
+## Fase 12 — Historial y exportaciones
+
+La sección **Historial** muestra informes derivados de sesiones válidas
+IndexedDB y decisiones humanas: filtros combinables, tres archivos
+CSV (sesiones, detecciones YOLO e indicios), auditoría JSON y
+reporte A4 imprimible. Los archivos se generan en el navegador
+al solicitarlos, sin imágenes, cámaras, datasets ni procesamiento
+remoto. Las CSV incluyen protección frente a fórmulas de hojas de cálculo.
+Ver [cierre Fase 12](docs/fase12_informes_historial.md) y
+[CI aprobada](https://github.com/erosCordova/VISION-AI/actions/runs/41931298826).

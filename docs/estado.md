@@ -2,7 +2,7 @@
 
 Última actualización: 2026-11-04. Referencia: manual avanzado de 16 fases y decisión vigente de utilizar exclusivamente simulaciones 3D.
 
-**ESTADO VIGENTE: 11 de 16 fases aprobadas = 68,75 %. Fase 12 pendiente.** Los registros de incrementos anteriores que aparecen más abajo son históricos y no sustituyen este cierre.
+**ESTADO VIGENTE: 12 de 16 fases aprobadas = 75 %. Fase 13 pendiente.** Los registros de incrementos anteriores que aparecen más abajo son históricos y no sustituyen este cierre.
 
 | Fase | Alcance validado | Evidencia |
 | --- | --- | --- |
@@ -16,8 +16,10 @@
 | 8 | Dashboard, KPI y revisión EPP con indicadores verificables | [CI aprobada](https://github.com/erosCordova/VISION-AI/actions/runs/41882458652) |
 | 9 | Captura sincronizada y detección YOLO ONNX de cuatro escenarios 3D, estados, reintento, filtros y evidencia PNG | [CI de aceptación](https://github.com/erosCordova/VISION-AI/actions/runs/41926688909) |
 | 10 | Máscara cromática por píxeles ROI YOLO, limpieza, siluetas, contornos, áreas y PNG alfa | [CI de aceptación](https://github.com/erosCordova/VISION-AI/actions/runs/41926688909) |
+| 11 | Motor de reglas y revisión humana de detecciones YOLO | [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41928837022) |
+| 12 | Historial filtrado, tres CSV, auditoría JSON y reporte A4 | [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41931298826) |
 
-**Avance administrativo vigente: 68,75 % (11 de 16 fases aprobadas).** No mide precisión del modelo, mAP ni exactitud de los objetos estilizados.
+**Avance administrativo vigente: 75 % (12 de 16 fases aprobadas).** No mide precisión del modelo, mAP ni exactitud de los objetos estilizados.
 
 ## Verificación local
 
@@ -320,3 +322,20 @@ información preprogramada del simulador como detecciones.
 **Evidencia CI completa:** https://github.com/erosCordova/VISION-AI/actions/runs/41928837022
 (TypeScript, Vitest, Python, Vite y Chromium responsive con ONNX real).
 **Avance: 11/16 = 68,75 %. Próxima fase: 12 — historial e informes.**
+
+## Cierre de Fase 12 — 4 de noviembre de 2026
+
+**Aprobada: 12/16 = 75 %.** Evidencia:
+https://github.com/erosCordova/VISION-AI/actions/runs/41931298826
+
+Historial con filtros combinables por escenario, origen, fecha y revisión
+humana; métricas derivadas de sesiones locales válidas; CSV de sesiones,
+detecciones originales YOLO y decisiones; JSON de auditoría con huellas
+reproducibles y revisión asociada; detalle exportable e impresión A4.
+Se aíslan registros corruptos; se neutralizan posibles fórmulas de
+hojas de cálculo. No se guardan fotogramas ni se usan datasets, imágenes
+externas o servicios de pago. El resumen no declara precisión del modelo.
+
+**CI aprobada**: 294 pruebas TypeScript, 66 Python y 9 recorridos
+Chromium 360/768/1440 con los modelos ONNX en cuatro escenarios y
+las exportaciones EX01–EX06. Próxima: **Fase 13, seguridad y privacidad**.

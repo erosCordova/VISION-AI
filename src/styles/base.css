@@ -279,3 +279,52 @@ dt{color:#586c7a}
 .operations-review-decision strong{font-size:11px;color:#1f7961}
 .operations-review-decision p{font-size:10px;color:#617b71;overflow-wrap:anywhere}
 @media(max-width:680px){.operations-review-decision-form{max-width:none}}
+
+/* Fase 12: panel de informes filtrados y vista imprimible A4 local. */
+.history-report-summary{background:linear-gradient(130deg,#103846,#194f56);
+ border:1px solid #427e7f;border-radius:12px;padding:17px 19px;
+ margin:15px 0;color:#d4f5e9}
+.history-report-heading{display:flex;align-items:center;justify-content:space-between;
+ gap:14px;flex-wrap:wrap}
+.history-report-heading span{font-size:10px;font-weight:800;letter-spacing:.08em;color:#75e5c2}
+.history-report-heading h3{font-size:17px;margin:5px 0 6px;color:#f0fffb}
+.history-report-heading p,.history-report-heading small{margin:0;font-size:10px;color:#b8dcd6}
+.history-report-stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:16px 0}
+.history-report-stats>div{border:1px solid #44827b;background:#194f52;border-radius:8px;
+ padding:10px;display:grid;gap:7px;min-width:0}
+.history-report-stats span{font-size:9px;color:#bbe0d6}
+.history-report-stats strong{font-size:18px;color:#a6ffe0;overflow-wrap:anywhere}
+.history-report-actions{display:flex;gap:8px;flex-wrap:wrap}
+.history-report-actions button,.history-detail-export button{font-size:10px;
+ padding:9px 11px;border-radius:7px;border:1px solid #58a995;
+ background:#237769;color:#fff;font-weight:750}
+.history-report-actions button:disabled{opacity:.5;cursor:not-allowed}
+.history-report-actions button:hover:not(:disabled){background:#2a9280}
+.history-report-caveat{font-size:10px;line-height:1.6;color:#b9d6d1;margin:14px 0 0}
+.history-review-item{display:grid;gap:3px;padding:5px 0;border-bottom:1px solid #dceae5}
+.history-review-item span{color:#25735f}
+.history-review-item small{font-size:10px;overflow-wrap:anywhere}
+.history-detail-export{display:flex;gap:8px;flex-wrap:wrap}
+.history-print-report{display:none}
+@media(max-width:1050px){.history-report-stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:540px){.history-report-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .history-report-summary{padding:13px}.history-report-stats strong{font-size:16px}}
+@media print{
+ .sidebar,.topbar,.workspace>.page-heading,.workspace-footer,
+ .history-panel>.panel-heading,.history-panel>.history-filters,
+ .history-panel>.history-report-summary,.history-panel>.session-history-integrity,
+ .history-panel>.table-scroll,.history-panel>.pagination,
+ .history-panel>.session-history-detail,.history-panel>.session-history-confirm,
+ .history-panel>.session-history-error,.history-panel>.session-history-notice{
+  display:none!important}
+ body,.app-shell,.workspace,main,.history-panel{background:#fff!important;
+  color:#111!important;box-shadow:none!important;border:0!important;
+  padding:0!important;margin:0!important;width:100%!important}
+ .history-print-report{display:block!important;color:#111!important}
+ .history-print-report h2{font-size:19pt;color:#111!important}
+ .history-print-report table{width:100%;border-collapse:collapse}
+ .history-print-report th,.history-print-report td{font-size:9pt;
+  padding:6px;border:1px solid #888;overflow-wrap:anywhere;text-align:left}
+ .history-print-report tr{break-inside:avoid}
+ @page{size:A4;margin:14mm}
+}
