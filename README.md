@@ -1,10 +1,10 @@
 # VISION AI
 
-Plataforma empresarial de visión computacional con cuatro escenarios de análisis de video: Seguridad industrial, Almacén inteligente, Control de calidad y Retail.
+Plataforma empresarial de visión computacional con cuatro escenarios exclusivamente simulados en 3D: Seguridad industrial, Almacén inteligente, Control de calidad y Retail.
 
 ## Estado verificado
 
-**Fases 1 a 8 aprobadas; avance administrativo: 50 % (8 de 16). Fase 9 en curso.** React + Vite ofrecen cuatro simulaciones 3D con humanos animados. YOLO ONNX (COCO y EPP) procesa fotogramas de estas escenas en el navegador; no se admiten datasets, fotografías, videos ni cámaras como entradas. Existen persistencia local IndexedDB, indicadores verificables y revisión humana de indicios EPP. El frontend se publica en Vercel Hobby; Render Free funciona como API ligera, sin inferencia remota. No se declara precisión, mAP ni rendimiento sostenido sin mediciones.
+**Fases 1 a 10 aprobadas; avance administrativo: 62,5 % (10 de 16). Fase 11 pendiente.** React + Vite ofrecen cuatro simulaciones 3D con humanos animados. YOLO ONNX (COCO y EPP) procesa fotogramas de estas escenas en el navegador; no se admiten datasets, fotografías, videos ni cámaras como entradas. Existen persistencia local IndexedDB, indicadores verificables y revisión humana de indicios EPP. El frontend se publica en Vercel Hobby; Render Free funciona como API ligera, sin inferencia remota. No se declara precisión, mAP ni rendimiento sostenido sin mediciones.
 
 ## Ejecutar y validar
 
@@ -17,7 +17,7 @@ npm run build
 python3 -m unittest discover -s tests
 ```
 
-Para poner en marcha **el motor real local**, pesos, API y Vite, sigue [las instrucciones del backend](backend/README.md). La inferencia requiere instalar librerías Python y pesos YOLO; el servidor debe estar conectado antes de pulsar «Iniciar análisis». Los archivos de video permanecen en el navegador y solo se envían fotogramas mientras el usuario activa el análisis.
+**La inferencia activa se ejecuta exclusivamente en el navegador con ONNX Runtime Web**, después de pulsar «Iniciar YOLO real», sobre capturas de los cuatro escenarios 3D. El proyecto no solicita datasets, videos, imágenes externas ni acceso a cámara. [Las instrucciones históricas del backend](backend/README.md) describen prototipos previos, no el flujo vigente del producto.
 
 ## Diferencias entre escenarios
 
@@ -32,7 +32,7 @@ El visor comprueba la identidad del fotograma, la versión y el hash SHA256 del 
 
 Frontend React + TypeScript + Vite; contratos de dominio; backend piloto FastAPI/YOLO26n. El backend actual se ejecuta en loopback y no debe exponerse públicamente sin autenticación, límites, TLS y orígenes autorizados. **Render Free se usa exclusivamente como API de estado sin inferencia YOLO**, y una página publicada en Vercel no puede depender de localhost del visitante. Se está evaluando inferencia ONNX en navegador frente a backend de inferencia con recursos suficientes.
 
-No hay persistencia durable ni modelos especializados validados. Los PNG del proyecto son fixtures esquemáticos, no detecciones de la IA.
+Existe persistencia local IndexedDB de sesiones; el modelo YOLO general y el modelo EPP ejecutan inferencia ONNX sobre los fotogramas 3D. Los PNG de evidencia exportados desde el visor contienen cajas originales calculadas por el detector, y el PNG separado de máscara contiene una aproximación cromática, no salida semántica YOLO-seg.
 
 ## Documentación
 
@@ -101,9 +101,10 @@ El detector EPP de Seguridad tiene **señales temporales de revisión**, visible
 
 ## Progreso de fases — estado vigente 4 de noviembre de 2026
 
-**8 de 16 fases aprobadas = 50 %.** Fases 1–8 aprobadas; fase 9 en ejecución.
+**10 de 16 fases aprobadas = 62,5 %.** Fases 1–10 aprobadas; fase 11 pendiente.
 La fase 8 validó KPI KP01–KP03, revisión humana EPP y rendimiento con sesiones locales.
 Pruebas: https://github.com/erosCordova/VISION-AI/actions/runs/41882458652 .
-La fase 9 empieza con filtros visuales de confianza y clases sin alterar las inferencias originales.
+Las fases 9 y 10 validaron YOLO real sobre los cuatro escenarios 3D, sincronización, fallos y reintentos, y máscaras cromáticas por píxel sin alterar evidencias.
+Ejecución integral: https://github.com/erosCordova/VISION-AI/actions/runs/41926688909 .
 Consulta [estado](docs/estado.md), [indicadores Fase 8](docs/indicadores.md)
-y [plan Fase 9](docs/fase09_deteccion_3d.md).
+[cierre Fase 9](docs/fase09_deteccion_3d.md) y [cierre Fase 10](docs/fase10_segmentacion_3d.md).

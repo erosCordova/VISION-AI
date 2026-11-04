@@ -12,6 +12,7 @@ export interface FrameAnalysisAttempt{
  readonly model:YoloFamily;
  readonly width:number;
  readonly height:number;
+ readonly capturedAtMs:number;
  readonly startedAtMs:number;
 }
 export interface FrameAnalysisOutcome{
@@ -65,7 +66,7 @@ export class FrameAnalysisCycle{
   if(!validDimensions(width,height)||!Number.isFinite(now))throw Error('Fotograma de simulación inválido.');
   const frameId=++this.nextId;
   const job={token:this.generation+':'+frameId+':1',generation:this.generation,
-   frameId,attempt:1,scenarioId,model,width,height,startedAtMs:now};
+   frameId,attempt:1,scenarioId,model,width,height,capturedAtMs:now,startedAtMs:now};
   this.active=job;
   return job;
  }
@@ -87,7 +88,7 @@ export class FrameAnalysisCycle{
   this.active=null;this.failed=job;this.outcome=value;return value;
  }
  retry(now:number):FrameAnalysisAttempt|null{
-  if(this.active||!this.failed||!Number.isFinite(now))return null;
+  if(this.active||!this.failed||!Number.isFinite(now)||now<this.failed.capturedAtMs)return null;
   const old=this.failed;
   const job={...old,attempt:old.attempt+1,
    token:old.generation+':'+old.frameId+':'+(old.attempt+1),startedAtMs:now};

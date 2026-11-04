@@ -1,5 +1,5 @@
 import {useEffect,useState} from 'react';
-import {detectedClasses,modelScope,observedCaptureFps,observedYoloFps,reviewSignals} from './yolo-telemetry';
+import {detectedClasses,modelScope,observedCaptureFps,observedYoloFps,observationAgeSeconds,reviewSignals} from './yolo-telemetry';
 import type {YoloTelemetry} from './yolo-telemetry';
 import type {ScenarioKey} from './simulation-engine';
 
@@ -7,7 +7,7 @@ interface Props {readonly telemetry:YoloTelemetry;readonly scenario:ScenarioKey;
 const number=(n:number)=>n.toLocaleString('es-PE',{maximumFractionDigits:1});
 const statusText:Record<YoloTelemetry['phase'],string>={
  idle:'SIN INICIAR',loading:'CARGANDO MODELO',running:'INFERENCIA ACTIVA',
- stopped:'INFERENCIA DETENIDA',failed:'ERROR DEL DETECTOR'
+ retrying:'REINTENTANDO FOTOGRAMA',stopped:'INFERENCIA DETENIDA',failed:'ERROR DEL DETECTOR'
 };
 export function YoloMonitor({telemetry,scenario,paused}:Props){
  const [now,setNow]=useState(()=>Date.now());
@@ -20,7 +20,8 @@ export function YoloMonitor({telemetry,scenario,paused}:Props){
  const classes=detectedClasses(last?.detections??[]);
  const fps=observedYoloFps(telemetry.observations);
  const review=reviewSignals(telemetry.model,last?.detections??[]);
- const ageSeconds=last?Math.max(0,(now-last.capturedAtMs)/1000):null;
+ const activeVisible=telemetry.phase==='running'?telemetry.activeReview:[];
+ const ageSeconds=observationAgeSeconds(last,now);
  const stale=telemetry.phase==='running'&&!paused&&ageSeconds!==null&&
   ageSeconds>5;
  const maxCount=Math.max(1,...telemetry.observations.map(o=>o.detections.length));
@@ -63,7 +64,7 @@ export function YoloMonitor({telemetry,scenario,paused}:Props){
    </div>
    <section className="yolo-monitor-trend" aria-label="Historial medido de objetos detectados">
     <div className="yolo-monitor-sectionhead"><h4>Lecturas del modelo</h4>
-     <span>{telemetry.observations.length} recientes · {last?.frameNumber??0} totales</span></div>
+     <span>{telemetry.observations.length} recientes · último frame #{last?.frameNumber??0}</span></div>
     {telemetry.observations.length>0?
      <svg viewBox="0 0 320 106" preserveAspectRatio="none" role="img"
        aria-label={'Detecciones reales por fotograma procesado: '+telemetry.observations.map(o=>o.detections.length).join(', ')}>
@@ -90,16 +91,16 @@ export function YoloMonitor({telemetry,scenario,paused}:Props){
    {telemetry.model==='ppe'&&<section className="yolo-monitor-review" aria-label="Alertas de revisión basadas en YOLO">
     <div className="yolo-monitor-sectionhead">
      <h4>Señales repetidas para revisión</h4>
-     <strong className={telemetry.activeReview.length?'is-review':''}>
-      {last?telemetry.activeReview.length:'—'}
+     <strong className={activeVisible.length?'is-review':''}>
+      {last?activeVisible.length:'—'}
      </strong>
     </div>
     <p className="yolo-monitor-review-explain">
      Se emite una señal cuando la misma clase de posible ausencia de EPP aparece en al menos
      2 de los últimos 3 fotogramas, con confianza mínima del 55 % y dentro de 30 segundos.
     </p>
-    {telemetry.activeReview.length>0&&<div className="yolo-monitor-review-active" role="status">
-     {telemetry.activeReview.map(item=><div key={item.classId}>
+    {activeVisible.length>0&&<div className="yolo-monitor-review-active" role="status">
+     {activeVisible.map(item=><div key={item.classId}>
       <span>● {item.label}</span>
       <small>{item.supportingFrames} fotogramas · hasta {Math.round(item.maxConfidence*100)} % confianza</small>
      </div>)}

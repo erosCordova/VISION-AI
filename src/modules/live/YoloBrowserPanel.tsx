@@ -5,24 +5,50 @@ import type {YoloFrame,YoloFamily} from './yolo-browser';
 import {ppeColor,ppeFindings} from './ppe-model';
 import {MIN_RAW_YOLO_CONFIDENCE,filterDetectionsForDisplay,classesInDetections} from './detection-filter';
 import type {ScenarioKey} from './simulation-engine';
-import type {YoloTelemetryEvent} from './yolo-telemetry';
+import {validYoloFrameSource} from './yolo-telemetry';
+import type {YoloTelemetryEvent,YoloFrameSource} from './yolo-telemetry';
 import {FrameAnalysisCycle,frameBoxPixels} from './frame-analysis-cycle';
+import {evidencePngName,chromaticMaskPngName,saveEvidencePng} from './yolo-evidence';
+import {segmentByContrast,chromaticMaskPixels,chromaticMaskBoundary} from './chromatic-segmentation';
+import type {ChromaticMask} from './chromatic-segmentation';
+import {captureWaitMs,shouldPauseCapture} from './inference-scheduler';
+import type {CapturePace} from './inference-scheduler';
 import type {FrameAnalysisAttempt,FrameAnalysisOutcome} from './frame-analysis-cycle';
 type Model=Awaited<ReturnType<typeof loadYoloBrowser>>;
-type Phase='idle'|'loading'|'running'|'stopped'|'failed';
+type Phase='idle'|'loading'|'running'|'retrying'|'stopped'|'failed';
 interface Props {
  readonly getSource:()=>HTMLCanvasElement|null;
+ readonly getFrameSource:()=>YoloFrameSource;
  readonly scenarioName:string;
  readonly scenarioId:ScenarioKey;
  readonly paused:boolean;
  readonly onTelemetry:(event:YoloTelemetryEvent)=>void;
 }
 /** El usuario controla descargas e inferencias. Muestra el fotograma EXACTO asociado a cada resultado. */
-function drawFrame(frame:YoloFrame,dest:HTMLCanvasElement,family:YoloFamily){
+function drawFrame(frame:YoloFrame,dest:HTMLCanvasElement,family:YoloFamily,
+ mask:ChromaticMask|null=null,maskStyle:'overlay'|'silhouette'|'contour'='overlay'){
  dest.width=frame.width;dest.height=frame.height;
  const ctx=dest.getContext('2d');
  if(!ctx)throw Error('No se pudo dibujar el fotograma analizado.');
- ctx.drawImage(frame.source,0,0,frame.width,frame.height);
+ if(mask&&maskStyle==='silhouette'){
+  ctx.fillStyle='#0a1420';ctx.fillRect(0,0,frame.width,frame.height);
+ }else ctx.drawImage(frame.source,0,0,frame.width,frame.height);
+ if(mask){
+  const boundary=maskStyle==='contour'?chromaticMaskBoundary(mask).binary:null;
+  const overlay=document.createElement('canvas');
+  overlay.width=frame.width;overlay.height=frame.height;
+  const layer=overlay.getContext('2d');
+  if(!layer)throw Error('No se pudo dibujar la máscara cromática.');
+  const buffer=layer.createImageData(frame.width,frame.height);
+  for(let i=0;i<mask.binary.length;i++)if((boundary??mask.binary)[i]===1){
+   const j=i*4;
+   buffer.data[j]=maskStyle==='silhouette'?138:maskStyle==='contour'?255:255;
+   buffer.data[j+1]=maskStyle==='silhouette'?244:maskStyle==='contour'?232:169;
+   buffer.data[j+2]=maskStyle==='silhouette'?207:maskStyle==='contour'?122:75;
+   buffer.data[j+3]=maskStyle==='silhouette'||maskStyle==='contour'?255:95;
+  }
+  layer.putImageData(buffer,0,0);ctx.drawImage(overlay,0,0);
+ }
  const thickness=Math.max(2,frame.width/450);
  for(const detection of frame.detections){
   const {x:px,y:py,width:pw,height:ph}=frameBoxPixels(
@@ -44,10 +70,19 @@ const explainError=(error:unknown)=>{
  const info=error instanceof Error?error.message:String(error);
  return info.length>230?info.slice(0,230)+'…':info;
 };
-export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTelemetry}:Props){
+export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenarioId,paused,onTelemetry}:Props){
  const [phase,setPhase]=useState<Phase>('idle');
  const [message,setMessage]=useState('El modelo solo se descarga cuando presionas Iniciar YOLO.');
  const [confidence,setConfidence]=useState(.35);
+ const [capturePace,setCapturePace]=useState<CapturePace>('balanced');
+ const [showChromaticMask,setShowChromaticMask]=useState(false);
+ const [maskContrast,setMaskContrast]=useState(70);
+ const [maskMinPixels,setMaskMinPixels]=useState(4);
+ const [maskStyle,setMaskStyle]=useState<'overlay'|'silhouette'|'contour'>('overlay');
+ const [maskStats,setMaskStats]=useState<ChromaticMask|null>(null);
+ const boundaryStats=useMemo(()=>maskStats?chromaticMaskBoundary(maskStats):null,[maskStats]);
+ const maskSource=useRef<HTMLCanvasElement|null>(null);
+ const [maskError,setMaskError]=useState('');
  const [classFilter,setClassFilter]=useState('all');
  const [model,setModel]=useState<Model|null>(null);
  const [family,setFamily]=useState<YoloFamily>(scenarioId==='safety'?'ppe':'coco');
@@ -62,21 +97,23 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
  const startLocked=useRef(false);
  const cycle=useRef(new FrameAnalysisCycle());
  const failedCanvas=useRef<HTMLCanvasElement|null>(null);
+ const failedSource=useRef<YoloFrameSource|null>(null);
  const [lastRun,setLastRun]=useState<FrameAnalysisOutcome|null>(null);
- const frameNumber=useRef(0);
+ const lastCompletedRun=useRef<FrameAnalysisOutcome|null>(null);
  const times=useRef<number[]>([]);
  const [error,setError]=useState('');
+ const [exportMessage,setExportMessage]=useState('');
+ const lastEvidenceSource=useRef<YoloFrameSource|null>(null);
  const start=useCallback(async()=>{
-  if(startLocked.current||phase==='loading'||phase==='running')return;
+  if(startLocked.current||phase==='loading'||phase==='running'||phase==='retrying')return;
   startLocked.current=true;
   const token=++generation.current;
-  cycle.current.reset();failedCanvas.current=null;setLastRun(null);
+  cycle.current.reset();failedCanvas.current=null;failedSource.current=null;setLastRun(null);lastCompletedRun.current=null;
   setPhase('loading');setError('');
   onTelemetry({type:'status',phase:'loading',model:family});
-  frameNumber.current=0;
   setMessage('Preparando el motor de inferencia…');
   times.current=[];setSampleCount(0);setObservedFps(null);
-  lastAnalyzed.current=null;
+  lastAnalyzed.current=null;lastEvidenceSource.current=null;setExportMessage('');setMaskStats(null);setMaskError('');
   setDetections([]);setInferenceMs(null);setLastFrameAt(null);
   if(preview.current){const ctx=preview.current.getContext('2d');ctx?.clearRect(0,0,preview.current.width,preview.current.height);}
   try{
@@ -98,17 +135,17 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   }
  },[phase,model,family,onTelemetry]);
  const stop=useCallback(()=>{
-  generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;
+  generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;failedSource.current=null;
   setPhase('stopped');
   onTelemetry({type:'status',phase:'stopped',model:family});
   setMessage('Inferencia detenida. No se están procesando más fotogramas.');
  },[onTelemetry,family]);
  function selectFamily(next:YoloFamily){
   if(next===family)return;
-  generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;setLastRun(null);
+  generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;failedSource.current=null;setLastRun(null);lastCompletedRun.current=null;
   setPhase('idle');setModel(null);setFamily(next);
   onTelemetry({type:'status',phase:'idle',model:next});
-  lastAnalyzed.current=null;
+  lastAnalyzed.current=null;lastEvidenceSource.current=null;setExportMessage('');setMaskStats(null);setMaskError('');
   setClassFilter('all');
   if(preview.current)preview.current.getContext('2d')?.clearRect(0,0,preview.current.width,preview.current.height);
   setError('');setDetections([]);setSampleCount(0);
@@ -122,10 +159,11 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   const token=generation.current;
   const loop=async()=>{
    while(!cancelled&&generation.current===token){
-    if(paused){await delay(450);continue;}
+    if(shouldPauseCapture(paused,document.hidden)){await delay(450);continue;}
     const begin=performance.now();
     let job:FrameAnalysisAttempt|null=null;
     let frame:HTMLCanvasElement|null=null;
+    let frameSource:YoloFrameSource|null=null;
     try{
      const source=getSource();
      if(!source||source.width<2||source.height<2){
@@ -133,22 +171,28 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
       await delay(350);continue;
      }
      frame=captureRenderedFrame(source);
-     onTelemetry({type:'capture',model:model.family,capturedAtMs:Date.now()});
-     job=cycle.current.begin(scenarioId,model.family,frame.width,frame.height,Date.now());
+     frameSource=getFrameSource();
+     if(frameSource.scenarioId!==scenarioId||!validYoloFrameSource(frameSource))
+      throw Error('Estado de captura de la simulación inválido.');
+     const captureAt=Date.now();
+     job=cycle.current.begin(scenarioId,model.family,frame.width,frame.height,captureAt);
      if(!job){await delay(120);continue;}
+     onTelemetry({type:'capture',model:model.family,capturedAtMs:captureAt});
      const result=await analyzeYoloFrame(model,frame,MIN_RAW_YOLO_CONFIDENCE);
      if(cancelled||generation.current!==token){cycle.current.discard(job);return;}
      const accepted=cycle.current.complete(job,result.detections,Date.now());
      if(!accepted)return;
-     setLastRun(accepted);failedCanvas.current=null;
+     setLastRun(accepted);lastCompletedRun.current=accepted;failedCanvas.current=null;failedSource.current=null;
      lastAnalyzed.current=result;
+     lastEvidenceSource.current=frameSource;
      setDetections(result.detections);
      setInferenceMs(result.inferenceMs);
-     const capturedAtMs=Date.now();
+     const capturedAtMs=job.capturedAtMs;
+     const completedAtMs=Date.now();
      setLastFrameAt(capturedAtMs);
-     onTelemetry({type:'frame',observation:{frameNumber:++frameNumber.current,
-       capturedAtMs,inferenceMs:result.inferenceMs,detections:result.detections,
-       model:model.family}});
+     onTelemetry({type:'frame',observation:{frameNumber:job.frameId,
+       capturedAtMs,completedAtMs,inferenceMs:result.inferenceMs,detections:result.detections,
+       model:model.family,source:frameSource??undefined}});
      const now=performance.now();
      times.current=[...times.current.filter(t=>t>now-10_000),now].slice(-20);
      const stamps=times.current;
@@ -167,6 +211,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
       const failed=cycle.current.fail(job,e,Date.now());
       if(failed)setLastRun(failed);
       failedCanvas.current=frame;
+      failedSource.current=frameSource;
      }
      startLocked.current=false;
      setPhase('failed');setError(explainError(e));
@@ -175,14 +220,14 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
      return;
     }
     const spent=performance.now()-begin;
-    if(!cancelled)await delay(Math.max(100,750-spent));
+    if(!cancelled)await delay(captureWaitMs(capturePace,spent));
    }
   };
   void loop();
   return ()=>{cancelled=true;};
- },[phase,model,getSource,paused,family,onTelemetry,scenarioId]);
+ },[phase,model,getSource,getFrameSource,paused,family,onTelemetry,scenarioId,capturePace]);
  useEffect(()=>{onTelemetry({type:'status',phase:'idle',model:family});
-  return ()=>{generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;};
+  return ()=>{generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;failedSource.current=null;};
   // One status reset per mounted detector instance; state changes send events explicitly.
  },[onTelemetry]);
  const visibleDetections=useMemo(()=>filterDetectionsForDisplay(detections,{
@@ -191,40 +236,99 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
  const availableClasses=useMemo(()=>classesInDetections(detections),[detections]);
  useEffect(()=>{
   const frame=lastAnalyzed.current;
-  if(frame&&preview.current)drawFrame({...frame,detections:visibleDetections},preview.current,family);
- },[visibleDetections,family]);
+  if(!frame||!preview.current){maskSource.current=null;setMaskStats(null);return;}
+  try{
+   let mask:ChromaticMask|null=null;
+   if(showChromaticMask){
+    const ctx=frame.source.getContext('2d',{willReadFrequently:true});
+    if(!ctx)throw Error('No se pudieron consultar los píxeles del fotograma.');
+    const rgba=ctx.getImageData(0,0,frame.width,frame.height).data;
+    mask=segmentByContrast(rgba,frame.width,frame.height,
+     visibleDetections.map(d=>d.box),maskContrast,maskMinPixels);
+   }
+   drawFrame({...frame,detections:visibleDetections},preview.current,family,mask,maskStyle);
+   maskSource.current=mask?frame.source:null;
+   setMaskStats(mask);setMaskError('');
+  }catch(e){maskSource.current=null;setMaskStats(null);setMaskError(explainError(e));}
+ },[visibleDetections,family,showChromaticMask,maskContrast,maskMinPixels,maskStyle]);
  async function retryFailedFrame(){
   const previous=failedCanvas.current;
-  if(phase!=='failed'||!model||!previous)return;
+  const previousSource=failedSource.current;
+  if(phase!=='failed'||!model||!previous||!previousSource)return;
   const job=cycle.current.retry(Date.now());
   if(!job)return;
-  setPhase('loading');setError('');
+  const token=generation.current;
+  setPhase('retrying');setError('');
+  onTelemetry({type:'status',phase:'retrying',model:family});
   setMessage('Reintentando el mismo fotograma de la simulación…');
   try{
    const result=await analyzeYoloFrame(model,previous,MIN_RAW_YOLO_CONFIDENCE);
+   if(generation.current!==token){cycle.current.discard(job);return;}
    const accepted=cycle.current.complete(job,result.detections,Date.now());
    if(!accepted)return;
-   setLastRun(accepted);failedCanvas.current=null;
+   setLastRun(accepted);lastCompletedRun.current=accepted;failedCanvas.current=null;failedSource.current=null;
    lastAnalyzed.current=result;
+   lastEvidenceSource.current=previousSource;
    setDetections(result.detections);setInferenceMs(result.inferenceMs);
-   const capturedAtMs=Date.now();
+   const capturedAtMs=job.capturedAtMs;
+   const completedAtMs=Date.now();
    setLastFrameAt(capturedAtMs);
    onTelemetry({type:'status',phase:'running',model:family});
    onTelemetry({type:'frame',observation:{
-    frameNumber:++frameNumber.current,capturedAtMs,
-    inferenceMs:result.inferenceMs,detections:result.detections,model:family
+    frameNumber:job.frameId,capturedAtMs,completedAtMs,
+    inferenceMs:result.inferenceMs,detections:result.detections,model:family,
+    source:previousSource
    }});
    onTelemetry({type:'status',phase:'stopped',model:family});
    setSampleCount(count=>count+1);
    setPhase('stopped');
    setMessage('Fotograma reintentado correctamente. Resultado disponible para guardar.');
   }catch(e){
+   if(generation.current!==token){cycle.current.discard(job);return;}
    const failed=cycle.current.fail(job,e,Date.now());
    if(failed)setLastRun(failed);
    setPhase('failed');setError(explainError(e));
    onTelemetry({type:'status',phase:'failed',model:family,error:explainError(e)});
    setMessage('El reintento no pudo analizar el fotograma guardado en memoria.');
   }
+ }
+ async function exportMask(){
+  const mask=maskStats,source=lastEvidenceSource.current,frame=lastAnalyzed.current,
+   completed=lastCompletedRun.current;
+  if(!mask||!source||!frame||!completed||maskSource.current!==frame.source){
+   setExportMessage('Activa la máscara después de una inferencia YOLO completa.');
+   return;
+  }
+  try{
+   const output=document.createElement('canvas');
+   output.width=mask.width;output.height=mask.height;
+   const ctx=output.getContext('2d');
+   if(!ctx)throw Error('El navegador no pudo crear el PNG de máscara.');
+   const image=ctx.createImageData(mask.width,mask.height);
+   image.data.set(chromaticMaskPixels(mask));
+   ctx.putImageData(image,0,0);
+   await saveEvidencePng(output,chromaticMaskPngName(source,
+    completed.run.frameId,completed.run.capturedAtMs));
+   setExportMessage('Máscara cromática PNG exportada sobre fondo transparente.');
+  }catch(e){setExportMessage('No se pudo exportar la máscara: '+explainError(e));}
+ }
+ async function exportEvidence(){
+  const analyzed=lastAnalyzed.current;
+  const metadata=lastEvidenceSource.current;
+  const run=lastCompletedRun.current;
+  if(!analyzed||!metadata||!run||run.phase!=='completed'){
+   setExportMessage('No hay un fotograma YOLO completo para exportar.');
+   return;
+  }
+  try{
+   // Reconstruir la evidencia desde las detecciones retenidas originales:
+   // los controles de confianza y clase SOLO afectan la vista.
+   const output=document.createElement('canvas');
+   drawFrame(analyzed,output,run.run.model);
+   await saveEvidencePng(output,evidencePngName(metadata,run.run.frameId,
+    run.run.capturedAtMs));
+   setExportMessage('Evidencia PNG generada con las predicciones originales de YOLO.');
+  }catch(e){setExportMessage('No fue posible exportar: '+explainError(e));}
  }
  const personCount=visibleDetections.filter(d=>d.classId==='person').length;
  const ppe=family==='ppe'?ppeFindings(detections):null;
@@ -236,6 +340,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
       Las cajas provienen del modelo, nunca de las posiciones programadas.</p></div>
     <span className={'browser-yolo-phase '+(phase==='running'?'is-live':'')} role="status">
      {phase==='running'?'● YOLO EJECUTÁNDOSE':phase==='loading'?'CARGANDO MODELO':
+      phase==='retrying'?'REINTENTANDO FOTOGRAMA':
       phase==='failed'?'ERROR DE MODELO':'YOLO DETENIDO'}</span>
    </div>
    <div className="browser-yolo-selectors browser-yolo-simulation-only">
@@ -261,15 +366,19 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
     No es un sistema certificado ni puede confirmar cumplimiento a partir de detecciones vacías.
    </p>}
    <div className="browser-yolo-actions">
-    {phase!=='running'&&phase!=='loading'&&
+    {phase!=='running'&&phase!=='loading'&&phase!=='retrying'&&
       <button type="button" className="primary" onClick={()=>void start()}>
        {model?'▶ Reanudar YOLO real':'◉ Iniciar YOLO real'}
       </button>}
-    {(phase==='running'||phase==='loading')&&
+    {(phase==='running'||phase==='loading'||phase==='retrying')&&
       <button type="button" onClick={stop}>Ⅱ Detener inferencia</button>}
     {phase==='failed'&&model&&failedCanvas.current&&
       <button type="button" onClick={()=>void retryFailedFrame()}>
        Reintentar último fotograma
+      </button>}
+    {sampleCount>0&&lastAnalyzed.current&&lastEvidenceSource.current&&
+      <button type="button" className="browser-yolo-export" onClick={()=>void exportEvidence()}>
+       ▣ Exportar evidencia YOLO (PNG)
       </button>}
     <label htmlFor="yolo-confidence">Confianza visual mínima
       <strong>{Math.round(confidence*100)} %</strong>
@@ -277,6 +386,13 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
     <input id="yolo-confidence" type="range" min="15" max="85" step="5"
      value={Math.round(confidence*100)}
      onChange={e=>setConfidence(Number(e.target.value)/100)}/>
+    <label htmlFor="yolo-capture-pace">Cadencia de captura</label>
+    <select id="yolo-capture-pace" value={capturePace}
+     onChange={e=>setCapturePace(e.target.value as CapturePace)}>
+     <option value="balanced">Equilibrada (750 ms)</option>
+     <option value="fast">Ágil (350 ms)</option>
+     <option value="efficient">Ahorro (1500 ms)</option>
+    </select>
     <label htmlFor="yolo-class-filter">Clase visible</label>
     <select id="yolo-class-filter" value={classFilter} onChange={e=>setClassFilter(e.target.value)}>
      <option value="all">Todas las clases</option>
@@ -285,15 +401,67 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
       <option value={classFilter}>{classFilter} (sin detecciones nuevas)</option>}
     </select>
    </div>
-   <p className="browser-yolo-modelnote">Los filtros cambian solo las cajas visibles.
+   <div className="browser-yolo-mask-options">
+    <label htmlFor="yolo-chromatic-mask">
+     <input id="yolo-chromatic-mask" type="checkbox" checked={showChromaticMask}
+      onChange={e=>setShowChromaticMask(e.target.checked)}/>
+     Superponer máscara cromática aproximada</label>
+    {showChromaticMask&&<><label htmlFor="yolo-mask-contrast">Diferencia de color mínima: {maskContrast}</label>
+     <input id="yolo-mask-contrast" type="range" min="20" max="160" step="10"
+      value={maskContrast} onChange={e=>setMaskContrast(Number(e.target.value))}/>
+     <label htmlFor="yolo-mask-cleanup">Quitar manchas menores que</label>
+     <select id="yolo-mask-cleanup" value={maskMinPixels}
+      onChange={e=>setMaskMinPixels(Number(e.target.value))}>
+      <option value={1}>Sin limpieza</option>
+      <option value={4}>4 píxeles</option>
+      <option value={16}>16 píxeles</option>
+      <option value={64}>64 píxeles</option>
+     </select>
+     <label htmlFor="yolo-mask-style">Visualización</label>
+     <select id="yolo-mask-style" value={maskStyle}
+      onChange={e=>setMaskStyle(e.target.value as 'overlay'|'silhouette'|'contour')}>
+      <option value="overlay">Sobre imagen 3D</option>
+      <option value="silhouette">Silueta sobre fondo oscuro</option>
+      <option value="contour">Contornos sobre imagen 3D</option>
+     </select></>}
+    {showChromaticMask&&sampleCount>0&&maskStats&&<p className="browser-yolo-mask-summary" role="status">
+     Área cromática resaltada: <b>{maskStats.coveragePercent.toFixed(1)} %</b> del fotograma
+     {' · '}<b>{maskStats.selectedPixels.toLocaleString('es-PE')}</b> píxeles
+     {' · '}{maskStats.regions.length} regiones YOLO evaluadas
+     {boundaryStats&&<> · Bordes: {boundaryStats.boundaryPixels.toLocaleString('es-PE')} píxeles de contorno
+      {' · '}Perímetro estimado: {boundaryStats.perimeterEdges.toLocaleString('es-PE')} lados de píxel</>}
+    </p>}
+    {showChromaticMask&&maskStats&&lastEvidenceSource.current&&
+     <button type="button" className="browser-yolo-mask-export" onClick={()=>void exportMask()}>
+      ▣ Exportar máscara cromática PNG
+     </button>}
+    {showChromaticMask&&maskStats&&maskStats.regions.length>0&&
+     <div className="browser-yolo-mask-regions" aria-label="Áreas cromáticas de las regiones detectadas">
+      {maskStats.regions.slice(0,6).map(region=><div className="browser-yolo-mask-region"
+       key={region.index}>
+       <span>{visibleDetections[region.index]?.label??'Región '+(region.index+1)}</span>
+       <div className="browser-yolo-mask-bar" aria-hidden="true"><span
+        style={{width:Math.min(100,region.coveragePercent)+'%'}}/></div>
+       <strong>{region.coveragePercent.toFixed(1)} %</strong>
+      </div>)}
+     </div>}
+    {maskError&&<p className="browser-yolo-error" role="alert">{maskError}</p>}
+    <small>La máscara usa contraste RGB de píxeles dentro de cajas YOLO; elimina manchas de ruido pequeñas si se solicita. No es segmentación semántica ni una máscara del modelo YOLO.</small>
+   </div>
+   <p className="browser-yolo-modelnote">La cadencia es el intervalo mínimo objetivo entre capturas; el tiempo real depende del equipo. Al ocultar la pestaña se suspenden nuevas capturas.
+    Los filtros cambian solo las cajas visibles.
     Las inferencias originales, desde {Math.round(MIN_RAW_YOLO_CONFIDENCE*100)} % de confianza, se conservan para el monitor y la sesión.
    </p>
    <p className="browser-yolo-status" role="status">{message}</p>
+   {exportMessage&&<p className="browser-yolo-export-status" role="status">{exportMessage}</p>}
    {lastRun&&<p className="browser-yolo-run" aria-label="Ejecución correlacionada del fotograma">
     {lastRun.phase==='completed'?'ANÁLISIS COMPLETADO':'ANÁLISIS FALLIDO'}
     {' · '}Frame #{lastRun.run.frameId}
     {' · '}Intento {lastRun.run.attempt}
     {' · '}Origen: simulación 3D
+    {lastEvidenceSource.current&&lastRun.phase==='completed'&&
+     <> · Cámara: {lastEvidenceSource.current.camera}
+      {' · '}Segundo de escena: {(lastEvidenceSource.current.elapsedMs/1000).toFixed(1)}</>}
     {lastRun.durationMs!==null&&' · '+Math.round(lastRun.durationMs)+' ms de ciclo'}
    </p>}
    {error&&<p className="browser-yolo-error" role="alert">{error}</p>}
@@ -329,7 +497,8 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
        {ppe.review.length===0&&<p>No se emitieron señales explícitas de incumplimiento.
         Esto NO certifica que las personas lleven casco o chaleco.</p>}
       </div>}
-     <p className="browser-yolo-count">Fotogramas procesados: <b>{sampleCount}</b>
+     <p className="browser-yolo-count browser-yolo-count-evidence">Predicciones originales retenidas: <b>{sampleCount?detections.length:'—'}</b> · Visibles: <b>{sampleCount?visibleDetections.length:'—'}</b>.</p>
+     <p className="browser-yolo-count browser-yolo-count-frames">Fotogramas procesados: <b>{sampleCount}</b>
       {lastFrameAt&&<> · último: <b>{new Date(lastFrameAt).toLocaleTimeString('es-PE')}</b></>}</p>
      {sampleCount>0&&detections.length>0&&visibleDetections.length===0&&
       <p className="browser-yolo-empty">Hay predicciones YOLO, pero ninguna cumple los filtros visuales actuales.</p>}

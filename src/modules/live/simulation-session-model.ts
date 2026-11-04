@@ -3,6 +3,7 @@ import type {SimulationSession} from '../../core/domain/simulation-session';
 import {simulationSnapshot,validScenario} from './simulation-engine';
 import type {ScenarioKey,SimSnapshot} from './simulation-engine';
 import type {CameraView} from './scene-math';
+import {validYoloFrameSource} from './yolo-telemetry';
 import type {YoloTelemetry} from './yolo-telemetry';
 export interface SessionInput {
  readonly scenarioId:ScenarioKey;readonly scenarioName:string;readonly elapsed:number;
@@ -27,10 +28,16 @@ export function buildSimulationSession(input:SessionInput,clock=new Date(),id:st
  if(!['isometric','frontal','superior','persona'].includes(input.camera))
   throw Error('Cámara no soportada.');
  if(!Number.isFinite(clock.getTime()))throw Error('Fecha de guardado inválida.');
- const elapsedMs=Math.round(input.elapsed*1000);
- const sample=simulationSnapshot(input.scenarioId,elapsedMs/1000);
  const observation=input.telemetry.observations.at(-1)??null;
- if(input.mode==='yolo' && (!observation||input.telemetry.phase==='failed'))
+ const provenance=input.mode==='yolo'?observation?.source:null;
+ if(provenance&&(!validYoloFrameSource(provenance)||provenance.scenarioId!==input.scenarioId))
+  throw Error('La lectura YOLO no corresponde a este escenario de simulación.');
+ const elapsedMs=provenance?.elapsedMs??Math.round(input.elapsed*1000);
+ const graphics=provenance?.graphics??input.graphics;
+ const camera=provenance?.camera??input.camera;
+ const sample=simulationSnapshot(input.scenarioId,elapsedMs/1000);
+ if(input.mode==='yolo' && (!observation||input.telemetry.phase==='failed'||
+  input.telemetry.phase==='retrying'))
   throw Error('Primero ejecuta YOLO y procesa al menos un fotograma antes de guardar su resultado.');
  const inference=input.mode==='yolo'&&observation?{
   model:observation.model,
@@ -44,7 +51,7 @@ export function buildSimulationSession(input:SessionInput,clock=new Date(),id:st
  const record:SimulationSession={schemaVersion:1,id,savedAt:clock.toISOString(),
   scenarioId:input.scenarioId,scenarioName:input.scenarioName,mode:input.mode,
   source:{kind:'simulation-3d',sceneVersion:SCENE_VERSION,elapsedMs,
-   graphics:input.graphics,camera:input.camera,fingerprint:snapshotFingerprint(sample,elapsedMs),
+   graphics,camera,fingerprint:snapshotFingerprint(sample,elapsedMs),
    syntheticEvent:sample.event,syntheticObjectCount:sample.entities.length},
   inference};
  validateSimulationSession(record);

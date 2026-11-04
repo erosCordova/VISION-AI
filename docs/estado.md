@@ -1,6 +1,8 @@
 # Estado verificado del proyecto
 
-Última actualización: 2026-11-04. Referencia: manual 5.0 y decisión de trabajar exclusivamente con simulaciones 3D.
+Última actualización: 2026-11-04. Referencia: manual avanzado de 16 fases y decisión vigente de utilizar exclusivamente simulaciones 3D.
+
+**ESTADO VIGENTE: 10 de 16 fases aprobadas = 62,5 %. Fase 11 pendiente.** Los registros de incrementos anteriores que aparecen más abajo son históricos y no sustituyen este cierre.
 
 | Fase | Alcance validado | Evidencia |
 | --- | --- | --- |
@@ -11,8 +13,11 @@
 | 5 | React, contratos, arquitectura, instalación limpia y build | [Cierre técnico](evidencias_fase_05.md) |
 | 6 | Interfaz navegable, cuatro simulaciones 3D, teclado, responsive y movimiento reducido | [Cierre UX](evidencias_fase_06.md) |
 | 7 | Sesiones reproducibles, IndexedDB v2, integridad y recuperación DA01–DA04 | [Cierre y evidencias](evidencias_fase_07.md) |
+| 8 | Dashboard, KPI y revisión EPP con indicadores verificables | [CI aprobada](https://github.com/erosCordova/VISION-AI/actions/runs/41882458652) |
+| 9 | Captura sincronizada y detección YOLO ONNX de cuatro escenarios 3D, estados, reintento, filtros y evidencia PNG | [CI de aceptación](https://github.com/erosCordova/VISION-AI/actions/runs/41926688909) |
+| 10 | Máscara cromática por píxeles ROI YOLO, limpieza, siluetas, contornos, áreas y PNG alfa | [CI de aceptación](https://github.com/erosCordova/VISION-AI/actions/runs/41926688909) |
 
-**Avance administrativo vigente: 43,75 % (7 de 16 fases aprobadas).** No mide precisión de un modelo ni porcentaje de interfaz terminada.
+**Avance administrativo vigente: 62,5 % (10 de 16 fases aprobadas).** No mide precisión del modelo, mAP ni exactitud de los objetos estilizados.
 
 ## Verificación local
 
@@ -273,3 +278,33 @@ convierte desde coordenadas normalizadas sobre el mismo fotograma
 representado en el canvas. AN01–AN04 tienen pruebas unitarias
 adicionales; su cierre final requiere CI y QA con errores controlados.
 El avance aprobado se mantiene en **8/16 = 50 %**.
+
+## Cierre verificado de Fases 9 y 10 — 4 de noviembre de 2026
+
+**Aprobadas administrativamente: Fase 9 y Fase 10, 10/16 = 62,5 %.**
+La ejecución de GitHub Actions
+https://github.com/erosCordova/VISION-AI/actions/runs/41926688909
+debe figurar como **success** antes de promover este cierre a `main`.
+
+Evidencia reproducible: `npm ci`, verificación de arquitectura,
+`tsc --noEmit`, 259 tests Vitest, 66 tests Python, compilación Vite,
+y QA de Chromium en 360, 768 y 1440 píxeles. Se incluye prueba real
+del modelo COCO ONNX en Manufactura, Retail y Logística, y del detector
+EPP ONNX en Seguridad, sin pedir imágenes, video, cámaras ni datasets.
+
+En Fase 9 se verifican los eventos OB01–OB05/AN01–AN04:
+correlación de fotogramas, filtros sin reinferencia, escenarios separados,
+resultados vacíos no concluyentes, pausa, detención, fallo controlado,
+reintento del mismo frame y trazabilidad. Los PNG de evidencia contienen
+detecciones retenidas originales, no únicamente las visibles.
+
+En Fase 10 se comprueban SG01–SG07 y sus pruebas matemáticas: máscaras
+cromáticas calculadas únicamente con los píxeles dentro de regiones
+YOLO, cálculo de área unida, limpieza de ruido, contornos, perímetro
+en lados de píxel, estilos visuales y PNG con transparencia.
+**No es YOLO-seg ni una máscara de instancia semántica**; no representa
+metros cuadrados, no acredita calidad ni cumplimiento de seguridad.
+
+**Siguiente fase: 11 — reglas, gestión de alertas y revisión humana.**
+La publicación con Vercel Hobby y Render Free mantiene únicamente
+un motor ONNX en el navegador; Render no procesa fotogramas.

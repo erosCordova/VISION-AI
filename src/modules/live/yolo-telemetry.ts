@@ -1,14 +1,35 @@
 import type {Detection} from '../../core/domain/model';
 import type {ScenarioKey} from './simulation-engine';
 import type {YoloFamily} from './yolo-browser';
+import type {CameraView} from './scene-math';
+/** Metadatos del estado 3D cuando se captura el mismo frame que recibe YOLO. */
+export interface YoloFrameSource {
+ readonly scenarioId:ScenarioKey;
+ readonly elapsedMs:number;
+ readonly graphics:'human'|'light';
+ readonly camera:CameraView;
+}
+/** La telemetría puede proceder de registros migrados o datos corruptos. */
+export function validYoloFrameSource(candidate:unknown):candidate is YoloFrameSource{
+ if(!candidate||typeof candidate!=='object')return false;
+ const source=candidate as YoloFrameSource;
+ return ['safety','quality','retail','warehouse'].includes(source.scenarioId)&&
+  Number.isInteger(source.elapsedMs)&&source.elapsedMs>=0&&source.elapsedMs<=3_600_000&&
+  ['human','light'].includes(source.graphics)&&
+  ['isometric','frontal','superior','persona'].includes(source.camera);
+}
 
-export type MonitorPhase='idle'|'loading'|'running'|'stopped'|'failed';
+export type MonitorPhase='idle'|'loading'|'running'|'retrying'|'stopped'|'failed';
 export interface YoloObservation {
  readonly frameNumber:number;
  readonly capturedAtMs:number;
+ /** Hora en que la inferencia terminó, separada de la captura original. */
+ readonly completedAtMs?:number;
  readonly inferenceMs:number;
  readonly detections:readonly Detection[];
  readonly model:YoloFamily;
+ /** Opcional por compatibilidad con lecturas anteriores a la fase 9. */
+ readonly source?:YoloFrameSource;
 }
 export interface YoloReviewIncident {
  readonly id:string;
@@ -82,8 +103,10 @@ export function updateYoloTelemetry(previous:YoloTelemetry,event:YoloTelemetryEv
   if(event.phase==='loading'||event.phase==='idle')
    return {phase:event.phase,model:event.model,error:null,observations:[],reviewLog:[],activeReview:[],
     captureTimestamps:[],skippedCaptures:0};
+  // Fallo y reintento preservan las observaciones e indicios YA obtenidos.
+  // Solo detener desactiva las señales en curso; reiniciar modelo limpia la sesión.
   return {...previous,phase:event.phase,model:event.model,
-   activeReview:event.phase==='running'?previous.activeReview:[],
+   activeReview:event.phase==='stopped'?[]:previous.activeReview,
    error:event.phase==='failed'?(event.error||'Error de inferencia'):null};
  }
  if(event.type==='capture-skip'){
@@ -99,6 +122,14 @@ export function updateYoloTelemetry(previous:YoloTelemetry,event:YoloTelemetryEv
    ...previous.captureTimestamps.slice(-19),event.capturedAtMs]};
  }
  if(previous.phase!=='running'||event.observation.model!==previous.model)return previous;
+ const incoming=event.observation;
+ if(!Number.isSafeInteger(incoming.frameNumber)||incoming.frameNumber<1||
+  !Number.isFinite(incoming.capturedAtMs)||!Number.isFinite(incoming.inferenceMs)||
+  incoming.inferenceMs<0||
+  (incoming.source!==undefined&&!validYoloFrameSource(incoming.source))||
+  (incoming.completedAtMs!==undefined&&
+   (!Number.isFinite(incoming.completedAtMs)||incoming.completedAtMs<incoming.capturedAtMs)))
+  return previous;
  const last=previous.observations.at(-1);
  if(last && (event.observation.frameNumber<=last.frameNumber ||
    event.observation.capturedAtMs<last.capturedAtMs))return previous;
@@ -135,11 +166,19 @@ export function observedCaptureFps(stamps:readonly number[]):number|null{
  const delta=latest.at(-1)!-latest[0];
  return delta>0?1000*(latest.length-1)/delta:null;
 }
+/** Inferencias terminadas por segundo; distinto de la tasa de captura. */
 export function observedYoloFps(samples:readonly YoloObservation[]):number|null{
  const latest=samples.slice(-12);
  if(latest.length<2)return null;
- const delta=latest.at(-1)!.capturedAtMs-latest[0].capturedAtMs;
- return delta>0?1000*(latest.length-1)/delta:null;
+ const stamp=(item:YoloObservation)=>item.completedAtMs??item.capturedAtMs;
+ const delta=stamp(latest.at(-1)!)-stamp(latest[0]);
+ return Number.isFinite(delta)&&delta>0?1000*(latest.length-1)/delta:null;
+}
+/** Edad de la lectura desde el resultado terminado, no desde el frame capturado. */
+export function observationAgeSeconds(item:YoloObservation|null,now:number):number|null{
+ if(!item||!Number.isFinite(now))return null;
+ const time=item.completedAtMs??item.capturedAtMs;
+ return Number.isFinite(time)?Math.max(0,(now-time)/1000):null;
 }
 export function reviewSignals(model:YoloFamily,detections:readonly Detection[]):number{
  if(model!=='ppe')return 0;
