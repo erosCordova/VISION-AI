@@ -692,7 +692,8 @@ try {
         });
         const rule=liveRule.result?.value;
         if(!rule?.container||!rule.description?.includes('Ausencias EPP')||
-          !rule.description.includes('Revisión')||!rule.source?.includes('simulación 3D'))
+          !rule.description.toLocaleLowerCase('es').includes('revisión')||
+          !rule.source?.includes('simulación 3D'))
           throw Error('RG01: panel de reglas sin EPP o procedencia');
         console.log('RG01: regla EPP explicable con origen YOLO real');
         // OB02/OB05: pausar la animación detiene nuevas capturas; filtrar no
