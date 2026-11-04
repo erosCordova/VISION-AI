@@ -2,7 +2,7 @@ import type {Detection} from '../../core/domain/model';
 import type {ScenarioKey} from './simulation-engine';
 import type {YoloFamily} from './yolo-browser';
 
-export type MonitorPhase='idle'|'loading'|'running'|'stopped'|'failed';
+export type MonitorPhase='idle'|'loading'|'running'|'retrying'|'stopped'|'failed';
 export interface YoloObservation {
  readonly frameNumber:number;
  readonly capturedAtMs:number;
@@ -84,8 +84,10 @@ export function updateYoloTelemetry(previous:YoloTelemetry,event:YoloTelemetryEv
   if(event.phase==='loading'||event.phase==='idle')
    return {phase:event.phase,model:event.model,error:null,observations:[],reviewLog:[],activeReview:[],
     captureTimestamps:[],skippedCaptures:0};
+  // Fallo y reintento preservan las observaciones e indicios YA obtenidos.
+  // Solo detener desactiva las señales en curso; reiniciar modelo limpia la sesión.
   return {...previous,phase:event.phase,model:event.model,
-   activeReview:event.phase==='running'?previous.activeReview:[],
+   activeReview:event.phase==='stopped'?[]:previous.activeReview,
    error:event.phase==='failed'?(event.error||'Error de inferencia'):null};
  }
  if(event.type==='capture-skip'){

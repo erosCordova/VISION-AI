@@ -89,6 +89,27 @@ hasta ejecutar el paquete de pruebas y revisar los cuatro escenarios
 en Chromium. La fase se mantiene abierta y el avance oficial
 continúa en 8/16 = 50 %.
 
+## Incremento 5: recuperación fiable sin pérdida de evidencia
+
+Se corrige la transición de un fallo YOLO a un reintento: **REINTENTANDO**
+es ahora un estado propio y no se confunde con **CARGANDO MODELO**.
+Por ello, el monitor conserva las observaciones originales, las marcas
+de tiempo y el historial de indicios EPP durante el nuevo intento.
+El resultado tardío de un reintento cancelado no se añade a la sesión,
+porque la operación continúa protegida por generación y token.
+Un fotograma fallido conserva su identidad, sin fabricar detecciones.
+
+Mientras un reintento esté en ejecución se puede **Detener inferencia**,
+pero no iniciar una segunda operación ni guardar una sesión incompleta.
+Si el reintento concluye, el nuevo resultado se incorpora y la sesión
+queda disponible para guardarse. La revisión EPP no emite de nuevo una
+alerta existente solo porque el motor haya fallado temporalmente.
+El monitor oculta señales «activas» durante fallos/reintentos, aunque
+la bitácora ya registrada sigue disponible.
+
+**Sin despliegue** y sin aprobación de fase hasta ejecutar CI y
+Chromium. El avance oficial continúa en 8/16 = 50 %.
+
 ## Incremento 4: validación de escenarios y tiempos independientes
 
 Se añade una hora de finalización opcional `completedAtMs` a las

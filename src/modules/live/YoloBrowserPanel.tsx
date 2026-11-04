@@ -11,7 +11,7 @@ import {captureWaitMs,shouldPauseCapture} from './inference-scheduler';
 import type {CapturePace} from './inference-scheduler';
 import type {FrameAnalysisAttempt,FrameAnalysisOutcome} from './frame-analysis-cycle';
 type Model=Awaited<ReturnType<typeof loadYoloBrowser>>;
-type Phase='idle'|'loading'|'running'|'stopped'|'failed';
+type Phase='idle'|'loading'|'running'|'retrying'|'stopped'|'failed';
 interface Props {
  readonly getSource:()=>HTMLCanvasElement|null;
  readonly scenarioName:string;
@@ -69,7 +69,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
  const times=useRef<number[]>([]);
  const [error,setError]=useState('');
  const start=useCallback(async()=>{
-  if(startLocked.current||phase==='loading'||phase==='running')return;
+  if(startLocked.current||phase==='loading'||phase==='running'||phase==='retrying')return;
   startLocked.current=true;
   const token=++generation.current;
   cycle.current.reset();failedCanvas.current=null;setLastRun(null);
@@ -202,7 +202,8 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   const job=cycle.current.retry(Date.now());
   if(!job)return;
   const token=generation.current;
-  setPhase('loading');setError('');
+  setPhase('retrying');setError('');
+  onTelemetry({type:'status',phase:'retrying',model:family});
   setMessage('Reintentando el mismo fotograma de la simulación…');
   try{
    const result=await analyzeYoloFrame(model,previous,MIN_RAW_YOLO_CONFIDENCE);
@@ -243,6 +244,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
       Las cajas provienen del modelo, nunca de las posiciones programadas.</p></div>
     <span className={'browser-yolo-phase '+(phase==='running'?'is-live':'')} role="status">
      {phase==='running'?'● YOLO EJECUTÁNDOSE':phase==='loading'?'CARGANDO MODELO':
+      phase==='retrying'?'REINTENTANDO FOTOGRAMA':
       phase==='failed'?'ERROR DE MODELO':'YOLO DETENIDO'}</span>
    </div>
    <div className="browser-yolo-selectors browser-yolo-simulation-only">
@@ -268,11 +270,11 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
     No es un sistema certificado ni puede confirmar cumplimiento a partir de detecciones vacías.
    </p>}
    <div className="browser-yolo-actions">
-    {phase!=='running'&&phase!=='loading'&&
+    {phase!=='running'&&phase!=='loading'&&phase!=='retrying'&&
       <button type="button" className="primary" onClick={()=>void start()}>
        {model?'▶ Reanudar YOLO real':'◉ Iniciar YOLO real'}
       </button>}
-    {(phase==='running'||phase==='loading')&&
+    {(phase==='running'||phase==='loading'||phase==='retrying')&&
       <button type="button" onClick={stop}>Ⅱ Detener inferencia</button>}
     {phase==='failed'&&model&&failedCanvas.current&&
       <button type="button" onClick={()=>void retryFailedFrame()}>

@@ -145,6 +145,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange,sessionReposit
        <strong className={yoloTelemetry.phase==='failed'?'sim-status-alert':'sim-status-normal'}>
         {yoloTelemetry.phase==='running'?'EN CURSO':
          yoloTelemetry.phase==='loading'?'CARGANDO':
+         yoloTelemetry.phase==='retrying'?'REINTENTANDO':
          yoloTelemetry.phase==='failed'?'ERROR':
          yoloTelemetry.phase==='stopped'?'DETENIDO':'SIN INICIAR'}</strong>:
        <strong className={snapshot.alert?'sim-status-alert':'sim-status-normal'}>

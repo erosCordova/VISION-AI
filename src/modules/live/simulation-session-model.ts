@@ -30,7 +30,8 @@ export function buildSimulationSession(input:SessionInput,clock=new Date(),id:st
  const elapsedMs=Math.round(input.elapsed*1000);
  const sample=simulationSnapshot(input.scenarioId,elapsedMs/1000);
  const observation=input.telemetry.observations.at(-1)??null;
- if(input.mode==='yolo' && (!observation||input.telemetry.phase==='failed'))
+ if(input.mode==='yolo' && (!observation||input.telemetry.phase==='failed'||
+  input.telemetry.phase==='retrying'))
   throw Error('Primero ejecuta YOLO y procesa al menos un fotograma antes de guardar su resultado.');
  const inference=input.mode==='yolo'&&observation?{
   model:observation.model,
