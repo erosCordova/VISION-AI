@@ -224,3 +224,21 @@ La **Fase 8** está en curso; KP01 y KP03 cuentan con pruebas unitarias y
 de navegador iniciales. KP02 y las pruebas de rendimiento quedan pendientes.
 Las cifras históricas 31,25 % y 37,5 % de las secciones precedentes
 corresponden a fechas anteriores y ya no son el estado vigente.
+
+
+## Fase 8 — incremento de KP02 y rendimiento (validación en curso)
+
+Se incorporó la revisión humana de episodios EPP persistidos,
+con transición abierta→revisada e idempotencia de cierres, sin cambiar
+los resultados originales de YOLO. IndexedDB v3 es una migración aditiva
+desde la versión 2: mantiene el almacén `sessions` e incorpora
+`reviewClosures` con clave compuesta y relación por sesión.
+Operaciones ofrece filtros y estados, y el dashboard refleja conteos
+abiertos/cerrados en los filtros activos. El monitor 3D expone tasas
+de captura e inferencia separadas, antigüedad, capturas sin fuente y
+sesión local activa.
+
+Se añadieron pruebas KP02 de cálculo, protección contra doble cierre,
+consistencia tras recarga, QA de Chromium y una prueba de rendimiento
+con 100 sesiones. **Fase 8 permanece abierta hasta aprobar CI.**
+Avance administrativo vigente: **43,75 % (7 de 16)**.

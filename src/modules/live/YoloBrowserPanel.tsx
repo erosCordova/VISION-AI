@@ -112,9 +112,11 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
     try{
      const source=getSource();
      if(!source||source.width<2||source.height<2){
+      onTelemetry({type:'capture-skip',model:model.family});
       await delay(350);continue;
      }
      const frame=captureRenderedFrame(source);
+     onTelemetry({type:'capture',model:model.family,capturedAtMs:Date.now()});
      const result=await analyzeYoloFrame(model,frame,confidence);
      if(cancelled||generation.current!==token)return;
      if(preview.current)drawFrame(result,preview.current,model.family);

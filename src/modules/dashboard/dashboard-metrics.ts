@@ -1,4 +1,6 @@
 import type {SimulationSession,SessionScenario} from '../../core/domain/simulation-session';
+import type {ReviewClosure} from '../../core/domain/review-closure';
+import {collectReviewItems} from './review-state';
 
 export type DashboardPeriod='all'|'day'|'week';
 export type DashboardMode='all'|'synthetic'|'yolo';
@@ -13,6 +15,8 @@ export interface DashboardMetrics{
  readonly yoloSessions:number;
  readonly detections:number;
  readonly reviewEvents:number;
+ readonly openReviews:number;
+ readonly closedReviews:number;
  readonly meanConfidence:number|null;
  readonly meanInferenceMs:number|null;
  readonly byScenario:readonly {id:SessionScenario;count:number}[];
@@ -26,7 +30,8 @@ const SCENARIO_IDS=['safety','quality','retail','warehouse'] as const;
 export function calculateDashboard(
  records:readonly SimulationSession[],
  filter:DashboardFilter=DEFAULT_DASHBOARD_FILTER,
- now=new Date()
+ now=new Date(),
+ closures:readonly ReviewClosure[]=[]
 ):DashboardMetrics{
  const start=filter.period==='day'?now.getTime()-86400000:
   filter.period==='week'?now.getTime()-7*86400000:-Infinity;
@@ -38,14 +43,13 @@ export function calculateDashboard(
  });
  const byClass=new Map<string,{label:string;count:number}>();
  const byDay=new Map<string,number>();
- let detections=0,reviewEvents=0,scores=0,scoreCount=0,times=0,timeCount=0;
+ let detections=0,scores=0,scoreCount=0,times=0,timeCount=0;
  const byScenario=SCENARIO_IDS.map(id=>({id,count:entries.filter(r=>r.scenarioId===id).length}));
  for(const record of entries){
   const day=record.savedAt.slice(0,10);
   byDay.set(day,(byDay.get(day)??0)+1);
   const inf=record.inference;
   if(!inf)continue;
-  reviewEvents+=inf.reviewLog.length;
   if(Number.isFinite(inf.inferenceMs)&&inf.inferenceMs>=0){
    times+=inf.inferenceMs;timeCount++;
   }
@@ -58,10 +62,13 @@ export function calculateDashboard(
    cls.count++;byClass.set(d.classId,cls);
   }
  }
+ const reviews=collectReviewItems(entries,closures);
  return {
   sessions:entries.length,
   yoloSessions:entries.filter(r=>r.mode==='yolo').length,
-  detections,reviewEvents,
+  detections,reviewEvents:reviews.length,
+  openReviews:reviews.filter(x=>x.status==='open').length,
+  closedReviews:reviews.filter(x=>x.status==='closed').length,
   meanConfidence:scoreCount?scores/scoreCount:null,
   meanInferenceMs:timeCount?times/timeCount:null,
   byScenario,

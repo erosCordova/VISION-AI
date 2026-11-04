@@ -295,17 +295,66 @@ try {
           });return r.result?.value==='0';
         },'Fase 8 filtro sin sesiones, cero en vez de cifras demo');
         console.log('Fase 8 KPI inicial OK: sesiones, detecciones y filtros reales desde IndexedDB');
+        // KP02: fixture interno de QA (no aparece en producción ni alimenta el
+        // modelo); valida la transición real de persistencia de revisión.
+        const reviewFixture=await cdp.send('Runtime.evaluate',{
+          expression:"(async()=>{\n const db=await new Promise((ok,fail)=>{\n  const q=indexedDB.open('vision-ai-simulation-sessions',3);\n  q.onsuccess=()=>ok(q.result);q.onerror=()=>fail(q.error);\n });\n try{\n  const records=await new Promise((ok,fail)=>{\n   const q=db.transaction('sessions','readonly').objectStore('sessions').getAll();\n   q.onsuccess=()=>ok(q.result);q.onerror=()=>fail(q.error);\n  });\n  const base=records.find(x=>x.scenarioId==='safety'&&x.mode==='synthetic');\n  if(!base)throw Error('Falta una sesión sintética para validar KP02.');\n  const now=Date.now();\n  const item={...base,id:'qa-review-session',savedAt:new Date(now).toISOString(),\n   mode:'yolo',inference:{\n    model:'ppe',modelLabel:'YOLOv8s EPP',frameNumber:2,observedAtMs:now-1000,\n    inferenceMs:50,detections:[{id:'qa-person',classId:'person',label:'Persona',\n      confidence:.9,box:{x:.2,y:.2,width:.2,height:.4}}],\n    reviewLog:[{id:'no-hardhat-2',classId:'no-hardhat',\n      label:'Posible ausencia de casco',observedAtMs:now-1000,\n      frameNumber:2,supportingFrames:2,maxConfidence:.82}]\n   }};\n  const tx=db.transaction('sessions','readwrite');\n  const done=new Promise((ok,fail)=>{tx.oncomplete=ok;tx.onerror=()=>fail(tx.error)});\n  tx.objectStore('sessions').add(item);\n  await done;\n  return {id:item.id,event:item.inference.reviewLog[0].id};\n }finally{db.close();}\n})()",awaitPromise:true,returnByValue:true
+        });
+        if(reviewFixture.result?.value?.id!=='qa-review-session')
+          throw Error('KP02 no pudo crear el caso controlado de revisión');
+        await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Operaciones'});
+        const reviewState=async()=>{
+          const r=await cdp.send('Runtime.evaluate',{
+           expression:"(() => ({\n open:document.querySelectorAll(\".operations-review-stats strong\")[0]?.textContent?.trim(),\n closed:document.querySelectorAll(\".operations-review-stats strong\")[1]?.textContent?.trim(),\n total:document.querySelectorAll(\".operations-review-stats strong\")[2]?.textContent?.trim(),\n cta:document.querySelector(\".operations-review-item button\")?.textContent?.trim(),\n items:document.querySelectorAll(\".operations-review-item\").length\n}))()",returnByValue:true
+          });return r.result?.value;
+        };
+        await eventually(async()=>{
+          const state=await reviewState();
+          return state?.open==='1'&&state.closed==='0'&&state.total==='1'&&
+            state.items===1&&state.cta?.includes('Marcar como revisado');
+        },'KP02 indicio abierto, sin datos artificiales en la interfaz');
+        await cdp.send('Runtime.evaluate',{
+          expression:'(() => {const b=document.querySelector(".operations-review-item button");'
+           + 'b?.click();b?.click();return !!b;})()'
+        });
+        await eventually(async()=>{
+          const state=await reviewState();
+          return state?.open==='0'&&state.closed==='1'&&state.total==='1'&&
+           !state.cta;
+        },'KP02 transición pendiente a revisado exactamente una vez');
+        const savedReview=await cdp.send('Runtime.evaluate',{
+          expression:"(async()=>{\n const db=await new Promise((ok,fail)=>{\n  const q=indexedDB.open('vision-ai-simulation-sessions',3);\n  q.onsuccess=()=>ok(q.result);q.onerror=()=>fail(q.error);\n });\n try{\n  const tx=db.transaction(['sessions','reviewClosures'],'readonly');\n  const data=await Promise.all([\n   new Promise((ok,fail)=>{\n    const r=tx.objectStore('sessions').get('qa-review-session');\n    r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error);\n   }),\n   new Promise((ok,fail)=>{\n    const r=tx.objectStore('reviewClosures').getAll();\n    r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error);\n   })\n  ]);\n  return {rows:data[1].length,existing:data[0]?.inference?.reviewLog?.length,\n   model:data[0]?.inference?.model,index:db.transaction('reviewClosures','readonly')\n    .objectStore('reviewClosures').indexNames.contains('sessionId')};\n }finally{db.close();}\n})()",awaitPromise:true,returnByValue:true
+        });
+        if(savedReview.result?.value?.rows!==1||savedReview.result.value.existing!==1||
+          !savedReview.result.value.index)
+          throw Error('KP02 cierre duplicado o mutación de la evidencia YOLO');
+        await cdp.send('Page.reload',{ignoreCache:true});
+        await eventually(async()=>{
+          const state=await reviewState();
+          return state?.open==='0'&&state.closed==='1'&&state.total==='1';
+        },'KP02 revisión persistente sin conteos duplicados tras recarga');
+        await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Resumen'});
+        await eventually(async()=>{
+          const r=await cdp.send('Runtime.evaluate',{
+           expression:'({open:document.querySelector(".dashboard-open-reviews")?.textContent?.trim(),'
+            + 'closed:document.querySelector(".dashboard-closed-reviews")?.textContent?.trim()})',
+           returnByValue:true
+          });
+          return r.result?.value?.open==='0'&&r.result.value.closed==='1';
+        },'KP02 actualización de dashboard tras revisión persistida');
+        console.log('KP02 OK: 1 pendiente → 1 revisado, sin duplicados; evidencia YOLO inmutable');
+
 
 
         // DA04: límite reproducible de 100 registros, sin simular una falsa
         // cuota del sistema operativo ni usar archivos/datasets.
         const limitFixture=await cdp.send('Runtime.evaluate',{
-          expression:"(async()=>{\n const db=await new Promise((resolve,reject)=>{\n  const r=indexedDB.open('vision-ai-simulation-sessions',2);\n  r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n });\n try{\n  const before=await new Promise((resolve,reject)=>{\n   const r=db.transaction('sessions','readonly').objectStore('sessions').getAll();\n   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n  if(!before.length)throw Error('No existe una sesión de referencia válida.');\n  const tx=db.transaction('sessions','readwrite');\n  const completed=new Promise((resolve,reject)=>{\n   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);\n  });\n  for(let i=0;i<100-before.length;i++){\n   tx.objectStore('sessions').add({...before[0],id:'qa-cap-'+i,\n    savedAt:new Date(Date.now()-i*1000).toISOString()});\n  }\n  await completed;\n  const count=await new Promise((resolve,reject)=>{\n   const r=db.transaction('sessions','readonly').objectStore('sessions').count();\n   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n  return {version:db.version,index:db.transaction('sessions','readonly')\n   .objectStore('sessions').indexNames.contains('scenarioId'),count};\n }finally{db.close();}\n})()",awaitPromise:true,returnByValue:true
+          expression:"(async()=>{\n const db=await new Promise((resolve,reject)=>{\n  const r=indexedDB.open('vision-ai-simulation-sessions',3);\n  r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n });\n try{\n  const before=await new Promise((resolve,reject)=>{\n   const r=db.transaction('sessions','readonly').objectStore('sessions').getAll();\n   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n  if(!before.length)throw Error('No existe una sesión de referencia válida.');\n  const tx=db.transaction('sessions','readwrite');\n  const completed=new Promise((resolve,reject)=>{\n   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);\n  });\n  for(let i=0;i<100-before.length;i++){\n   tx.objectStore('sessions').add({...before[0],id:'qa-cap-'+i,\n    savedAt:new Date(Date.now()-i*1000).toISOString()});\n  }\n  await completed;\n  const count=await new Promise((resolve,reject)=>{\n   const r=db.transaction('sessions','readonly').objectStore('sessions').count();\n   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n  return {version:db.version,index:db.transaction('sessions','readonly')\n   .objectStore('sessions').indexNames.contains('scenarioId'),count};\n }finally{db.close();}\n})()",awaitPromise:true,returnByValue:true
         });
         if(limitFixture.result?.value?.count!==100||
-           limitFixture.result.value.version!==2||!limitFixture.result.value.index)
+           limitFixture.result.value.version!==3||!limitFixture.result.value.index)
           throw Error('DA04/migración: límite/indexación incorrectos '+JSON.stringify(limitFixture.result?.value));
-        console.log('DA04: 100 registros en IndexedDB v2 con índice de escenarios');
+        console.log('DA04: 100 registros en IndexedDB v3 con índices y estados humanos');
         await cdp.send('Page.navigate',{
           url:'http://127.0.0.1:4173/#An%C3%A1lisis%20en%20vivo'
         });
@@ -328,12 +377,12 @@ try {
           return r.result?.value?.includes('No se guardó: Se alcanzó el límite de 100 sesiones');
         },'DA04 mensaje real de capacidad alcanzada');
         const afterRejection=await cdp.send('Runtime.evaluate',{
-          expression:"(async()=>{\n const db=await new Promise((resolve,reject)=>{\n  const r=indexedDB.open('vision-ai-simulation-sessions',2);\n  r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n });\n try{\n  return await new Promise((resolve,reject)=>{\n   const r=db.transaction('sessions','readonly').objectStore('sessions').count();\n   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n }finally{db.close();}\n})()",awaitPromise:true,returnByValue:true
+          expression:"(async()=>{\n const db=await new Promise((resolve,reject)=>{\n  const r=indexedDB.open('vision-ai-simulation-sessions',3);\n  r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n });\n try{\n  return await new Promise((resolve,reject)=>{\n   const r=db.transaction('sessions','readonly').objectStore('sessions').count();\n   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n }finally{db.close();}\n})()",awaitPromise:true,returnByValue:true
         });
         if(afterRejection.result?.value!==100)
           throw Error('DA04: el fallo cambió registros que ya estaban confirmados');
         const corrupted=await cdp.send('Runtime.evaluate',{
-          expression:"(async()=>{\n const db=await new Promise((resolve,reject)=>{\n  const r=indexedDB.open('vision-ai-simulation-sessions',2);\n  r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n });\n try{\n  const tx=db.transaction('sessions','readwrite');\n  const done=new Promise((resolve,reject)=>{\n   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);\n  });\n  const store=tx.objectStore('sessions');\n  const a=await new Promise((resolve,reject)=>{\n   const r=store.get('qa-cap-0');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n  if(!a)throw Error('Falta el registro para prueba de integridad.');\n  store.put({...a,source:{...a.source,fingerprint:'00000000'}});\n  const b=await new Promise((resolve,reject)=>{\n   const r=store.get('qa-cap-1');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n  if(!b)throw Error('Falta segundo registro para prueba de esquema.');\n  store.put({...b,schemaVersion:99});\n  await done;\n  return {corrupted:2};\n }finally{db.close();}\n})()",awaitPromise:true,returnByValue:true
+          expression:"(async()=>{\n const db=await new Promise((resolve,reject)=>{\n  const r=indexedDB.open('vision-ai-simulation-sessions',3);\n  r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n });\n try{\n  const tx=db.transaction('sessions','readwrite');\n  const done=new Promise((resolve,reject)=>{\n   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);\n  });\n  const store=tx.objectStore('sessions');\n  const a=await new Promise((resolve,reject)=>{\n   const r=store.get('qa-cap-0');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n  if(!a)throw Error('Falta el registro para prueba de integridad.');\n  store.put({...a,source:{...a.source,fingerprint:'00000000'}});\n  const b=await new Promise((resolve,reject)=>{\n   const r=store.get('qa-cap-1');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n  if(!b)throw Error('Falta segundo registro para prueba de esquema.');\n  store.put({...b,schemaVersion:99});\n  await done;\n  return {corrupted:2};\n }finally{db.close();}\n})()",awaitPromise:true,returnByValue:true
         });
         if(corrupted.result?.value?.corrupted!==2)
           throw Error('DA04: no se pudo simular la corrupción');
@@ -352,7 +401,7 @@ try {
           const state=await audit();return state?.issues===2&&state.valid>0;
         },'DA04 corrupción aislada después de recarga');
         const persisted=await cdp.send('Runtime.evaluate',{
-          expression:"(async()=>{\n const db=await new Promise((resolve,reject)=>{\n  const r=indexedDB.open('vision-ai-simulation-sessions',2);\n  r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n });\n try{\n  return await new Promise((resolve,reject)=>{\n   const r=db.transaction('sessions','readonly').objectStore('sessions').count();\n   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n }finally{db.close();}\n})()",awaitPromise:true,returnByValue:true
+          expression:"(async()=>{\n const db=await new Promise((resolve,reject)=>{\n  const r=indexedDB.open('vision-ai-simulation-sessions',3);\n  r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n });\n try{\n  return await new Promise((resolve,reject)=>{\n   const r=db.transaction('sessions','readonly').objectStore('sessions').count();\n   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n }finally{db.close();}\n})()",awaitPromise:true,returnByValue:true
         });
         if(persisted.result?.value!==100)
           throw Error('DA04: se borraron datos sin autorización explícita');
@@ -457,7 +506,7 @@ try {
         });
         const monitorInitial=monitorBefore.result?.value;
         if(!monitorInitial?.monitor||monitorInitial.simulated||
-          monitorInitial.initial!=='—'||monitorInitial.cards!==4||
+          monitorInitial.initial!=='—'||monitorInitial.cards!==8||
           !monitorInitial.review||monitorInitial.reviewCount!=='—'||monitorInitial.reviewLog)
           throw Error('Monitor YOLO muestra datos sintéticos o cifras previas: '+JSON.stringify(monitorInitial));
         const safetyModelCheck=await cdp.send('Runtime.evaluate',{
@@ -529,6 +578,16 @@ try {
           !numbers.model?.includes('EPP'))
           throw Error('El monitor YOLO no coincide con la inferencia ejecutada: '+JSON.stringify(numbers));
         console.log('MONITOR YOLO REAL OK: detecciones del frame vinculadas al panel operativo');
+        const captureStats=await cdp.send('Runtime.evaluate',{
+          expression:'(() => ({ kpis:Array.from(document.querySelectorAll(".yolo-monitor-kpi span"))'
+           + '.map(x=>x.textContent?.trim()), captured:document.querySelectorAll(".yolo-monitor-kpi").length'
+           + ' }))()',
+          returnByValue:true
+        });
+        if(captureStats.result?.value?.captured!==8||
+          !captureStats.result.value.kpis.some(x=>x?.includes('FPS de capturas'))||
+          !captureStats.result.value.kpis.some(x=>x?.includes('Antigüedad de lectura')))
+          throw Error('Fase 8: faltan indicadores medidos del ciclo YOLO');
         const reviewState=await cdp.send('Runtime.evaluate',{
           expression:'(() => ({'
            + ' review:!!document.querySelector(".yolo-monitor-review"),'

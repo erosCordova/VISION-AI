@@ -1,4 +1,5 @@
-import {detectedClasses,modelScope,observedYoloFps,reviewSignals} from './yolo-telemetry';
+import {useEffect,useState} from 'react';
+import {detectedClasses,modelScope,observedCaptureFps,observedYoloFps,reviewSignals} from './yolo-telemetry';
 import type {YoloTelemetry} from './yolo-telemetry';
 import type {ScenarioKey} from './simulation-engine';
 
@@ -9,12 +10,19 @@ const statusText:Record<YoloTelemetry['phase'],string>={
  stopped:'INFERENCIA DETENIDA',failed:'ERROR DEL DETECTOR'
 };
 export function YoloMonitor({telemetry,scenario,paused}:Props){
+ const [now,setNow]=useState(()=>Date.now());
+ useEffect(()=>{
+  const refresh=window.setInterval(()=>setNow(Date.now()),1000);
+  return()=>window.clearInterval(refresh);
+ },[]);
+ const captureFps=observedCaptureFps(telemetry.captureTimestamps);
  const last=telemetry.observations.at(-1)??null;
  const classes=detectedClasses(last?.detections??[]);
  const fps=observedYoloFps(telemetry.observations);
  const review=reviewSignals(telemetry.model,last?.detections??[]);
- const stale=telemetry.phase==='running'&&!paused&&last!==null&&
-  Date.now()-last.capturedAtMs>5000;
+ const ageSeconds=last?Math.max(0,(now-last.capturedAtMs)/1000):null;
+ const stale=telemetry.phase==='running'&&!paused&&ageSeconds!==null&&
+  ageSeconds>5;
  const maxCount=Math.max(1,...telemetry.observations.map(o=>o.detections.length));
  return <div className="yolo-monitor" aria-label="Monitoreo de inferencia YOLO real">
    <div className="yolo-monitor-header">
@@ -40,6 +48,18 @@ export function YoloMonitor({telemetry,scenario,paused}:Props){
     <div className="yolo-monitor-kpi"><span>FPS del detector</span>
       <strong>{fps===null?'—':number(fps)}</strong>
       <small>No son FPS del renderizador</small></div>
+    <div className="yolo-monitor-kpi"><span>FPS de capturas</span>
+      <strong>{captureFps===null?'—':number(captureFps)}</strong>
+      <small>Capturas enviadas a YOLO, no FPS WebGL</small></div>
+    <div className="yolo-monitor-kpi"><span>Antigüedad de lectura</span>
+      <strong>{ageSeconds===null?'—':number(ageSeconds)+' s'}</strong>
+      <small>Tiempo desde la última inferencia terminada</small></div>
+    <div className="yolo-monitor-kpi"><span>Capturas omitidas</span>
+      <strong>{telemetry.phase==='idle'?'—':telemetry.skippedCaptures}</strong>
+      <small>Intentos sin canvas disponible, no frames WebGL</small></div>
+    <div className="yolo-monitor-kpi"><span>Sesión YOLO local</span>
+      <strong>{telemetry.phase==='running'?'1':'0'}</strong>
+      <small>Activa solo en este navegador</small></div>
    </div>
    <section className="yolo-monitor-trend" aria-label="Historial medido de objetos detectados">
     <div className="yolo-monitor-sectionhead"><h4>Lecturas del modelo</h4>

@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {INITIAL_YOLO_TELEMETRY,updateYoloTelemetry,detectedClasses,observedYoloFps,reviewSignals,modelScope,stableReviewSignals} from '../../src/modules/live/yolo-telemetry';
+import {INITIAL_YOLO_TELEMETRY,updateYoloTelemetry,detectedClasses,observedCaptureFps,observedYoloFps,reviewSignals,modelScope,stableReviewSignals} from '../../src/modules/live/yolo-telemetry';
 import type {Detection} from '../../src/core/domain/model';
 const detection=(id:string,score=.82):Detection=>({
  id:'det-'+id,classId:id,label:id,confidence:score,box:{x:.2,y:.2,width:.4,height:.4}
@@ -128,5 +128,39 @@ describe('revisión de EPP basada exclusivamente en evidencia repetida de YOLO',
   state=updateYoloTelemetry(state,{type:'status',phase:'running',model:'coco'});
   const result=updateYoloTelemetry(state,{type:'frame',observation:sample(1,2000,'coco',[detection('no-hardhat')])});
   expect(result.reviewLog).toEqual([]);
+ });
+});
+
+describe('Fase 8: telemetría de captura independiente del renderizador',()=>{
+ it('mide frecuencia de capturas realmente entregadas y no confunde FPS WebGL',()=>{
+  let t=updateYoloTelemetry(INITIAL_YOLO_TELEMETRY,{type:'status',phase:'running',model:'coco'});
+  for(const capturedAtMs of [1000,1500,2000])
+   t=updateYoloTelemetry(t,{type:'capture',model:'coco',capturedAtMs});
+  expect(t.captureTimestamps).toEqual([1000,1500,2000]);
+  expect(observedCaptureFps(t.captureTimestamps)).toBeCloseTo(2);
+  expect(observedYoloFps(t.observations)).toBeNull();
+ });
+ it('cuenta capturas omitidas solo cuando no hubo canvas disponible',()=>{
+  let t=updateYoloTelemetry(INITIAL_YOLO_TELEMETRY,{type:'status',phase:'running',model:'ppe'});
+  t=updateYoloTelemetry(t,{type:'capture-skip',model:'ppe'});
+  t=updateYoloTelemetry(t,{type:'capture-skip',model:'coco'});
+  expect(t.skippedCaptures).toBe(1);
+  expect(t.captureTimestamps).toHaveLength(0);
+ });
+ it('reinicia contadores al cambiar detector y no acepta lecturas tardías',()=>{
+  let t=updateYoloTelemetry(INITIAL_YOLO_TELEMETRY,{type:'status',phase:'running',model:'ppe'});
+  t=updateYoloTelemetry(t,{type:'capture',model:'ppe',capturedAtMs:2000});
+  t=updateYoloTelemetry(t,{type:'capture',model:'ppe',capturedAtMs:1000});
+  expect(t.captureTimestamps).toEqual([2000]);
+  t=updateYoloTelemetry(t,{type:'status',phase:'loading',model:'coco'});
+  expect(t.captureTimestamps).toHaveLength(0);
+  expect(t.skippedCaptures).toBe(0);
+  const ignored=updateYoloTelemetry(t,{type:'capture-skip',model:'ppe'});
+  expect(ignored).toBe(t);
+ });
+ it('reporta ausencia de datos, no FPS inventados',()=>{
+  expect(observedCaptureFps([])).toBeNull();
+  expect(observedCaptureFps([1000])).toBeNull();
+  expect(observedCaptureFps([1000,1000])).toBeNull();
  });
 });

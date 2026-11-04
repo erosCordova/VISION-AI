@@ -7,6 +7,7 @@ import { LiveAnalysisPage } from '../modules/live/LiveAnalysisPage';
 import type {SimulationSessionRepository} from '../core/ports/simulation-session-repository';
 import {validateReproducibility} from '../modules/live/simulation-session-model';
 import {SessionsDashboard} from '../modules/dashboard/SessionsDashboard';
+import {OperationsPanel} from '../modules/operations/OperationsPanel';
 const pages = ['Resumen', 'Análisis en vivo', 'Visión IA', 'Operaciones', 'Historial', 'Configuración', 'Administración'] as const;
 type Page = typeof pages[number];
 const scenarios = [
@@ -55,11 +56,8 @@ export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin;
    <dt>Detección</dt><dd>Cajas, clases y confianza de inferencia; no equivale a precisión medida</dd>
    <dt>Limitaciones</dt><dd>Sin segmentación real ni seguimiento de identidades. Defectos y montacargas requieren modelos especializados.</dd>
    <dt>Persistencia</dt><dd>Resúmenes de sesiones guardados explícitamente en IndexedDB; sin video almacenado</dd></dl></section>}
-      {page === 'Operaciones' && <section className="panel empty-page"><span className="large-symbol">◇</span>
-  <h2>Seguimiento de simulaciones</h2>
-  <p>Los indicios de YOLO aparecen en el monitor durante el análisis. Los que guardes explícitamente
-   se conservarán como resumen en el historial local. No se generan sanciones automáticas.</p>
-  <button onClick={() => navigate('Historial')}>Consultar sesiones guardadas</button></section>}
+      {page === 'Operaciones' && <OperationsPanel repository={sessionRepository}
+   onHistory={() => navigate('Historial')} />}
       {(page === 'Administración' || page === 'Configuración') && role !== 'administrador' && <section className="panel empty-page"><h2>Vista restringida</h2><p>Esta vista está reservada al perfil administrador de prueba.</p><button onClick={() => navigate('Resumen')}>Volver al resumen</button></section>}
       {page === 'Administración' && role === 'administrador' && <section className="panel settings"><h2>Administración del espacio</h2><p>Perfil de prueba. No constituye autenticación de servidor.</p><dl><dt>Usuarios</dt><dd>Gestión pendiente de integración con identidad real.</dd><dt>Escenarios</dt><dd>Cuatro escenarios versionados y reproducibles; administración avanzada pendiente.</dd><dt>Auditoría</dt><dd>Sin registros productivos.</dd></dl></section>}
       {page === 'Configuración' && role === 'administrador' && <><SessionSettings /><section className="panel settings"><h2>Estado del entorno</h2><dl><dt>Origen configurado</dt><dd>{origin.toUpperCase()} · sin inferencia activa</dd><dt>Fuente disponible</dt><dd>Cuatro simulaciones industriales 3D, sin cámaras externas</dd><dt>Motor disponible</dt><dd>YOLO ONNX descargado bajo demanda en el navegador</dd><dt>Destino de fotogramas</dt><dd>Procesados localmente por WebAssembly; no enviados a Render</dd><dt>Almacenamiento</dt><dd>IndexedDB local para resúmenes guardados manualmente; sin videos ni imágenes</dd><dt>Identidad y permisos</dt><dd>Sin autenticación de servidor</dd><dt>Red</dt><dd>Vercel aloja el frontend y Render la API ligera; sin cámaras IP o RTSP</dd></dl></section></>}

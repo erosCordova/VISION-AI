@@ -1,6 +1,7 @@
 import {useEffect,useMemo,useState} from 'react';
 import type {SimulationSessionRepository} from '../../core/ports/simulation-session-repository';
 import type {SimulationSession} from '../../core/domain/simulation-session';
+import type {ReviewClosure} from '../../core/domain/review-closure';
 import {validateReproducibility} from '../live/simulation-session-model';
 import {calculateDashboard,DEFAULT_DASHBOARD_FILTER} from './dashboard-metrics';
 import type {DashboardFilter} from './dashboard-metrics';
@@ -14,25 +15,33 @@ export function SessionsDashboard({repository,onHistory}:{
 }){
  const [filter,setFilter]=useState<DashboardFilter>(DEFAULT_DASHBOARD_FILTER);
  const [records,setRecords]=useState<readonly SimulationSession[]>([]);
+ const [closures,setClosures]=useState<readonly ReviewClosure[]>([]);
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState('');
  useEffect(()=>{
   let active=true;
   const load=async()=>{
    try{
-    const all=await repository.list();
+    const [all,reviews]=await Promise.all([repository.list(),repository.listReviewClosures()]);
     const valid=all.filter(r=>{
      try{validateReproducibility(r);return true;}catch{return false;}
     });
-    if(active){setRecords(valid);setError('');}
+    if(active){setRecords(valid);setClosures(reviews);setError('');}
    }catch(e){if(active)setError(e instanceof Error?e.message:String(e));}
    finally{if(active)setLoading(false);}
   };
   void load();
+  const reloadReviews=()=>{void repository.listReviewClosures().then(reviews=>{
+   if(active)setClosures(reviews);
+  }).catch(e=>{if(active)setError(e instanceof Error?e.message:String(e));});};
   window.addEventListener('vision-ai-sessions-updated',load);
-  return()=>{active=false;window.removeEventListener('vision-ai-sessions-updated',load);};
+  window.addEventListener('vision-ai-reviews-updated',reloadReviews);
+  return()=>{active=false;
+   window.removeEventListener('vision-ai-sessions-updated',load);
+   window.removeEventListener('vision-ai-reviews-updated',reloadReviews);
+  };
  },[repository]);
- const result=useMemo(()=>calculateDashboard(records,filter),[records,filter]);
+ const result=useMemo(()=>calculateDashboard(records,filter,new Date(),closures),[records,filter,closures]);
  const maxByScenario=Math.max(1,...result.byScenario.map(x=>x.count));
  return <section className="saved-dashboard" aria-label="Indicadores de sesiones guardadas">
   <div className="section-heading">
@@ -86,7 +95,9 @@ export function SessionsDashboard({repository,onHistory}:{
    <div className="saved-dashboard-breakdown">
     <h3>Hallazgos guardados</h3>
     <dl>
-     <dt>Señales EPP registradas</dt><dd>{loading?'—':result.reviewEvents}</dd>
+     <dt>Indicios EPP · total</dt><dd>{loading?'—':result.reviewEvents}</dd>
+     <dt>Sin revisar</dt><dd className="dashboard-open-reviews">{loading?'—':result.openReviews}</dd>
+     <dt>Revisados</dt><dd className="dashboard-closed-reviews">{loading?'—':result.closedReviews}</dd>
      <dt>Confianza media YOLO</dt>
      <dd>{result.meanConfidence===null?'—':(result.meanConfidence*100).toFixed(1)+' %'}</dd>
      <dt>Última sesión guardada</dt>
@@ -103,7 +114,7 @@ export function SessionsDashboard({repository,onHistory}:{
    </div>
   </div>
   <p className="saved-dashboard-caveat">
-   Los datos provienen exclusivamente de sesiones guardadas, no de todos los fotogramas procesados.
+   Los datos provienen exclusivamente de sesiones guardadas y revisiones locales, no de todos los fotogramas procesados.
    La confianza del modelo no es una medida de exactitud, y las señales EPP no confirman infracciones.
    Sin datos, los indicadores no muestran porcentajes inventados.
   </p>

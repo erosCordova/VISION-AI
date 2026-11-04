@@ -33,12 +33,17 @@ export interface YoloTelemetry {
  readonly model:YoloFamily;
  readonly error:string|null;
  readonly observations:readonly YoloObservation[];
+ readonly captureTimestamps:readonly number[];
+ readonly skippedCaptures:number;
 }
 export type YoloTelemetryEvent=
  | {readonly type:'status';readonly phase:MonitorPhase;readonly model:YoloFamily;readonly error?:string}
- | {readonly type:'frame';readonly observation:YoloObservation};
+ | {readonly type:'frame';readonly observation:YoloObservation}
+ | {readonly type:'capture';readonly model:YoloFamily;readonly capturedAtMs:number}
+ | {readonly type:'capture-skip';readonly model:YoloFamily};
 export const INITIAL_YOLO_TELEMETRY:YoloTelemetry={
- phase:'idle',model:'coco',error:null,observations:[],reviewLog:[],activeReview:[]
+ phase:'idle',model:'coco',error:null,observations:[],reviewLog:[],activeReview:[],
+ captureTimestamps:[],skippedCaptures:0
 };
 const REVIEW_IDS=new Set(['no-hardhat','no-safety vest','no-goggles','no-gloves']);
 const REVIEW_MIN_CONFIDENCE=.55;
@@ -75,10 +80,23 @@ export function stableReviewSignals(observations:readonly YoloObservation[]):rea
 export function updateYoloTelemetry(previous:YoloTelemetry,event:YoloTelemetryEvent):YoloTelemetry {
  if(event.type==='status'){
   if(event.phase==='loading'||event.phase==='idle')
-   return {phase:event.phase,model:event.model,error:null,observations:[],reviewLog:[],activeReview:[]};
+   return {phase:event.phase,model:event.model,error:null,observations:[],reviewLog:[],activeReview:[],
+    captureTimestamps:[],skippedCaptures:0};
   return {...previous,phase:event.phase,model:event.model,
    activeReview:event.phase==='running'?previous.activeReview:[],
    error:event.phase==='failed'?(event.error||'Error de inferencia'):null};
+ }
+ if(event.type==='capture-skip'){
+  if(previous.phase!=='running'||previous.model!==event.model)return previous;
+  return {...previous,skippedCaptures:previous.skippedCaptures+1};
+ }
+ if(event.type==='capture'){
+  if(previous.phase!=='running'||previous.model!==event.model||
+   !Number.isFinite(event.capturedAtMs))return previous;
+  const last=previous.captureTimestamps.at(-1);
+  if(last!==undefined&&event.capturedAtMs<last)return previous;
+  return {...previous,captureTimestamps:[
+   ...previous.captureTimestamps.slice(-19),event.capturedAtMs]};
  }
  if(previous.phase!=='running'||event.observation.model!==previous.model)return previous;
  const last=previous.observations.at(-1);
@@ -109,6 +127,13 @@ export function detectedClasses(detections:readonly Detection[]):readonly YoloCl
  }
  return [...values].map(([id,v])=>({id,label:v.label,count:v.count,meanConfidence:v.score/v.count}))
   .sort((a,b)=>b.count-a.count||b.meanConfidence-a.meanConfidence);
+}
+/** Frecuencia de imágenes efectivamente capturadas para YOLO, distinta del render WebGL. */
+export function observedCaptureFps(stamps:readonly number[]):number|null{
+ const latest=stamps.slice(-12);
+ if(latest.length<2)return null;
+ const delta=latest.at(-1)!-latest[0];
+ return delta>0?1000*(latest.length-1)/delta:null;
 }
 export function observedYoloFps(samples:readonly YoloObservation[]):number|null{
  const latest=samples.slice(-12);

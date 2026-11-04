@@ -51,3 +51,58 @@ El commit `5cb73e4e04d37646f3e371c39b4f95ebcf2745c4` aprobó
 las pruebas iniciales KP01 y KP03, los filtros y la recuperación de KPI
 desde IndexedDB en Chromium. La Fase 8 **permanece abierta** por KP02
 (revisión/cierre de señales) y la validación integral de los indicadores.
+
+
+## Incremento de Fase 8 — KP02 y estadísticas de inferencia
+
+Las señales almacenadas por YOLO EPP se revisan en **Operaciones**. Se
+derivan exclusivamente de `SimulationSession.inference.reviewLog`:
+cada clave compuesta `(sessionId,eventId)` representa un episodio
+único, no una persona. La evidencia original conserva su etiqueta,
+fotograma, confianza e instante de inferencia.
+
+Los cierres humanos se almacenan separadamente en `reviewClosures`,
+mediante IndexedDB v3. `closeReview()` es atómico e idempotente:
+comprueba la existencia de la sesión y del episodio, consulta su estado
+y, si ya estaba cerrado, devuelve `false` sin generar un segundo cierre.
+Eliminar una sesión elimina únicamente los estados de revisión
+asociados, dentro de la misma transacción de borrado.
+
+| Indicador de revisión | Definición |
+| --- | --- |
+| Indicios totales | Episodios YOLO únicos de las sesiones filtradas |
+| Sin revisar | Indicios sin cierre persistido para esa sesión y episodio |
+| Revisados | Indicios con un cierre persistido asociado |
+| Regla KP02 | Cerrar una vez: pendientes -1, revisados +1, total constante; repetición: cambio 0 |
+
+El cambio notifica a la vista Resumen mediante
+`vision-ai-reviews-updated`, actualizando solamente los cierres y
+recalculando el dashboard. Un guardado o borrado de sesión emite
+`vision-ai-sessions-updated`, que actualiza ambos conjuntos.
+No hay sincronización con Render ni identidad verificada de supervisor.
+
+En el monitor de la simulación se añaden **FPS de capturas entregadas a
+YOLO**, **FPS de inferencias terminadas**, **antigüedad del último
+resultado**, **capturas omitidas por falta de canvas** y el indicador
+**sesión activa local**. Ninguna cifra representa la tasa del renderizador
+WebGL ni cuenta fotogramas intermedios que nunca se intentaron capturar.
+Los FPS de captura y de inferencia pueden ser parecidos porque las
+peticiones ONNX son secuenciales; se miden por separado, nunca se asumen
+idénticos.
+
+## Rendimiento y recuperación
+
+Volumen local objetivo: 100 sesiones, límite del repositorio IndexedDB,
+con hasta 12 episodios por sesión. La batería de pruebas comprueba
+100 cálculos completos sobre **100 sesiones y 1200 episodios** y exige
+finalizar en menos de 2000 ms en el runner CI. Este límite mide consultas
+derivadas en memoria, **no** entrenamiento, detección ni latencia de red.
+
+El dashboard presenta «—» para promedios sin denominador, conserva
+conteos cero sin falsos positivos y muestra errores si no se puede leer
+IndexedDB. Los registros corruptos se aíslan y no se incluyen en los
+indicadores; no se sustituyen por cifras de ejemplo.
+
+**Estado:** implementación y pruebas añadidas; el cierre de Fase 8
+se determinará al concluir satisfactoriamente la nueva ejecución CI
+de KP01–KP03, Chromium y el benchmark.
