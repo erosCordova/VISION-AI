@@ -51,3 +51,20 @@ periodo y revisión humana, tres CSV específicos, JSON auditable y
 una vista A4 imprimible. Los detalles individuales incorporan
 CSV, JSON y estado de revisión. Las sesiones dañadas se aíslan antes
 de cualquier exportación; nunca se exportan de manera implícita.
+
+## Pruebas de aceptación EX01–EX06
+
+El flujo Chromium utiliza una sesión de simulación 3D guardada en el
+historial y una sesión QA de YOLO con una detección y revisión humana.
+Intercepta localmente `Blob` y la acción de descarga para inspeccionar
+los CSV/JSON generados (sin consumir datos externos); comprueba:
+
+- Seis indicadores y cinco controles de exportación.
+- CSV de sesiones con dos registros; CSV de detección con la predicción YOLO.
+- JSON auditado con revisión y nota persistentes, sin cierres huérfanos.
+- Filtro de revisión cerrada que deja exactamente una sesión.
+- CSV filtrado sin registros de otras sesiones y CSV de revisiones con decisión.
+- Vista imprimible A4 que respeta el filtro activo.
+
+Las fixtures solo existen en QA; no alimentan los modelos ni se muestran
+en producción como evidencia.

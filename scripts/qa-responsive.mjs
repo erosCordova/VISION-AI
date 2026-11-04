@@ -390,6 +390,88 @@ try {
           throw Error('Fase 8: revisión histórica y serie por fecha no se actualizan');
         console.log('KP02 OK: 1 pendiente → 1 revisado, sin duplicados; evidencia YOLO inmutable');
 
+        // EX01–EX06: el informe lee los registros filtrados de IndexedDB.
+        // Se intercepta la descarga del Blob en Chromium de pruebas para
+        // inspeccionar los bytes reales, sin crear un archivo local externo.
+        await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Historial'});
+        await eventually(async()=>{
+          const x=await cdp.send('Runtime.evaluate',{
+            expression:'(() => ({cards:document.querySelectorAll(".history-report-stats strong").length,'
+             +'records:document.querySelectorAll(".history-panel tbody tr").length,'
+             +'buttons:document.querySelectorAll(".history-report-actions button").length}))()',
+            returnByValue:true
+          });
+          return x.result?.value?.cards===6&&x.result.value.records===2&&x.result.value.buttons===5;
+        },'EX01 informes en historial con dos sesiones');
+        const exportCapture=async(text)=>{
+          const result=await cdp.send('Runtime.evaluate',{
+            expression:'(async()=>{'
+             +'const title='+JSON.stringify(text)+';'
+             +'const button=Array.from(document.querySelectorAll(".history-report-actions button"))'
+             +'.find(x=>x.textContent?.includes(title));if(!button)return {error:"botón ausente"};'
+             +'const original=URL.createObjectURL,origClick=HTMLAnchorElement.prototype.click;'
+             +'let captured=null;'
+             +'URL.createObjectURL=function(blob){captured=blob;return "blob:qa-report-test";};'
+             +'HTMLAnchorElement.prototype.click=function(){};'
+             +'try{button.click();return captured?'
+             +'{type:captured.type,text:await captured.text(),bytes:captured.size}:'
+             +'{error:"No se creó Blob"};'
+             +'}finally{URL.createObjectURL=original;HTMLAnchorElement.prototype.click=origClick;}'
+             +'})()',
+            awaitPromise:true,returnByValue:true
+          });
+          return result.result?.value;
+        };
+        const sessionCsv=await exportCapture('Exportar sesiones CSV');
+        const detectedCsv=await exportCapture('Exportar detecciones CSV');
+        if(!sessionCsv?.text?.startsWith('\uFEFF')||
+          !sessionCsv.text.includes('qa-review-session')||
+          !detectedCsv?.text?.includes('qa-person')||
+          detectedCsv.text.includes('Datos sintéticos')||
+          sessionCsv.text.split('\r\n').filter(Boolean).length!==3)
+          throw Error('EX02: CSV no refleja dos registros persistentes con detección YOLO');
+        const jsonAudit=await exportCapture('Exportar auditoría JSON');
+        const audit=JSON.parse(jsonAudit?.text??'null');
+        if(audit?.source!=='indexeddb-local'||audit.sessions.length!==2||
+          audit.reviewClosures.length!==1||audit.metrics.reviews!==1||
+          audit.reviewClosures[0].note!=='Inspección presencial')
+          throw Error('EX03: JSON de auditoría no conserva cierres asociados a evidencia');
+        const selectReview=await cdp.send('Runtime.evaluate',{
+          expression:'(() => {const s=document.querySelector("select[aria-label=\\"Estado de revisión del historial\\"]");'
+           +'if(!s)return false;'
+           +'const setter=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,"value").set;'
+           +'setter.call(s,"closed");s.dispatchEvent(new Event("change",{bubbles:true}));'
+           +'return true;})()',returnByValue:true
+        });
+        if(!selectReview.result?.value)throw Error('EX04: falta filtro de revisión');
+        await eventually(async()=>{
+          const v=await cdp.send('Runtime.evaluate',{
+            expression:'(() => ({count:document.querySelector(".history-report-stats strong")?.textContent?.trim(),'
+             +'status:document.querySelector("select[aria-label=\\"Estado de revisión del historial\\"]")?.value,'
+             +'pages:document.querySelector(".pagination")?.textContent?.trim()}))()',
+            returnByValue:true
+          });
+          return v.result?.value?.count==='1'&&v.result.value.status==='closed';
+        },'EX04 una sesión tras filtrar decisiones humanas cerradas');
+        const filteredCsv=await exportCapture('Exportar sesiones CSV');
+        const reviewsCsv=await exportCapture('Exportar revisiones CSV');
+        if(!filteredCsv?.text?.includes('qa-review-session')||
+          filteredCsv.text.split('\r\n').filter(Boolean).length!==2||
+          !reviewsCsv?.text?.includes('Inspección presencial')||
+          !reviewsCsv.text.includes('Requiere seguimiento humano'))
+          throw Error('EX05: CSV filtrado o revisión humana no corresponde al subconjunto');
+        const printView=await cdp.send('Runtime.evaluate',{
+          expression:'(() => ({table:!!document.querySelector(".history-print-report table"),'
+           +'visible:!!document.querySelector(".history-report-summary"),'
+           +'count:document.querySelector(".history-print-report")?.textContent?.includes("1 sesiones filtradas")}))()',
+          returnByValue:true
+        });
+        if(!printView.result?.value?.table||!printView.result.value.visible||
+          !printView.result.value.count)
+          throw Error('EX06: informe imprimible no respeta el filtro');
+        console.log('EX01–EX06: CSV, JSON, filtros, revisión humana e impresión verificables');
+        await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Resumen'});
+
 
 
         // DA04: límite reproducible de 100 registros, sin simular una falsa
