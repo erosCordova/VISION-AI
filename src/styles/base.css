@@ -266,3 +266,16 @@ dt{color:#586c7a}
 @media(max-width:580px){.saved-dashboard-timeline,.saved-dashboard-recent{padding:13px}
  .saved-dashboard-day{grid-template-columns:73px minmax(0,1fr) 18px;gap:6px}
  .saved-dashboard-recent-row{align-items:flex-start}}
+
+/* Fase 11: resoluciones humanas y notas breves sin afectar las evidencias. */
+.operations-review-decision-form{display:grid;gap:9px;min-width:220px;max-width:285px;width:100%}
+.operations-review-decision-form label{font-size:10px;color:#356d5e;font-weight:750;
+ display:grid;gap:5px}
+.operations-review-decision-form select,.operations-review-decision-form textarea{
+ width:100%;min-width:0;border:1px solid #a6c6b9;padding:8px 10px;
+ border-radius:7px;background:#f8fcfa;color:#31564e;font-size:11px}
+.operations-review-decision-form textarea{min-height:54px;resize:vertical;font-family:inherit}
+.operations-review-decision{display:grid;gap:5px;margin-top:3px}
+.operations-review-decision strong{font-size:11px;color:#1f7961}
+.operations-review-decision p{font-size:10px;color:#617b71;overflow-wrap:anywhere}
+@media(max-width:680px){.operations-review-decision-form{max-width:none}}

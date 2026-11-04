@@ -43,3 +43,17 @@ humano no altera las detecciones guardadas.
 - RG06: QA Chromium del monitor de reglas, Operaciones, recarga e historial.
 
 **No aprobar sin check TypeScript, Vitest, Python y recorrido real en Chromium.**
+
+## Incremento 2: resoluciones de revisión en IndexedDB
+
+La cola de Operaciones registra una decisión humana: **seguimiento,
+descartado o sin conclusión**, con nota opcional de hasta 240 caracteres.
+Se amplía aditivamente el registro `reviewClosures` ya existente,
+con clave compuesta sesión–indicio e instante de revisión.
+Los registros anteriores sin decisión conservan su significado
+«Revisado (registro anterior)». La escritura es atómica e idempotente
+y no modifica predicciones YOLO ni guarda imágenes.
+Las notas son locales y no se deben emplear para identificar personas.
+
+El QA de Chromium validará decisión, nota, recarga y ausencia de
+duplicación, además de la comparación antes/después de la evidencia.

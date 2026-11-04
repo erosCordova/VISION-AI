@@ -1,5 +1,6 @@
 import type {SimulationSession,SessionScenario} from '../../core/domain/simulation-session';
-import type {ReviewClosure} from '../../core/domain/review-closure';
+import {REVIEW_DECISIONS} from '../../core/domain/review-closure';
+import type {ReviewClosure,ReviewDecision} from '../../core/domain/review-closure';
 
 /** Un indicio se refiere a la clase observada, nunca identifica a una persona. */
 export interface ReviewItem {
@@ -16,13 +17,16 @@ export interface ReviewItem {
  readonly confidence:number;
  readonly status:'open'|'closed';
  readonly closedAt:string|null;
+ readonly decision:ReviewDecision|null;
+ readonly decisionLabel:string|null;
+ readonly note:string|null;
 }
 const reviewKey=(sessionId:string,eventId:string)=>JSON.stringify([sessionId,eventId]);
 /** Ensambla los estados humanos con episodios YOLO ya guardados, sin alterar evidencia. */
 export function collectReviewItems(
  sessions:readonly SimulationSession[],closures:readonly ReviewClosure[]
 ):ReviewItem[]{
- const closed=new Map(closures.map(row=>[reviewKey(row.sessionId,row.eventId),row.closedAt]));
+ const closed=new Map(closures.map(row=>[reviewKey(row.sessionId,row.eventId),row]));
  const seen=new Set<string>();
  const items:ReviewItem[]=[];
  for(const session of sessions){
@@ -30,7 +34,9 @@ export function collectReviewItems(
    const key=reviewKey(session.id,event.id);
    if(seen.has(key))continue;
    seen.add(key);
-   const closedAt=closed.get(key)??null;
+   const closure=closed.get(key)??null;
+   const closedAt=closure?.closedAt??null;
+   const decision=closure?(closure.decision??'reviewed'):null;
    const eventDate=new Date(event.observedAtMs);
    const evidenceAt=Number.isFinite(event.observedAtMs)&&
     Number.isFinite(eventDate.getTime())?eventDate.toISOString():session.savedAt;
@@ -42,7 +48,9 @@ export function collectReviewItems(
     frameNumber:event.frameNumber,
     supportingFrames:event.supportingFrames,
     confidence:event.maxConfidence,
-    status:closedAt?'closed':'open',closedAt
+    status:closedAt?'closed':'open',closedAt,
+    decision,decisionLabel:decision?REVIEW_DECISIONS[decision]:null,
+    note:closure?.note??null
    });
   }
  }
@@ -51,8 +59,8 @@ export function collectReviewItems(
 /** Función pura para demostrar idempotencia del conteo KP02. */
 export function withReviewClosed(
  closures:readonly ReviewClosure[],sessionId:string,eventId:string,
- closedAt:string
+ closedAt:string,decision:ReviewDecision='reviewed',note?:string
 ):readonly ReviewClosure[]{
  if(closures.some(x=>x.sessionId===sessionId&&x.eventId===eventId))return closures;
- return [...closures,{sessionId,eventId,closedAt}];
+ return [...closures,{sessionId,eventId,closedAt,decision,...(note?{note}:{})}];
 }
