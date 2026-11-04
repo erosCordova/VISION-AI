@@ -67,6 +67,8 @@ describe('Fase 8: KP02 revisión idempotente de alertas',()=>{
   expect(r.detections).toBe(0);
   expect(r.reviewEvents).toBe(1);
   expect(r.closedReviews).toBe(1);
+  expect(r.recentReviews).toHaveLength(1);
+  expect(r.recentReviews[0].status).toBe('closed');
   expect(r.meanConfidence).toBeNull();
  });
  it('el mismo evento duplicado dentro de una sesión no se cuenta dos veces',()=>{
@@ -76,6 +78,23 @@ describe('Fase 8: KP02 revisión idempotente de alertas',()=>{
   ]}} as SimulationSession;
   expect(collectReviewItems([duplicate],[])).toHaveLength(1);
   expect(calculateDashboard([duplicate],DEFAULT_DASHBOARD_FILTER,now).reviewEvents).toBe(1);
+ });
+});
+describe('Fase 8: series y acceso a indicios sin resultados ficticios',()=>{
+ it('los episodios recientes conservan su estado y la serie agrupa sesiones por día',()=>{
+  const a=session('a',1),b=session('b',1);
+  const closes=[{sessionId:'b',eventId:'no-hardhat-0',closedAt:'2026-11-04T18:00:00Z'}];
+  const report=calculateDashboard([a,b],DEFAULT_DASHBOARD_FILTER,now,closes);
+  expect(report.recentReviews).toHaveLength(2);
+  expect(report.recentReviews.filter(r=>r.status==='closed')).toHaveLength(1);
+  expect(report.openReviews+report.closedReviews).toBe(report.reviewEvents);
+  expect(report.byDay).toEqual([{date:'2026-11-04',count:2}]);
+ });
+ it('sin registros no se fabrican series, clases ni episodios',()=>{
+  const report=calculateDashboard([],DEFAULT_DASHBOARD_FILTER,now);
+  expect(report.recentReviews).toEqual([]);
+  expect(report.byDay).toEqual([]);
+  expect(report.meanConfidence).toBeNull();
  });
 });
 describe('KP01/KP03: rendimiento con límite objetivo de 100 sesiones',()=>{

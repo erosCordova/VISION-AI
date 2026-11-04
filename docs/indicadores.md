@@ -106,3 +106,19 @@ indicadores; no se sustituyen por cifras de ejemplo.
 **Estado:** implementación y pruebas añadidas; el cierre de Fase 8
 se determinará al concluir satisfactoriamente la nueva ejecución CI
 de KP01–KP03, Chromium y el benchmark.
+
+
+## Series y revisión visible en el dashboard
+
+El dashboard muestra la distribución de sesiones por día UTC usando
+`byDay` derivado del repositorio y limita el gráfico visual a las
+10 fechas recientes con actividad del filtro. No rellena fechas sin
+datos con cifras inventadas ni afirma que se procesaron todos los
+fotogramas. Los cuatro indicios YOLO recientes se obtienen de los
+episodios de revisión de las sesiones filtradas, mostrando estado
+pendiente/revisado y acceso a Operaciones.
+
+La actualización por el evento de cierre se refleja en la lista reciente,
+los contadores abiertos/cerrados y en la vista Operaciones. La prueba
+de Chromium valida la serie con una sesión guardada y la evolución
+de un episodio desde pendiente a revisado, sin afectar la fuente.

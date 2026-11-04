@@ -237,3 +237,32 @@ dt{color:#586c7a}
  .operations-review-item button{white-space:normal}
  .operations-review-filters{align-items:stretch;flex-direction:column}
  .operations-review-filters label,.operations-review-filters>button{width:100%}}
+
+/* Serie temporal y revisión reciente: consulta real por filtros, sin datos demo. */
+.saved-dashboard-activity{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.saved-dashboard-timeline,.saved-dashboard-recent{background:#fff;border:1px solid #dce7e4;
+ border-radius:11px;padding:17px 19px;min-width:0}
+.saved-dashboard-activity h3{color:#255348;font-size:13px;margin:0 0 7px}
+.saved-dashboard-timeline>p{color:#79928b;font-size:10px;margin:3px 0 14px;line-height:1.5}
+.saved-dashboard-day{display:grid;grid-template-columns:84px minmax(0,1fr) 26px;gap:9px;
+ align-items:center;margin:9px 0}
+.saved-dashboard-day time{font-size:10px;color:#637e74;font-variant-numeric:tabular-nums}
+.saved-dashboard-day>div{height:11px;background:#e8f3f1;border-radius:7px;overflow:hidden}
+.saved-dashboard-day i{display:block;height:100%;border-radius:7px;
+ background:linear-gradient(90deg,#249fa3,#83d9ad)}
+.saved-dashboard-day strong{color:#1c7462;font-size:11px;text-align:right}
+.saved-dashboard-recent-title{display:flex;align-items:center;justify-content:space-between;gap:12px;
+ flex-wrap:wrap;margin-bottom:10px}
+.saved-dashboard-recent-title button{font-size:10px;padding:8px 10px}
+.saved-dashboard-recent-row{display:flex;justify-content:space-between;align-items:center;
+ gap:12px;border-top:1px solid #e6efeb;padding:10px 0}
+.saved-dashboard-recent-row>div{display:grid;gap:5px}
+.saved-dashboard-recent-row strong{font-size:11px;color:#37695c}
+.saved-dashboard-recent-row small{color:#7c968c;font-size:10px;line-height:1.4}
+.saved-dashboard-recent-row>span{font-size:10px;font-weight:750;padding:6px 8px;border-radius:5px;
+ color:#96602e;border:1px solid #e6c69e;background:#fff2e2;white-space:nowrap}
+.saved-dashboard-recent-row>span.is-closed{color:#278066;border-color:#9bd1bd;background:#eaf9f1}
+@media(max-width:850px){.saved-dashboard-activity{grid-template-columns:1fr}}
+@media(max-width:580px){.saved-dashboard-timeline,.saved-dashboard-recent{padding:13px}
+ .saved-dashboard-day{grid-template-columns:73px minmax(0,1fr) 18px;gap:6px}
+ .saved-dashboard-recent-row{align-items:flex-start}}

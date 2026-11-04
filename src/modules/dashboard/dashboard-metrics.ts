@@ -1,6 +1,7 @@
 import type {SimulationSession,SessionScenario} from '../../core/domain/simulation-session';
 import type {ReviewClosure} from '../../core/domain/review-closure';
 import {collectReviewItems} from './review-state';
+import type {ReviewItem} from './review-state';
 
 export type DashboardPeriod='all'|'day'|'week';
 export type DashboardMode='all'|'synthetic'|'yolo';
@@ -15,6 +16,7 @@ export interface DashboardMetrics{
  readonly yoloSessions:number;
  readonly detections:number;
  readonly reviewEvents:number;
+ readonly recentReviews:readonly ReviewItem[];
  readonly openReviews:number;
  readonly closedReviews:number;
  readonly meanConfidence:number|null;
@@ -66,7 +68,7 @@ export function calculateDashboard(
  return {
   sessions:entries.length,
   yoloSessions:entries.filter(r=>r.mode==='yolo').length,
-  detections,reviewEvents:reviews.length,
+  detections,reviewEvents:reviews.length,recentReviews:reviews.slice(0,4),
   openReviews:reviews.filter(x=>x.status==='open').length,
   closedReviews:reviews.filter(x=>x.status==='closed').length,
   meanConfidence:scoreCount?scores/scoreCount:null,

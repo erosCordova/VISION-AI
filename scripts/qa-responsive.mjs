@@ -282,6 +282,15 @@ try {
           return m?.values?.[0]==='1' && m.values[1]==='0' &&
            m.values[2]==='0' && m.values[3]==='—' && m.filters===3;
         },'Fase 8 dashboard sin datos de inferencia inventados');
+        const sourceTrace=await cdp.send('Runtime.evaluate',{
+          expression:'({days:document.querySelectorAll(".saved-dashboard-day").length,'
+           + ' recent:document.querySelectorAll(".saved-dashboard-recent-row").length,'
+           + ' hasOperationLink:!!document.querySelector(".saved-dashboard-recent-title button")})',
+          returnByValue:true
+        });
+        if(sourceTrace.result?.value?.days!==1||
+          sourceTrace.result.value.recent!==0||!sourceTrace.result.value.hasOperationLink)
+          throw Error('Fase 8: serie temporal o evidencias vacías no corresponden a IndexedDB');
         await cdp.send('Runtime.evaluate',{
           expression:'(() => {const s=document.querySelector("select[aria-label=\\\"Escenario de indicadores\\\"]");'
            + 'if(s){s.value="warehouse";s.dispatchEvent(new Event("change",{bubbles:true}));}'
@@ -342,6 +351,16 @@ try {
           });
           return r.result?.value?.open==='0'&&r.result.value.closed==='1';
         },'KP02 actualización de dashboard tras revisión persistida');
+        const visualHistory=await cdp.send('Runtime.evaluate',{
+          expression:'({last:document.querySelector(".saved-dashboard-recent-row span")?.textContent?.trim(),'
+           + 'series:document.querySelectorAll(".saved-dashboard-day").length,'
+           + 'source:document.querySelector(".saved-dashboard-recent-row strong")?.textContent?.trim()})',
+          returnByValue:true
+        });
+        if(visualHistory.result?.value?.last!=='Revisado'||
+          visualHistory.result.value.series<1||
+          !visualHistory.result.value.source?.includes('casco'))
+          throw Error('Fase 8: revisión histórica y serie por fecha no se actualizan');
         console.log('KP02 OK: 1 pendiente → 1 revisado, sin duplicados; evidencia YOLO inmutable');
 
 

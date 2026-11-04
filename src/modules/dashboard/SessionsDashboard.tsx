@@ -10,8 +10,9 @@ const LABELS:Record<string,string>={
  safety:'Seguridad Industrial',quality:'Manufactura',
  retail:'Retail',warehouse:'Logística'
 };
-export function SessionsDashboard({repository,onHistory}:{
- readonly repository:SimulationSessionRepository;readonly onHistory:()=>void
+export function SessionsDashboard({repository,onHistory,onOperations}:{
+ readonly repository:SimulationSessionRepository;
+ readonly onHistory:()=>void;readonly onOperations:()=>void
 }){
  const [filter,setFilter]=useState<DashboardFilter>(DEFAULT_DASHBOARD_FILTER);
  const [records,setRecords]=useState<readonly SimulationSession[]>([]);
@@ -43,6 +44,7 @@ export function SessionsDashboard({repository,onHistory}:{
  },[repository]);
  const result=useMemo(()=>calculateDashboard(records,filter,new Date(),closures),[records,filter,closures]);
  const maxByScenario=Math.max(1,...result.byScenario.map(x=>x.count));
+ const maxByDate=Math.max(1,...result.byDay.map(x=>x.count));
  return <section className="saved-dashboard" aria-label="Indicadores de sesiones guardadas">
   <div className="section-heading">
    <div><h2>Indicadores del historial</h2>
@@ -112,6 +114,31 @@ export function SessionsDashboard({repository,onHistory}:{
     </div>}
     <button type="button" onClick={onHistory}>Abrir historial de sesiones</button>
    </div>
+  </div>
+  <div className="saved-dashboard-activity">
+   <section className="saved-dashboard-timeline" aria-label="Sesiones por fecha">
+    <h3>Evolución de sesiones guardadas</h3>
+    <p>Hasta 10 fechas recientes con actividad, agrupadas por día UTC.</p>
+    {result.byDay.length>0?result.byDay.slice(-10).map(entry=>
+     <div className="saved-dashboard-day" key={entry.date}>
+      <time dateTime={entry.date}>{entry.date}</time>
+      <div><i style={{width:entry.count/maxByDate*100+'%'}}/></div>
+      <strong>{entry.count}</strong>
+     </div>):
+     <p className="saved-dashboard-empty">Sin sesiones para el periodo seleccionado.</p>}
+   </section>
+   <section className="saved-dashboard-recent" aria-label="Indicios YOLO recientes">
+    <div className="saved-dashboard-recent-title"><h3>Indicios EPP recientes</h3>
+     <button type="button" onClick={onOperations}>Abrir Operaciones</button></div>
+    {result.recentReviews.length>0?result.recentReviews.map(item=>
+     <div className="saved-dashboard-recent-row" key={item.id}>
+      <div><strong>{item.label}</strong>
+       <small>{item.scenarioName} · {new Date(item.evidenceAt).toLocaleString('es-PE')}</small></div>
+      <span className={item.status==='closed'?'is-closed':''}>
+       {item.status==='closed'?'Revisado':'Pendiente'}</span>
+     </div>):
+     <p className="saved-dashboard-empty">No hay indicios YOLO en las sesiones del filtro.</p>}
+   </section>
   </div>
   <p className="saved-dashboard-caveat">
    Los datos provienen exclusivamente de sesiones guardadas y revisiones locales, no de todos los fotogramas procesados.
