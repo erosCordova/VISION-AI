@@ -431,10 +431,10 @@ try {
           sessionCsv.text.split('\r\n').filter(Boolean).length!==3)
           throw Error('EX02: CSV no refleja dos registros persistentes con detección YOLO');
         const jsonAudit=await exportCapture('Exportar auditoría JSON');
-        const audit=JSON.parse(jsonAudit?.text??'null');
-        if(audit?.source!=='indexeddb-local'||audit.sessions.length!==2||
-          audit.reviewClosures.length!==1||audit.metrics.reviews!==1||
-          audit.reviewClosures[0].note!=='Inspección presencial')
+        const exportAuditPayload=JSON.parse(jsonAudit?.text??'null');
+        if(exportAuditPayload?.source!=='indexeddb-local'||exportAuditPayload.sessions.length!==2||
+          exportAuditPayload.reviewClosures.length!==1||exportAuditPayload.metrics.reviews!==1||
+          exportAuditPayload.reviewClosures[0].note!=='Inspección presencial')
           throw Error('EX03: JSON de auditoría no conserva cierres asociados a evidencia');
         const selectReview=await cdp.send('Runtime.evaluate',{
           expression:'(() => {const s=document.querySelector("select[aria-label=\\"Estado de revisión del historial\\"]");'
