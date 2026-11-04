@@ -145,7 +145,17 @@ try {
   console.log('QA terminado: ' + checked + ' recorridos; capturas en qa-artifacts/');
 } finally {
   cdp?.close();
-  chrome?.kill();
+  if (chrome) {
+    const exited = new Promise(resolve => chrome.once('exit', resolve));
+    chrome.kill();
+    await Promise.race([exited, sleep(2000)]);
+  }
   server.kill();
-  fs.rmSync(profile, { recursive: true, force: true });
+  // Chrome puede recrear archivos temporales brevemente mientras se apaga.
+  // No invalidar una batería completa por una carrera de limpieza del runner.
+  try {
+    fs.rmSync(profile, { recursive: true, force: true, maxRetries: 12, retryDelay: 150 });
+  } catch (error) {
+    console.warn('Aviso: carpeta temporal de Chromium pendiente de limpieza:', error.message);
+  }
 }
