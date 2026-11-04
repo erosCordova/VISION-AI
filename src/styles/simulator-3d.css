@@ -101,3 +101,29 @@
 @media(prefers-reduced-motion:reduce){.simulator-v2 *, .simulator-v2 *::before,.simulator-v2 *::after{animation:none!important;transition:none!important}}
 :fullscreen.simulator-v2{width:100vw;height:100vh;overflow:auto;border-radius:0;background:#091f2c}
 :fullscreen.simulator-v2 .simulator-3d-stage{aspect-ratio:16/9}
+
+
+/* Jerarquía responsive: en tablet y móvil la escena precede a los indicadores.
+   Mantiene el panel de operación y evita obligar a desplazar varias pantallas antes del 3D. */
+@media(max-width:1040px){
+ .simulator-v2{display:flex;flex-direction:column}
+ .simulator-v2 .simulator-topline{order:0}
+ .simulator-v2 .simulator-scenarios{order:1}
+ .simulator-v2 .simulator-content{order:2}
+ .simulator-v2 .simulator-3d-summary{order:3}
+ .simulator-v2 .simulator-footnote{order:4}
+ .simulator-v2 .simulator-3d-summary{border-top:1px solid #375460}
+}
+@media(max-width:650px){
+ .simulator-v2 .simulator-topline{padding:14px 15px;gap:10px}
+ .simulator-v2 .simulator-topline h2{font-size:20px;margin:3px 0}
+ .simulator-v2 .simulator-topline p{font-size:10px;line-height:1.45}
+ .simulator-v2 .simulator-mode{font-size:8px;padding:6px 9px}
+ .simulator-v2 .simulator-scenarios{grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;padding:7px}
+ .simulator-v2 .simulator-scenarios button{display:grid;justify-items:center;gap:3px;padding:8px 1px;font-size:9px;min-height:53px}
+ .simulator-v2 .simulator-scenarios button span{font-size:17px}
+ .simulator-v2 .simulator-visual-head{margin-bottom:12px}
+ .simulator-v2 .simulator-visual-head h3{margin:4px 0;font-size:17px}
+ .simulator-v2 .simulator-visual-head p{display:none}
+ .simulator-v2 .simulator-3d-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
