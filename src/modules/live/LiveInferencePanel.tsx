@@ -2,15 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { CameraStatus } from '../camera/CameraPanel';
 import type { AnalyzedFrame } from './frame-guard';
+import { inferenceFps, retainRecentFrames } from './analysis-metrics';
+import { jpegSha256, matchesInferenceResponse } from './response-contract';
+import { scenarioInsight } from './scenario-summary';
+import type { ModelCoverage } from './scenario-summary';
 
-interface ResponsePayload {
-  sessionId: string; generation: number; frameId: number; capturedAtMonotonicMs: number;
-  configurationVersion: string; inferenceDurationMs: number;
-  image: { width: number; height: number; assetId: string; contentHash: string };
-  coverage: { complete: boolean; missingClasses: string[]; detail: string };
-  modelClasses: string[];
-  result: AnalyzedFrame['output']['result'];
-}
+type ServerState = 'unconfigured' | 'checking' | 'online' | 'offline';
 interface Props {
   videoRef: RefObject<HTMLVideoElement | null>;
   sourceStatus: CameraStatus;
@@ -21,20 +18,46 @@ interface Props {
 
 export function LiveInferencePanel({ videoRef, sourceStatus, scenarioId, apiBaseUrl, onFrame }: Props) {
   const [running, setRunning] = useState(false);
+  const [serverState, setServerState] = useState<ServerState>('unconfigured');
+  const [retry, setRetry] = useState(0);
   const [error, setError] = useState('');
-  const [coverage, setCoverage] = useState<ResponsePayload['coverage'] | null>(null);
+  const [coverage, setCoverage] = useState<ModelCoverage | null>(null);
+  const [lastResult, setLastResult] = useState<AnalyzedFrame['output']['result'] | null>(null);
   const [inferenceMs, setInferenceMs] = useState<number | null>(null);
-  const [personCount, setPersonCount] = useState<number | null>(null);
+  const [roundTripMs, setRoundTripMs] = useState<number | null>(null);
+  const [fps, setFps] = useState<number | null>(null);
   const [frames, setFrames] = useState(0);
+  const [lastFrameId, setLastFrameId] = useState<number | null>(null);
   const generation = useRef(0);
   const imageUrlRef = useRef<string | null>(null);
-  const allowRun = !!apiBaseUrl && sourceStatus === 'preview';
+  const times = useRef<number[]>([]);
 
   useEffect(() => {
-    if (sourceStatus !== 'preview') setRunning(false);
-  }, [sourceStatus]);
+    if (!apiBaseUrl) { setServerState('unconfigured'); return; }
+    setServerState('checking');
+    const abort = new AbortController();
+    const timeout = setTimeout(() => abort.abort(), 7000);
+    void fetch(apiBaseUrl + '/api/v1/health', { signal: abort.signal, cache: 'no-store' })
+      .then(async response => {
+        if (!response.ok) throw Error('Servidor no disponible');
+        const data: unknown = await response.json();
+        if (!data || typeof data !== 'object' || !('ok' in data) || data.ok !== true) {
+          throw Error('Respuesta de salud no válida');
+        }
+        if (!abort.signal.aborted) setServerState('online');
+      })
+      .catch(() => { if (!abort.signal.aborted) setServerState('offline'); })
+      .finally(() => clearTimeout(timeout));
+    return () => { abort.abort(); clearTimeout(timeout); };
+  }, [apiBaseUrl, retry]);
+
+  const canStart = serverState === 'online' && sourceStatus === 'preview';
   useEffect(() => {
-    if (!running || !allowRun || !apiBaseUrl) return;
+    if (sourceStatus !== 'preview' || serverState !== 'online') setRunning(false);
+  }, [sourceStatus, serverState]);
+
+  useEffect(() => {
+    if (!running || !canStart || !apiBaseUrl) return;
     let cancelled = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const abort = new AbortController();
@@ -50,8 +73,7 @@ export function LiveInferencePanel({ videoRef, sourceStatus, scenarioId, apiBase
         timer = setTimeout(() => { void tick(); }, 250);
         return;
       }
-      const maxSide = 640;
-      const scale = Math.min(1, maxSide / Math.max(video.videoWidth, video.videoHeight));
+      const scale = Math.min(1, 640 / Math.max(video.videoWidth, video.videoHeight));
       canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
       canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
       const ctx = canvas.getContext('2d');
@@ -61,27 +83,31 @@ export function LiveInferencePanel({ videoRef, sourceStatus, scenarioId, apiBase
       const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.8));
       if (!blob || cancelled) return;
       const currentFrameId = ++frameId;
+      const requested = {
+        sessionId: session, generation: currentGeneration,
+        frameId: currentFrameId, capturedAtMonotonicMs,
+        width: canvas.width, height: canvas.height
+      };
       const params = new URLSearchParams({
         scenario: scenarioId, session, generation: String(currentGeneration),
         frameId: String(currentFrameId), capturedAtMonotonicMs: String(capturedAtMonotonicMs)
       });
       try {
+        const hashPromise = jpegSha256(blob);
         const response = await fetch(apiBaseUrl + '/api/v1/infer?' + params, {
           method: 'POST', headers: { 'Content-Type': 'image/jpeg' }, body: blob, signal: abort.signal
         });
         if (!response.ok) {
           const info: unknown = await response.json().catch(() => ({}));
           const message = info && typeof info === 'object' && 'detail' in info && typeof info.detail === 'string'
-            ? info.detail : 'No se pudo procesar el video.';
+            ? info.detail : 'El servidor no pudo procesar este fotograma.';
           throw Error(message);
         }
-        const value = await response.json() as ResponsePayload;
+        const value: unknown = await response.json();
+        const sourceHash = await hashPromise;
         if (cancelled) return;
-        if (value.sessionId !== session || value.generation !== currentGeneration ||
-            value.frameId !== currentFrameId || value.capturedAtMonotonicMs !== capturedAtMonotonicMs ||
-            value.image.width !== canvas.width || value.image.height !== canvas.height ||
-            value.result.assetId !== value.image.assetId || value.result.sourceHash !== value.image.contentHash) {
-          throw Error('Se recibió un resultado incompatible con el fotograma solicitado.');
+        if (!matchesInferenceResponse(value, requested, sourceHash)) {
+          throw Error('Resultado rechazado: identidad, SHA256 o geometría incorrectos.');
         }
         const url = URL.createObjectURL(blob);
         const previous = imageUrlRef.current;
@@ -94,10 +120,15 @@ export function LiveInferencePanel({ videoRef, sourceStatus, scenarioId, apiBase
                     capturedAtMonotonicMs, configurationVersion: value.configurationVersion,
                     inferenceDurationMs: value.inferenceDurationMs, result: value.result }
         });
-        if (previous) URL.revokeObjectURL(previous);
+        if (previous) setTimeout(() => URL.revokeObjectURL(previous), 500);
+        const completed = performance.now();
+        times.current = retainRecentFrames(times.current, completed);
         setCoverage(value.coverage);
+        setLastResult(value.result);
         setInferenceMs(value.inferenceDurationMs);
-        setPersonCount(value.result.detections.filter(d => d.classId === 'person').length);
+        setRoundTripMs(Math.round(completed - capturedAtMonotonicMs));
+        setFps(inferenceFps(times.current));
+        setLastFrameId(currentFrameId);
         setFrames(currentFrameId);
         setError('');
       } catch (e) {
@@ -109,35 +140,71 @@ export function LiveInferencePanel({ videoRef, sourceStatus, scenarioId, apiBase
       }
       if (!cancelled) timer = setTimeout(() => { void tick(); }, 200);
     }
-
     void tick();
     return () => {
-      cancelled = true; abort.abort();
+      cancelled = true;
+      abort.abort();
       if (timer) clearTimeout(timer);
       onFrame(null);
       if (imageUrlRef.current) { URL.revokeObjectURL(imageUrlRef.current); imageUrlRef.current = null; }
     };
-  }, [running, allowRun, apiBaseUrl, scenarioId, videoRef, onFrame]);
+  }, [running, canStart, apiBaseUrl, scenarioId, videoRef, onFrame]);
+
+  const insight = scenarioInsight(scenarioId, lastResult, coverage);
+  const connectionLabel: Record<ServerState,string> = {
+    unconfigured: 'Motor no configurado',
+    checking: 'Comprobando conexión',
+    online: 'API conectada',
+    offline: 'API fuera de línea'
+  };
 
   return <section className="panel inference-controls" aria-label="Motor de análisis en tiempo real">
-    <div className="panel-heading"><div><span className="eyebrow">INFERENCIA REAL</span><h2>Analizar fotogramas con YOLO</h2></div>
-      <span className={'status ' + (running ? 'live' : '')}><i />{running ? 'Analizando video' : 'Análisis detenido'}</span></div>
-    <p>La cámara o el video se procesan en tu equipo mediante un servidor local. No es una animación con etiquetas prefabricadas.</p>
+    <div className="panel-heading"><div><span className="eyebrow">INFERENCIA REAL</span><h2>Análisis de fotogramas con YOLO</h2></div>
+      <span className={'status ' + (running && frames ? 'live' : '')} role="status"><i />
+        {running ? (frames ? 'Analizando video' : 'Esperando primera inferencia') : 'Análisis detenido'}
+      </span>
+    </div>
+    <p>La fuente se reproduce de manera continua. Se procesa un fotograma por solicitud, sin cola de imágenes atrasadas.</p>
+    <div className="inference-connection" role="status">
+      <span className={serverState === 'online' ? 'connection-online' : 'connection-offline'}>{connectionLabel[serverState]}</span>
+      {apiBaseUrl && <span className="connection-address">{apiBaseUrl}</span>}
+      {apiBaseUrl && serverState !== 'checking' &&
+        <button onClick={() => setRetry(value => value + 1)}>Comprobar de nuevo</button>}
+    </div>
     <div className="inference-actions">
-      {!running && <button className="primary" disabled={!allowRun} onClick={() => { setError(''); setCoverage(null); setInferenceMs(null); setPersonCount(null); setFrames(0); setRunning(true); }}>Iniciar análisis con YOLO</button>}
+      {!running && <button className="primary" disabled={!canStart} onClick={() => {
+        setError(''); setCoverage(null); setLastResult(null);
+        setInferenceMs(null); setRoundTripMs(null); setFps(null);
+        setLastFrameId(null); setFrames(0); times.current = [];
+        setRunning(true);
+      }}>Iniciar análisis con YOLO</button>}
       {running && <button onClick={() => setRunning(false)}>Detener análisis</button>}
-      <span>{apiBaseUrl ? 'Servidor configurado: ' + apiBaseUrl : 'Configura VITE_VISION_MODE=real y la URL de la API local.'}</span>
+      <span>{sourceStatus !== 'preview' ? 'Primero inicia la reproducción del video o la cámara.' :
+        serverState !== 'online' ? 'Comprueba que el servidor de inferencia esté disponible.' :
+        'Los fotogramas se envían exclusivamente mientras el análisis está activo.'}</span>
     </div>
     {error && <p role="alert" className="error">{error}</p>}
     <div className="simulation-metrics">
-      <div><span>Fotogramas procesados</span><strong>{frames || '—'}</strong></div>
+      <div><span>Fotogramas válidos</span><strong>{frames || '—'}</strong></div>
       <div><span>Inferencia del último fotograma</span><strong>{inferenceMs === null ? '—' : Math.round(inferenceMs) + ' ms'}</strong></div>
-      <div><span>Personas en último fotograma</span><strong>{personCount === null ? '—' : personCount}</strong></div>
+      <div><span>Frecuencia medida</span><strong>{fps === null ? '—' : fps.toFixed(1) + ' FPS'}</strong></div>
+      <div><span>Captura a recepción</span><strong>{roundTripMs === null ? '—' : roundTripMs + ' ms'}</strong></div>
+      <div><span>ID último fotograma</span><strong>{lastFrameId ?? '—'}</strong></div>
     </div>
+    {lastResult && <div className={'scenario-insight ' + insight.status} aria-live="polite">
+      <div><span className="eyebrow">LECTURA DEL ESCENARIO</span><h3>{insight.title}</h3><strong>{insight.amount}</strong></div>
+      <div><p>{insight.explanation}</p><p><b>Regla siguiente:</b> {insight.nextRule}</p></div>
+    </div>}
     {coverage && <p className={coverage.complete ? 'simulation-coverage' : 'simulation-coverage warning'} role="status">
-      {coverage.complete ? 'Clases requeridas disponibles en los pesos cargados. Falta validar las reglas del escenario.' :
-        'Cobertura incompleta: faltan clases ' + coverage.missingClasses.join(', ') + '. ' + coverage.detail}
+      {coverage.complete
+        ? 'El checkpoint declara las clases esperadas. Las reglas y la precisión real aún requieren evaluación.'
+        : 'Clases ausentes en el checkpoint: ' + coverage.missingClasses.join(', ') + '. ' + coverage.detail}
     </p>}
-    {!apiBaseUrl && <p className="simulation-coverage warning">No se ha conectado un motor real. La cámara puede funcionar como vista previa, pero no habrá detecciones hasta ejecutar el backend local.</p>}
+    {serverState === 'offline' && <p className="simulation-coverage warning">
+      El servidor no responde. Comprueba su URL y su estado; la vista previa puede seguir funcionando sin inferencia.
+    </p>}
+    {serverState === 'unconfigured' && <p className="simulation-coverage warning">
+      No hay API conectada. Configura VITE_VISION_MODE=real y VITE_VISION_API_BASE_URL con un servidor alcanzable; no se fabricarán resultados.
+    </p>}
   </section>;
 }

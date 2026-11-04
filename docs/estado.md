@@ -49,3 +49,13 @@ Cuarto incremento Fase 6: visor de fotograma con cajas, máscaras RLE, patrones,
 A petición del usuario se adelanta un piloto local de inferencia para cuatro escenarios: fuente de video en bucle o webcam, captura JPEG limitada a 640 px y envío a FastAPI por HTTP mientras esté activo el análisis, sin cola concurrente en el navegador. El servidor carga YOLO26n en CPU y devuelve cajas reales. La cobertura de casco, chaleco, montacargas y defectos requiere datasets y pesos especializados, y no se afirma inferencia de estas clases con COCO. Persistencia, alerta temporal, segmentación y despliegue seguro continúan pendientes.
 
 La fase 6 sigue sin cierre hasta comprobar cámara, permisos, accesibilidad y simulación en hardware. El repositorio incluye código fuente y pruebas de contrato; que la CI compile no acredita un modelo descargado o ejecutado en el equipo final.
+
+## Incremento de Fase 6 — métricas y lectura por escenario (manual 6.0)
+
+- Estado de conexión de la API: no configurada, comprobando, conectada y fuera de línea; permite reintentar.
+- Identificación del primer resultado y medición de frecuencia de respuestas realmente verificadas (no de FPS de cámara). Latencia de inferencia y captura a recepción medidas por separado.
+- Comprobación SHA256 del JPEG en navegador y rechazo de respuestas cuya identidad, dimensiones, etiquetas o geometría no coinciden con la captura.
+- Panel específico de los cuatro escenarios: retail cuenta detecciones de persona; los otros escenarios no declaran EPP, ingreso a zona ni defecto conforme sin clases y reglas especializadas.
+- QA responsive ampliado para verificar selector de fuente, estado de inferencia y visor en 360, 768 y 1440 px. Sigue pendiente recorrido manual integral de accesibilidad y funcionamiento con pesos reales en hardware.
+
+El avance global continúa en 31.25 %, hasta aprobar formalmente la Fase 6. El manual vigente es versión 6.0.

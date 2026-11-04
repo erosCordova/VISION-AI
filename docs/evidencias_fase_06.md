@@ -58,3 +58,13 @@ Se añaden pruebas de lógica de sincronización y máscaras y una auditoría au
 Por cambio solicitado, se incorpora un piloto de backend FastAPI con Ultralytics YOLO26n: video local en bucle o cámara, JPEG de un fotograma a la vez y detecciones sin resultados prefabricados. API enlazada a localhost, fuente explícita, pausa/cancelación y descarte de resultados tardíos. Los cuatro escenarios comparten flujo, pero la cobertura depende de clases reales presentes en pesos. Persona genérica sirve como primera verificación de retail; EPP, montacargas y defectos necesitan pesos especializados.
 
 Se añaden pruebas Python puras del protocolo y de cobertura y validación CI. Los paquetes de IA y el checkpoint no se instalan en GitHub Actions: aprobar CI no demuestra FPS, precisión, ejecución de pesos, seguridad productiva o simulación probada en el equipo. Permanece pendiente QA end-to-end en hardware local.
+
+## Sexto incremento — conexión, métricas y resultados trazables (manual 6.0)
+
+Este incremento hace operativa la lectura del estado de la API (/api/v1/health). Distingue servidor no configurado, comprobación, fuera de línea y conectado; el usuario puede reintentar. El botón de análisis solo se habilita con fuente en reproducción y servidor disponible. El primer fotograma se presenta como espera de inferencia, no como reconocimiento ya realizado.
+
+Se añade validación de las respuestas contra el SHA256 del JPEG enviado, dimensiones, sesión, generación, número de fotograma y estructura del resultado. Las métricas se calculan sobre respuestas correctas: cantidad de fotogramas, FPS medidos, latencia de inferencia y captura a recepción. No se declara rendimiento objetivo sin medirlo.
+
+El panel de escenario solo resume detecciones de clases disponibles: retail cuenta personas visibles; seguridad, almacén y calidad explican el alcance de lo reconocido y dejan sin evaluar EPP, zonas y defectos cuando falta evidencia suficiente.
+
+Pruebas unitarias para métricas, contrato de respuesta y lecturas por escenario; QA automatizado de interfaz extendido a estados y componentes de simulación. La Fase 6 continúa abierta hasta comprobación de accesibilidad integral, navegador físico, video real y pesos especiales. Los resultados CI deben verificarse en la ejecución correspondiente al commit.

@@ -1,14 +1,14 @@
 # VISION AI
 
-Plataforma empresarial de visión computacional para detección de objetos, segmentación de imágenes y reconocimiento de patrones.
+Plataforma empresarial de visión computacional con cuatro escenarios de análisis de video: Seguridad industrial, Almacén inteligente, Control de calidad y Retail.
 
-## Estado
+## Estado verificado
 
-**Fases 1 a 5 aprobadas en su alcance. Avance administrativo: 31.25 %.** Base React y TypeScript compilable, contratos validados y 119 pruebas automatizadas aprobadas localmente. Fase 6 en curso: interfaz empresarial navegable y controles de cámara; QA integral pendiente. No hay API de inferencia ni despliegue.
+**Fases 1 a 5 aprobadas; avance administrativo: 31.25 % (5 de 16). Fase 6 en curso.** El repositorio contiene React, Vite, controles de cámara, reproducción de videos en bucle, un visor de fotogramas analizados y un piloto opcional FastAPI + YOLO26n en CPU. El frontend y los contratos están cubiertos por CI; no se ha acreditado aún inferencia en el hardware final, precisión ni FPS sostenidos con un modelo real. No se ha declarado despliegue productivo.
 
-## Preparar y comprobar
+## Ejecutar y validar
 
-Requisitos: Node.js 24.22.1 recomendado (.nvmrc), npm 11.9.0 y Python 3.12 para las referencias.
+Requisitos frontend: Node.js indicado en `.nvmrc`, npm compatible. Pruebas de referencia: Python 3.12.
 
 ```bash
 npm ci --no-audit --no-fund
@@ -17,31 +17,27 @@ npm run build
 python3 -m unittest discover -s tests
 ```
 
-Ver [entorno y comandos](docs/entorno.md). npm run dev inicia la interfaz local; no abre nuevas terminales ni publica. El modo predeterminado es DEMO y el motor todavía no está conectado.
+Para poner en marcha **el motor real local**, pesos, API y Vite, sigue [las instrucciones del backend](backend/README.md). La inferencia requiere instalar librerías Python y pesos YOLO; el servidor debe estar conectado antes de pulsar «Iniciar análisis». Los archivos de video permanecen en el navegador y solo se envían fotogramas mientras el usuario activa el análisis.
 
-## Arquitectura
+## Diferencias entre escenarios
 
-- React + TypeScript + Vite.
-- Dominio y casos de uso separados de infraestructura.
-- Puertos VisionEngine y AnalysisRepository.
-- Repositorio VOLÁTIL de contrato: aún no conserva datos al recargar.
-- Validación de resultados, identidad, versiones, máscaras y transiciones.
-- GitHub Actions preparado para checks y build, sin despliegue.
+- **Retail:** el checkpoint general permite verificar la clase «person» y contar detecciones visibles por fotograma. No identifica personas ni certifica aforo.
+- **Seguridad industrial:** contar personas no demuestra EPP. Cascos y chalecos requieren pesos especializados y asociación por instancia.
+- **Almacén inteligente:** un vehículo genérico no es un montacargas. Las zonas requieren calibración y reglas adicionales.
+- **Control de calidad:** necesita defectos del producto entrenados y segmentación validada antes de declarar conformidad.
 
-## Escenarios
+El visor comprueba la identidad del fotograma, la versión y el hash SHA256 del JPEG y descarta resultados fuera de sincronía. Las métricas registran el tiempo observado, sin extrapolar a FPS sostenidos antes de medir.
 
-Seguridad industrial, Almacén inteligente, Control de calidad y Retail. Consulta [fichas y reglas](docs/escenarios.md) o [galería de 12 referencias](docs/galeria_escenarios.md). Los diagramas son recursos preparados; no son inferencia de IA ni datos de evaluación real.
+## Arquitectura y despliegue
 
-## Plan y documentación
+Frontend React + TypeScript + Vite; contratos de dominio; backend piloto FastAPI/YOLO26n. El backend actual se ejecuta en loopback y no debe exponerse públicamente sin autenticación, límites, TLS y orígenes autorizados. **Render Free no es una plataforma acreditada para ejecutar PyTorch/YOLO en tiempo real**, y una página publicada en Vercel no puede depender de localhost del visitante. Se está evaluando inferencia ONNX en navegador frente a backend de inferencia con recursos suficientes.
 
-16 fases. La **Fase 6** es diseño UX/UI y construcción de la interfaz. Hito demo y versión real se aceptan por separado. El modelo real se incorpora en Fase 15.
+No hay persistencia durable ni modelos especializados validados. Los PNG del proyecto son fixtures esquemáticos, no detecciones de la IA.
 
-[Documentación](docs/README.md) · [Estado](docs/estado.md) · [Arquitectura](docs/arquitectura.md) · [Casos de uso](docs/casos_uso.md) · [Permisos](docs/permisos.md)
+## Documentación
+
+Manual vigente: **versión 6.0**, 16 fases, con Fase 6 reservada a diseño y construcción de interfaz. [Estado](docs/estado.md) · [Tiempo real y YOLO](docs/tiempo_real_yolo.md) · [Escenarios](docs/escenarios.md) · [Diseño de interfaz](docs/diseno_ui.md) · [Arquitectura](docs/arquitectura.md).
 
 ## Responsable
 
-Eros Igor Córdova Pintado — Ingeniería de Software con IA, SENATI.
-
-## Alcance vigente: YOLO y tiempo real
-
-Los cuatro escenarios usarán YOLO con cámara en vivo. Webcam inicial y conector IP/RTSP posterior en backend. La Fase 6 ya incorpora controles de cámara, pendientes de validación con hardware; YOLO, transporte y seguimiento siguen pendientes. El avance de 31.25 % corresponde a la base previa y no acredita esta ampliación. Ver [especificación temporal](docs/tiempo_real_yolo.md). Manual vigente: 5.0.
+Proyecto individual, Ingeniería de Software con IA — SENATI.

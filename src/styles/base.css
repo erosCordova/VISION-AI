@@ -90,3 +90,19 @@ dt{color:#586c7a}
 .simulation-coverage.warning{background:#fff8ea;border-color:#ead3a5;color:#775623}
 .camera-controls input[type=file]{font-size:10px;max-width:100%;padding:8px}
 @media(max-width:760px){.simulation-metrics{grid-template-columns:1fr}.simulation-metrics>div{display:flex;justify-content:space-between;align-items:center}.simulation-source-tabs button{flex:1;min-width:0}}
+
+/* Simulación — salud del motor y lectura verificable del último fotograma */
+.inference-connection{display:flex;gap:10px;flex-wrap:wrap;align-items:center;border:1px solid #dbe7ea;background:#f7fafb;border-radius:10px;padding:11px 13px;margin:14px 0}
+.inference-connection span{font-size:11px}
+.connection-online{font-weight:700;color:#176a56}
+.connection-offline{font-weight:700;color:#9a5028}
+.connection-address{max-width:100%;overflow-wrap:anywhere;color:#4d6573}
+.inference-connection button{padding:6px 10px;margin-left:auto;font-size:11px}
+.scenario-insight{display:grid;grid-template-columns:minmax(140px,0.8fr) minmax(0,2fr);gap:20px;border:1px solid #cfdee6;border-left:4px solid #188c96;background:#f4fafb;border-radius:9px;padding:18px;margin:16px 0}
+.scenario-insight.unavailable{border-left-color:#b88234;background:#fffaf0}
+.scenario-insight h3{font-size:14px;margin:7px 0}
+.scenario-insight strong{font-family:Manrope,sans-serif;font-size:25px}
+.scenario-insight p{font-size:12px;line-height:1.6;margin:2px 0 10px;overflow-wrap:anywhere}
+.simulation-metrics strong{overflow-wrap:anywhere}
+@media(max-width:760px){.scenario-insight{grid-template-columns:1fr;gap:12px}.inference-connection button{margin-left:0}}
+@media(prefers-reduced-motion:reduce){.scenario-insight,.inference-controls *, .evidence-box {animation:none!important;transition:none!important;scroll-behavior:auto!important}}

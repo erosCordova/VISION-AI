@@ -117,15 +117,19 @@ try {
           + 'const pageWidth = document.documentElement.scrollWidth; '
           + 'const bounds = element.getBoundingClientRect(); '
           + 'return { viewport, pageWidth, elementWidth: bounds.width, elementLeft: bounds.left, '
-          + 'hasFocusableMain: !!document.querySelector("main[tabindex=\\"-1\\"]"), '
-          + 'hasSkip: !!document.querySelector("a.skip"), hasText: !!element.textContent.trim() }; '
+          + 'hasFocusableMain: !!document.querySelector("main[tabindex=\\\"-1\\\"]"), '
+          + 'hasSkip: !!document.querySelector("a.skip"), hasText: !!element.textContent.trim(), '
+          + 'hasSimulationModes: !!document.querySelector(".simulation-source-tabs button[aria-pressed=true]"), '
+          + 'hasInferenceStatus: !!document.querySelector(".inference-controls [role=status]"), '
+          + 'hasEvidenceViewer: !!document.querySelector(".evidence-panel") }; '
           + '})()';
         const response = await cdp.send('Runtime.evaluate', { expression, returnByValue: true });
         return response.result?.value ?? null;
       }, name + ' ' + width);
       if (view.viewport !== width || view.pageWidth > width + 1
           || view.elementLeft < -1 || view.elementLeft + view.elementWidth > width + 1
-          || !view.hasFocusableMain || !view.hasSkip || !view.hasText) {
+          || !view.hasFocusableMain || !view.hasSkip || !view.hasText
+          || (name === 'analisis' && (!view.hasSimulationModes || !view.hasInferenceStatus || !view.hasEvidenceViewer))) {
         throw Error('QA falló (' + width + ' px, ' + name + '): ' + JSON.stringify(view));
       }
       const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
