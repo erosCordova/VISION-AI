@@ -9,6 +9,7 @@ import { entityFootprint, presets, boundedOrbit, zoneFootprint } from './scene-m
 import type { CameraView, Orbit } from './scene-math';
 import { makeScene } from './industrial-renderer';
 import { humanAssetFor, motionClipName, humanoidScale } from './human-assets';
+import {meshNeedsRefresh,renderFrameBudgetMs} from './render-performance';
 
 /** Three.js y GLB humanos CC0; las posiciones/eventos son sintéticos y no proceden de YOLO. */
 interface Props {
@@ -269,15 +270,18 @@ export const HumanizedScene3D=forwardRef<IndustrialSceneHandle,Props>(function H
   const render=(now:number)=>{
    if(!alive)return;
    raf=requestAnimationFrame(render);
-   if(document.hidden||now-previous<33)return;
+   if(document.hidden||now-previous<renderFrameBudgetMs(state.current.paused))return;
    previous=now;
    // ResizeObserver cubre los cambios normales; fallback para DPR de otra pantalla.
    if(now-lastResizeCheck>=1000){resize();lastResizeCheck=now;}
    const current=state.current;
    // Cámara sigue viva; nuevas mallas solo cuando el estado realmente cambia.
    // En pausa no se recrea geometría ni material.
-   if(!movingMesh||current.snapshot!==lastMovingSnapshot||
-      current.elapsed!==lastMovingElapsed||current.layers.zones!==lastMovingZones){
+   if(!movingMesh||meshNeedsRefresh({
+    snapshot:lastMovingSnapshot,elapsed:lastMovingElapsed,zones:lastMovingZones
+   },{
+    snapshot:current.snapshot,elapsed:current.elapsed,zones:current.layers.zones
+   })){
     if(movingMesh){activeScene.remove(movingMesh);movingMesh.geometry.dispose();}
     movingMesh=stageMesh(current.snapshot,current.elapsed,current.layers.zones,
      base.length,movingMaterial);
