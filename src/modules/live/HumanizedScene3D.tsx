@@ -76,13 +76,19 @@ function protectWorker(root:any,helmet:boolean){
 }
 function readyHuman(actor:Actor,asset:Asset,scenario:string,id:string){
  const cloned=cloneSkeleton(asset.scene);
- const bounds=new THREE.Box3().setFromObject(cloned);
- const scale=humanoidScale(bounds.max.y-bounds.min.y);
- cloned.scale.setScalar(scale);cloned.updateMatrixWorld(true);
- const second=new THREE.Box3().setFromObject(cloned);
- cloned.position.y=-second.min.y;
+ // Los clips GLB pueden animar la escala/posición del rig. La escala física
+ // permanece en un grupo padre NO animado: evita cuerpos diminutos bajo cascos.
+ cloned.updateMatrixWorld(true);
+ const rawBounds=new THREE.Box3().setFromObject(cloned,true);
+ const originalHeight=rawBounds.max.y-rawBounds.min.y;
+ const rig=new THREE.Group();rig.name='Escala normalizada fuera del esqueleto';
+ rig.add(cloned);
+ rig.scale.setScalar(humanoidScale(originalHeight));
+ rig.updateMatrixWorld(true);
+ const normalizedBounds=new THREE.Box3().setFromObject(rig,true);
+ rig.position.y=-normalizedBounds.min.y;
  const model=new THREE.Group();model.name='GLB humano / CC0';
- model.add(cloned);
+ model.add(rig);
  model.traverse((item:any)=>{
   if(item.isMesh){item.castShadow=true;item.receiveShadow=true;
    item.userData.externalModel=true;
