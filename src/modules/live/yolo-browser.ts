@@ -24,7 +24,15 @@ interface OrtApi {
 export type YoloFamily='coco'|'ppe';
 export interface LoadedYolo {readonly ort:OrtApi;readonly session:OrtSession;readonly family:YoloFamily}
 const shared:{runtime?:Promise<OrtApi>;session?:Promise<LoadedYolo>;ppeSession?:Promise<LoadedYolo>}={};
+export interface YoloPipelineTimings{
+ /** Sin GPU, medidos con performance.now() sobre el mismo fotograma 3D. */
+ readonly preprocessMs:number;
+ readonly runMs:number;
+ readonly postprocessMs:number;
+ readonly totalMs:number;
+}
 export interface YoloFrame {
+ readonly timings?:YoloPipelineTimings;
  readonly source:HTMLCanvasElement;
  readonly width:number;
  readonly height:number;
@@ -150,13 +158,15 @@ export function toYoloTensor(canvas:HTMLCanvasElement,
 export async function analyzeYoloFrame(
  model:LoadedYolo,captured:HTMLCanvasElement,
  threshold:number,maxDetections=35):Promise<YoloFrame>{
+ const startedAt=performance.now();
  const target=model.family==='ppe'?PPE_MODEL.input:YOLO_INPUT;
  const {data,letterbox}=toYoloTensor(captured,target);
  const input=new model.ort.Tensor('float32',data,[1,3,target.height,target.width]);
+ const preprocessedAt=performance.now();
  try {
-  const before=performance.now();
   const output=await model.session.run({[model.session.inputNames[0]]:input});
-  const inferenceMs=performance.now()-before;
+  const runFinishedAt=performance.now();
+  const inferenceMs=runFinishedAt-preprocessedAt;
   try {
    const value=output[model.session.outputNames[0]];
    if(!value||value.type!=='float32'||!value.data)
@@ -164,9 +174,12 @@ export async function analyzeYoloFrame(
    const decoded=model.family==='ppe'
     ?decodeYoloClasses(value.data,value.dims,letterbox,PPE_CLASSES,threshold,maxDetections)
     :decodeYolov8(value.data,value.dims,letterbox,threshold);
+   const postprocessedAt=performance.now();
    return {source:captured,width:captured.width,height:captured.height,
     detections:decoded.detections,candidates:decoded.candidates,
-    inferenceMs,createdAt:performance.now()};
+    inferenceMs,createdAt:postprocessedAt,
+    timings:{preprocessMs:preprocessedAt-startedAt,runMs:inferenceMs,
+      postprocessMs:postprocessedAt-runFinishedAt,totalMs:postprocessedAt-startedAt}};
   } finally {
    for(const tensor of Object.values(output))await tensor.dispose?.();
   }
