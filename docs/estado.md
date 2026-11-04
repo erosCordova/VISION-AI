@@ -170,3 +170,21 @@ sobre Fase 6 en curso y porcentaje 31,25 % son registros históricos
 superados por esta actualización. El alcance vigente son exclusivamente
 los cuatro escenarios 3D y YOLO sobre sus fotogramas: sin cargas de datasets
 ni fuentes externas, frontend en Vercel y backend ligero en Render.
+
+
+## Incremento de transición Fases 7 y 8
+
+Se implementó el aislamiento de registros corruptos y la migración
+física aditiva IndexedDB 1→2 sin borrar información histórica. La batería
+DA04 incluye límite de 100 sesiones, mensajes de error sin falso guardado,
+integridad de datos tras recarga y recuperación con eliminación manual.
+
+Se inició la **Fase 8** con indicadores derivados de sesiones reales
+guardadas en IndexedDB: conteos por escenario, detecciones YOLO guardadas,
+confianza media, latencia media y señales de revisión, todos con origen
+y filtros explícitos. Ver `docs/indicadores.md`. Su implementación parcial
+no significa que la Fase 8 esté aprobada.
+
+Hasta que finalicen las pruebas de este incremento, el avance oficial
+sigue siendo **6/16 = 37,5 %**. La Fase 7 se aprobará exclusivamente cuando
+DA01–DA04 pasen y quede verificada la migración.

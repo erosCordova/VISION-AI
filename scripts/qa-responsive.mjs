@@ -268,6 +268,132 @@ try {
           return r.result?.value?.includes('Seguridad industrial');
         },'DA01 IndexedDB después de recarga completa');
         console.log('DA01 OK: simulación guardada, consultada y recuperada tras recarga del navegador');
+        // Fase 8: el dashboard debe calcular SOLO la sesión recién persistida.
+        await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Resumen'});
+        await eventually(async()=>{
+          const r=await cdp.send('Runtime.evaluate',{
+           expression:'(() => ({'
+            + ' values:Array.from(document.querySelectorAll(".saved-dashboard-metrics strong")).map(e=>e.textContent?.trim()),'
+            + ' filters:document.querySelectorAll(".saved-dashboard-filters select").length'
+            + ' }))()',
+           returnByValue:true
+          });
+          const m=r.result?.value;
+          return m?.values?.[0]==='1' && m.values[1]==='0' &&
+           m.values[2]==='0' && m.values[3]==='—' && m.filters===3;
+        },'Fase 8 dashboard sin datos de inferencia inventados');
+        await cdp.send('Runtime.evaluate',{
+          expression:'(() => {const s=document.querySelector("select[aria-label=\\\"Escenario de indicadores\\\"]");'
+           + 'if(s){s.value="warehouse";s.dispatchEvent(new Event("change",{bubbles:true}));}'
+           + 'return !!s})()',
+          returnByValue:true
+        });
+        await eventually(async()=>{
+          const r=await cdp.send('Runtime.evaluate',{
+           expression:'document.querySelector(".saved-dashboard-metrics strong")?.textContent?.trim()',
+           returnByValue:true
+          });return r.result?.value==='0';
+        },'Fase 8 filtro sin sesiones, cero en vez de cifras demo');
+        console.log('Fase 8 KPI inicial OK: sesiones, detecciones y filtros reales desde IndexedDB');
+
+
+        // DA04: límite reproducible de 100 registros, sin simular una falsa
+        // cuota del sistema operativo ni usar archivos/datasets.
+        const limitFixture=await cdp.send('Runtime.evaluate',{
+          expression:"(async()=>{\n const db=await new Promise((resolve,reject)=>{\n  const r=indexedDB.open('vision-ai-simulation-sessions',2);\n  r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n });\n try{\n  const before=await new Promise((resolve,reject)=>{\n   const r=db.transaction('sessions','readonly').objectStore('sessions').getAll();\n   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n  if(!before.length)throw Error('No existe una sesión de referencia válida.');\n  const tx=db.transaction('sessions','readwrite');\n  const completed=new Promise((resolve,reject)=>{\n   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);\n  });\n  for(let i=0;i<100-before.length;i++){\n   tx.objectStore('sessions').add({...before[0],id:'qa-cap-'+i,\n    savedAt:new Date(Date.now()-i*1000).toISOString()});\n  }\n  await completed;\n  const count=await new Promise((resolve,reject)=>{\n   const r=db.transaction('sessions','readonly').objectStore('sessions').count();\n   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n  return {version:db.version,index:db.transaction('sessions','readonly')\n   .objectStore('sessions').indexNames.contains('scenarioId'),count};\n }finally{db.close();}\n})()",awaitPromise:true,returnByValue:true
+        });
+        if(limitFixture.result?.value?.count!==100||
+           limitFixture.result.value.version!==2||!limitFixture.result.value.index)
+          throw Error('DA04/migración: límite/indexación incorrectos '+JSON.stringify(limitFixture.result?.value));
+        console.log('DA04: 100 registros en IndexedDB v2 con índice de escenarios');
+        await cdp.send('Page.navigate',{
+          url:'http://127.0.0.1:4173/#An%C3%A1lisis%20en%20vivo'
+        });
+        await eventually(async()=>{
+          const q=await cdp.send('Runtime.evaluate',{
+            expression:'!!document.querySelector(".simulator-persist-actions button")',
+            returnByValue:true
+          });
+          return q.result?.value===true;
+        },'DA04 regreso al simulador');
+        await cdp.send('Runtime.evaluate',{
+          expression:'Array.from(document.querySelectorAll(".simulator-persist-actions button"))'
+           + '.find(b=>b.textContent.includes("Guardar sesión"))?.click()'
+        });
+        await eventually(async()=>{
+          const r=await cdp.send('Runtime.evaluate',{
+           expression:'document.querySelector(".simulator-save-message")?.textContent||""',
+           returnByValue:true
+          });
+          return r.result?.value?.includes('No se guardó: Se alcanzó el límite de 100 sesiones');
+        },'DA04 mensaje real de capacidad alcanzada');
+        const afterRejection=await cdp.send('Runtime.evaluate',{
+          expression:"(async()=>{\n const db=await new Promise((resolve,reject)=>{\n  const r=indexedDB.open('vision-ai-simulation-sessions',2);\n  r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n });\n try{\n  return await new Promise((resolve,reject)=>{\n   const r=db.transaction('sessions','readonly').objectStore('sessions').count();\n   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n }finally{db.close();}\n})()",awaitPromise:true,returnByValue:true
+        });
+        if(afterRejection.result?.value!==100)
+          throw Error('DA04: el fallo cambió registros que ya estaban confirmados');
+        const corrupted=await cdp.send('Runtime.evaluate',{
+          expression:"(async()=>{\n const db=await new Promise((resolve,reject)=>{\n  const r=indexedDB.open('vision-ai-simulation-sessions',2);\n  r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n });\n try{\n  const tx=db.transaction('sessions','readwrite');\n  const done=new Promise((resolve,reject)=>{\n   tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error);\n  });\n  const store=tx.objectStore('sessions');\n  const a=await new Promise((resolve,reject)=>{\n   const r=store.get('qa-cap-0');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n  if(!a)throw Error('Falta el registro para prueba de integridad.');\n  store.put({...a,source:{...a.source,fingerprint:'00000000'}});\n  const b=await new Promise((resolve,reject)=>{\n   const r=store.get('qa-cap-1');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n  if(!b)throw Error('Falta segundo registro para prueba de esquema.');\n  store.put({...b,schemaVersion:99});\n  await done;\n  return {corrupted:2};\n }finally{db.close();}\n})()",awaitPromise:true,returnByValue:true
+        });
+        if(corrupted.result?.value?.corrupted!==2)
+          throw Error('DA04: no se pudo simular la corrupción');
+        await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Historial'});
+        const audit=async()=>{const r=await cdp.send('Runtime.evaluate',{
+          expression:'({issues:document.querySelectorAll(".session-history-corrupt-list>div").length,'
+            + 'valid:document.querySelectorAll(".history-panel tbody tr").length,'
+            + 'title:document.querySelector(".session-history-integrity h3")?.textContent||""})',
+          returnByValue:true
+         });return r.result?.value;};
+        await eventually(async()=>{
+          const state=await audit();return state?.issues===2&&state.valid>0;
+        },'DA04 aislar registros corruptos sin perder sesiones válidas');
+        await cdp.send('Page.reload',{ignoreCache:true});
+        await eventually(async()=>{
+          const state=await audit();return state?.issues===2&&state.valid>0;
+        },'DA04 corrupción aislada después de recarga');
+        const persisted=await cdp.send('Runtime.evaluate',{
+          expression:"(async()=>{\n const db=await new Promise((resolve,reject)=>{\n  const r=indexedDB.open('vision-ai-simulation-sessions',2);\n  r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n });\n try{\n  return await new Promise((resolve,reject)=>{\n   const r=db.transaction('sessions','readonly').objectStore('sessions').count();\n   r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);\n  });\n }finally{db.close();}\n})()",awaitPromise:true,returnByValue:true
+        });
+        if(persisted.result?.value!==100)
+          throw Error('DA04: se borraron datos sin autorización explícita');
+        await cdp.send('Runtime.evaluate',{
+          expression:'document.querySelector(".session-history-corrupt-list button")?.click()'
+        });
+        await eventually(async()=>{
+          const q=await cdp.send('Runtime.evaluate',{
+            expression:'!!document.querySelector(".session-history-confirm .session-history-delete")',
+            returnByValue:true
+          });
+          return q.result?.value===true;
+        },'DA04 confirmación antes de eliminar');
+        await cdp.send('Runtime.evaluate',{
+          expression:'document.querySelector(".session-history-confirm .session-history-delete")?.click()'
+        });
+        await eventually(async()=>{
+          const state=await audit();return state?.issues===1;
+        },'DA04 recuperación por eliminación confirmada');
+        await cdp.send('Page.navigate',{
+          url:'http://127.0.0.1:4173/#An%C3%A1lisis%20en%20vivo'
+        });
+        await eventually(async()=>{
+          const q=await cdp.send('Runtime.evaluate',{
+            expression:'!!document.querySelector(".simulator-persist-actions button")',returnByValue:true
+          });
+          return q.result?.value===true;
+        },'DA04 salida del modo recuperación');
+        await cdp.send('Runtime.evaluate',{
+          expression:'Array.from(document.querySelectorAll(".simulator-persist-actions button"))'
+           + '.find(b=>b.textContent.includes("Guardar sesión"))?.click()'
+        });
+        await eventually(async()=>{
+          const r=await cdp.send('Runtime.evaluate',{
+            expression:'document.querySelector(".simulator-save-message")?.textContent||""',
+            returnByValue:true
+          });
+          return r.result?.value?.includes('Sesión guardada');
+        },'DA04 recuperación de escritura después de liberar espacio');
+        console.log('DA04 OK: cuota de 100, rechazo sin falso guardado, corrupción aislada y recuperación explícita');
+        await sleep(550);
         await cdp.send('Page.navigate',{
           url:'http://127.0.0.1:4173/#An%C3%A1lisis%20en%20vivo'
         });

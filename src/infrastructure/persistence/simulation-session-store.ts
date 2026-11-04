@@ -1,7 +1,9 @@
-import {SESSION_SCHEMA,validateSimulationSession} from '../../core/domain/simulation-session';
+import {validateSimulationSession} from '../../core/domain/simulation-session';
 import type {SimulationSession} from '../../core/domain/simulation-session';
-import type {SimulationSessionRepository} from '../../core/ports/simulation-session-repository';
+import type {SimulationSessionInspection,SimulationSessionRepository} from '../../core/ports/simulation-session-repository';
 const DB_NAME='vision-ai-simulation-sessions';
+/** Migración de esquema físico: v1 -> v2 añade índice de escenario, sin alterar registros. */
+const DB_VERSION=2;
 const STORE='sessions';
 const MAX_SESSIONS=100;
 const asError=(error:unknown)=>error instanceof Error?error:new Error(String(error));
@@ -22,29 +24,60 @@ function transactionDone(tx:IDBTransaction):Promise<void>{
 async function database():Promise<IDBDatabase>{
  if(typeof indexedDB==='undefined')throw Error('Este navegador no permite almacenamiento local IndexedDB.');
  return new Promise((resolve,reject)=>{
-  const req=indexedDB.open(DB_NAME,SESSION_SCHEMA);
+  const req=indexedDB.open(DB_NAME,DB_VERSION);
   req.onupgradeneeded=()=>{
    const db=req.result;
-   if(!db.objectStoreNames.contains(STORE)){
-    const store=db.createObjectStore(STORE,{keyPath:'id'});
+   // Migración aditiva: nunca se borra la colección ni se modifican los datos v1.
+   const store=db.objectStoreNames.contains(STORE)?
+    req.transaction!.objectStore(STORE):db.createObjectStore(STORE,{keyPath:'id'});
+   if(!store.indexNames.contains('savedAt'))
     store.createIndex('savedAt','savedAt',{unique:false});
-   }
+   if(!store.indexNames.contains('scenarioId'))
+    store.createIndex('scenarioId','scenarioId',{unique:false});
   };
-  req.onsuccess=()=>resolve(req.result);
-  req.onerror=()=>reject(req.error||Error('No se pudo abrir el historial local.'));
-  req.onblocked=()=>reject(Error('Otra pestaña bloquea la actualización del historial. Ciérrala y reintenta.'));
+  let blocked=false;
+  req.onsuccess=()=>{
+   if(blocked){req.result.close();return;}
+   resolve(req.result);
+  };
+  req.onerror=()=>reject(req.error?.name==='VersionError'?
+   Error('La versión del historial es más reciente que esta aplicación. No se modificaron los datos.'):
+   req.error||Error('No se pudo abrir el historial local.'));
+  req.onblocked=()=>{
+   blocked=true;
+   reject(Error('Otra pestaña bloquea la actualización del historial. Ciérrala y reintenta.'));
+  };
  });
 }
-export async function listSimulationSessions():Promise<SimulationSession[]>{
+/**
+ * Revisa todos los registros sin modificarlos: los corruptos se aíslan de la
+ * consulta normal, pero siguen en IndexedDB hasta que el usuario decida eliminarlos.
+ */
+export async function inspectSimulationSessions():Promise<SimulationSessionInspection>{
  const db=await database();
  try{
   const tx=db.transaction(STORE,'readonly');
   const done=transactionDone(tx);
   const result=await requestValue(tx.objectStore(STORE).getAll());
   await done;
-  for(const record of result)validateSimulationSession(record);
-  return (result as SimulationSession[]).sort((a,b)=>b.savedAt.localeCompare(a.savedAt));
+  const records:SimulationSession[]=[];
+  const corruptIds:string[]=[];
+  for(const item of result){
+   try{
+    validateSimulationSession(item);
+    records.push(item);
+   }catch{
+    const raw=item as {id?:unknown}|null;
+    corruptIds.push(raw&&typeof raw.id==='string'?raw.id:'ID no disponible');
+   }
+  }
+  return {records:records.sort((a,b)=>b.savedAt.localeCompare(a.savedAt)),
+   corruptIds};
  }finally{db.close();}
+}
+export async function listSimulationSessions():Promise<SimulationSession[]>{
+ const check=await inspectSimulationSessions();
+ return [...check.records];
 }
 export async function saveSimulationSession(record:SimulationSession):Promise<void>{
  validateSimulationSession(record);
@@ -84,6 +117,7 @@ export async function deleteSimulationSession(id:string):Promise<void>{
 }
 
 export const simulationSessionRepository:SimulationSessionRepository={
+ inspect:inspectSimulationSessions,
  save:saveSimulationSession,
  list:listSimulationSessions,
  remove:deleteSimulationSession

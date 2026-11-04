@@ -17,6 +17,7 @@ const formatElapsed=(ms:number)=>Math.floor(ms/60000).toString().padStart(2,'0')
  Math.floor(ms%60000/1000).toString().padStart(2,'0');
 export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;sessionRepository:SimulationSessionRepository}){
  const [records,setRecords]=useState<readonly SimulationSession[]>([]);
+ const [corruptIds,setCorruptIds]=useState<readonly string[]>([]);
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState('');
  const [query,setQuery]=useState('');
@@ -30,9 +31,14 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
   let alive=true;
   const load=async()=>{
    try{
-    const data=await sessionRepository.list();
-    for(const record of data)validateReproducibility(record);
-    if(alive){setRecords(data);setError('');}
+    const inspection=await sessionRepository.inspect();
+    const valid:SimulationSession[]=[];
+    const corrupt=[...inspection.corruptIds];
+    for(const record of inspection.records){
+     try{validateReproducibility(record);valid.push(record);}
+     catch{corrupt.push(record.id);}
+    }
+    if(alive){setRecords(valid);setCorruptIds([...new Set(corrupt)]);setError('');}
    }catch(e){
     if(alive)setError(e instanceof Error?e.message:String(e));
    }finally{if(alive)setLoading(false);}
@@ -55,6 +61,7 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
   try{
    await sessionRepository.remove(id);
    setRecords(current=>current.filter(item=>item.id!==id));
+   setCorruptIds(current=>current.filter(item=>item!==id));
    setSelected(v=>v===id?null:v);
    setPendingDelete(null);
    setNotice('Sesión eliminada del navegador.');setError('');
@@ -90,6 +97,18 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
   </div>
   {error&&<p className="session-history-error" role="alert">{error}</p>}
   {notice&&<p className="session-history-notice" role="status">{notice}</p>}
+  {corruptIds.length>0&&<section className="session-history-integrity" role="alert"
+   aria-label="Registros dañados o incompatibles">
+   <h3>{corruptIds.length} registro(s) en revisión</h3>
+   <p>Se han aislado entradas dañadas o incompatibles sin eliminarlas. Las sesiones válidas
+    continúan disponibles. Puedes conservarlas o eliminar cada registro de forma expresa.</p>
+   <div className="session-history-corrupt-list">
+    {corruptIds.map(id=><div key={id}>
+     <code>{id.length>24?id.slice(0,24)+'…':id}</code>
+     <button type="button" onClick={()=>setPendingDelete(id)}>Revisar eliminación</button>
+    </div>)}
+   </div>
+  </section>}
   <div className="table-scroll"><table>
    <caption>Registros guardados en este navegador, sin capturas de video</caption>
    <thead><tr><th scope="col">Sesión</th><th scope="col">Escenario</th>
@@ -150,7 +169,7 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
     La huella identifica el estado determinista del escenario, no certifica los píxeles de una inferencia YOLO.</p>
   </section>}
   {pendingDelete&&<div className="session-history-confirm" role="group" aria-label="Confirmar eliminación">
-   <p>¿Eliminar permanentemente esta sesión del navegador?</p>
+   <p>¿Eliminar permanentemente este registro del navegador? Esta acción no se puede deshacer.</p>
    <button type="button" onClick={()=>setPendingDelete(null)}>Cancelar</button>
    <button type="button" className="session-history-delete"
     onClick={()=>void remove(pendingDelete)}>Confirmar eliminación</button>

@@ -68,3 +68,30 @@ stores históricos durante un `onupgradeneeded`.
 
 Por estas dependencias, **la Fase 7 sigue en curso**. La Fase 8
 no se marca completada por los indicadores actuales del simulador.
+
+
+## Incremento de robustez y migración física v2
+
+La base IndexedDB se actualiza de la versión física **1 a 2** por una
+migración estrictamente aditiva: conserva el almacén `sessions`, sus
+registros históricos `schemaVersion=1` y su índice temporal, añadiendo
+un índice `scenarioId` para las consultas de dashboard. La migración
+utiliza `onupgradeneeded` sin borrar stores, imágenes ni registros.
+
+El método `inspect()` devuelve por separado registros válidos e
+identificadores incompatibles, sin eliminar estos últimos. Historial
+verifica además la huella reproducible de la simulación; un registro
+incompatible se aísla visualmente y solo se elimina mediante una
+confirmación explícita. Los registros válidos siguen accesibles.
+
+**DA04** se amplía con una prueba de navegador que completa el tope
+de 100 registros con sesiones de simulación válidas, intenta guardar otra
+y verifica un error visible sin registrar un falso éxito, ni alterar el
+total almacenado. Inyecta después un registro con huella alterada y otro
+con versión incompatible, recarga la página, constata que sobreviven
+ambos sin bloquear las sesiones válidas, confirma manualmente la eliminación
+de uno y verifica que se recupera la capacidad de guardar.
+Los registros usados para QA son *fixtures internos de verificación*, no
+datasets ni archivos que deba aportar el usuario.
+
+La versión física 2 no modifica las clases ni los pesos YOLO.

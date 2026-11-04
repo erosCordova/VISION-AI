@@ -20,3 +20,17 @@ consultarlo y el dato sobrevivió a una recarga de Chromium. Las pruebas unitari
 verificaron huellas reproducibles e identificadores distintos (DA02) y etiquetas
 históricas que no cambian al modificar el objeto fuente (DA03). DA04 pendiente;
 **Fase 7 no aprobada todavía.** No se guardaron fotogramas, videos ni datasets.
+
+
+## Casos de robustez para aceptación DA04
+
+`scripts/qa-responsive.mjs` contiene un caso de capacidad de 100 sesiones
+y aislamiento de registros corruptos en IndexedDB v2 (índice por escenario).
+Comprueba error de guardado ante capacidad completa, conservación de los
+100 registros, dos formas de corrupción deliberada, recuperación tras recarga
+y restauración de capacidad de escritura únicamente después de la eliminación
+individual confirmada. La prueba no simula una cuota física del sistema
+operativo; verifica el límite de producto y la ausencia de éxito falso.
+
+**El cierre definitivo de Fase 7 queda condicionado al resultado de CI
+sobre este commit.**

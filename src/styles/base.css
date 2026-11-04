@@ -136,3 +136,58 @@ dt{color:#586c7a}
  .session-history-detail dd{padding-top:3px}
  .session-history-actions{flex-direction:column}
  .simulator-persist-actions{justify-content:flex-start}}
+
+.session-history-integrity{margin:16px 0;padding:15px;border:1px solid #d3a66e;
+ border-radius:10px;background:#fff8ed;color:#654528}
+.session-history-integrity h3{margin:0 0 7px;font-size:14px;color:#88531f}
+.session-history-integrity p{font-size:11px;color:#7c5b31;margin:0 0 13px}
+.session-history-corrupt-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:7px}
+.session-history-corrupt-list>div{display:flex;align-items:center;justify-content:space-between;gap:7px;
+ background:#fff;border:1px solid #e5d0b2;border-radius:6px;padding:8px}
+.session-history-corrupt-list code{font-size:10px;overflow-wrap:anywhere}
+.session-history-corrupt-list button{font-size:10px;padding:6px 9px;white-space:normal}
+
+/* Inicio Fase 8: dashboard real del historial IndexedDB (no datos demo). */
+.saved-dashboard{margin:22px 0 33px;min-width:0}
+.saved-dashboard .section-heading{gap:14px}
+.saved-dashboard-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;
+ background:#fff;border:1px solid #dae7e3;border-radius:10px;padding:14px;margin-bottom:12px}
+.saved-dashboard-filters label{display:grid;gap:7px;color:#477063;font-weight:700;font-size:10px}
+.saved-dashboard-filters select{width:100%;padding:9px;min-width:0;font-size:11px}
+.saved-dashboard-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:14px 0}
+.saved-dashboard-metrics>div{padding:16px 14px;background:linear-gradient(140deg,#0f3542,#174e55);
+ color:#d5f6ea;border:1px solid #3b7f7a;border-radius:10px;display:flex;gap:7px;flex-direction:column;min-width:0}
+.saved-dashboard-metrics span{color:#b6e2d7;font-size:10px;line-height:1.4}
+.saved-dashboard-metrics strong{font:800 22px Manrope,sans-serif;color:#9ff4d2;overflow-wrap:anywhere}
+.saved-dashboard-metrics small{font-size:9px;color:#a9cdd0;line-height:1.5}
+.saved-dashboard-details{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px}
+.saved-dashboard-plot,.saved-dashboard-breakdown{background:#fff;border:1px solid #dce7e4;
+ border-radius:11px;padding:18px 20px;min-width:0}
+.saved-dashboard-plot h3,.saved-dashboard-breakdown h3{font-size:14px;margin:0 0 15px;color:#264e46}
+.saved-dashboard-bar{display:grid;grid-template-columns:130px minmax(0,1fr) 30px;
+ align-items:center;gap:9px;margin:10px 0}
+.saved-dashboard-bar>span{font-size:10px;color:#526d67}
+.saved-dashboard-bar>div{height:10px;border-radius:6px;background:#e8f1f0;overflow:hidden}
+.saved-dashboard-bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#148a91,#6cdbab)}
+.saved-dashboard-bar strong{text-align:right;font-size:11px;color:#286e5c}
+.saved-dashboard-empty{color:#809992;font-size:11px;padding:14px 0}
+.saved-dashboard-breakdown dl{display:grid;grid-template-columns:1.4fr auto;gap:5px 10px;margin-bottom:14px}
+.saved-dashboard-breakdown dt,.saved-dashboard-breakdown dd{font-size:10px;padding:7px 0;
+ margin:0;border-bottom:1px solid #e8efec}
+.saved-dashboard-breakdown dd{text-align:right;color:#286858;font-weight:800}
+.saved-dashboard-classes{display:grid;gap:6px;margin:12px 0}
+.saved-dashboard-classes>span{font-size:10px;font-weight:800;color:#53786f}
+.saved-dashboard-classes>div{display:flex;justify-content:space-between;
+ gap:8px;border-bottom:1px solid #eaf1ed;padding:5px 0;font-size:10px}
+.saved-dashboard-classes b{color:#16796c}
+.saved-dashboard-breakdown>button{font-size:10px;margin-top:8px;border-color:#68aaa0;
+ background:#f1faf6;color:#176d59}
+.saved-dashboard-caveat{font-size:10px;line-height:1.65;color:#607b74;margin:11px 0}
+@media(max-width:1050px){.saved-dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .saved-dashboard-details{grid-template-columns:1fr}}
+@media(max-width:620px){.saved-dashboard-filters{grid-template-columns:1fr}
+ .saved-dashboard-plot,.saved-dashboard-breakdown{padding:14px}
+ .saved-dashboard-bar{grid-template-columns:98px minmax(0,1fr) 20px;gap:5px}
+ .saved-dashboard-metrics{gap:7px}
+ .saved-dashboard-metrics>div{padding:13px 10px}
+ .saved-dashboard-metrics strong{font-size:19px}}
