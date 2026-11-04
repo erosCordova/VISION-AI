@@ -2,7 +2,7 @@ import {useCallback,useEffect,useRef,useState} from 'react';
 import type {Detection} from '../../core/domain/model';
 import {analyzeYoloFrame,captureRenderedFrame,loadYoloBrowser} from './yolo-browser';
 import type {YoloFrame,YoloFamily} from './yolo-browser';
-import {PPE_MODEL,ppeColor,ppeFindings} from './ppe-model';
+import {ppeColor,ppeFindings} from './ppe-model';
 import type {ScenarioKey} from './simulation-engine';
 type Model=Awaited<ReturnType<typeof loadYoloBrowser>>;
 type Phase='idle'|'loading'|'running'|'stopped'|'failed';
