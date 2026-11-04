@@ -17,7 +17,7 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 | 11 | Patrones, reglas y gestión de alertas | Reglas YOLO y revisión humana local | Aprobada con CI |
 | 12 | Historial, reportes y exportación | Tres CSV, JSON auditado y A4 | Aprobada con CI integral |
 | 13 | Seguridad, privacidad y gobierno de datos | Retención y borrado local confirmado, cabeceras y aviso de roles demo | Aprobada con CI integral |
-| 14 | Pruebas integradas, rendimiento y accesibilidad | Pruebas integradas y candidato demo | Próxima fase |
+| 14 | Pruebas integradas, rendimiento y accesibilidad | Optimización WebGL, telemetría CDP y accesibilidad teclado/movimiento reducido | En validación |
 | 15 | Integración de inteligencia artificial real | Optimización de modelos preentrenados y medición sobre simulaciones 3D, sin datasets externos | Pendiente |
 | 16 | Despliegue, operación y cierre técnico | Versión entregada, restauración y manuales | Pendiente |
 
@@ -33,7 +33,7 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 
 ## Siguiente incremento
 
-Fase 11: diseñar y validar reglas de negocio, estados de revisión de alertas basados únicamente en detecciones observadas por YOLO, auditoría de decisiones y persistencia reproducible. No utilizar datos programados de la simulación como detecciones reales. Ver [cierre de Fases 9 y 10](estado.md).
+Fase 14: medir tiempos de navegación, memoria heap JavaScript y FPS de WebGL en Chromium 360/768/1440; comprobar navegación por teclado, movimiento reducido y regresión de los cuatro escenarios ONNX, historial y privacidad. Sin datasets externos. Ver [plan Fase 14](fase14_rendimiento_accesibilidad.md).
 
 ## Ampliación D12: YOLO y tiempo real
 

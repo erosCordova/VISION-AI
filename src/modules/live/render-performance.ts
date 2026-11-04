@@ -14,6 +14,10 @@ export function meshNeedsRefresh(previous:DynamicMeshRevision,next:DynamicMeshRe
 export function renderFrameBudgetMs(paused:boolean):number{
  return paused?100:33;
 }
+/** No consumir CPU React si la pestaña está oculta o si el reloj no avanzó. */
+export function shouldAdvanceSimulation(hidden:boolean,deltaMs:number):boolean{
+ return !hidden&&Number.isFinite(deltaMs)&&deltaMs>0;
+}
 export interface PerformanceMeasurement{
  readonly route:string;readonly width:number;readonly measuredAt:string;
  readonly pageReadyMs:number|null;readonly heapUsedMiB:number|null;

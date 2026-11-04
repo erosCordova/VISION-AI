@@ -11,6 +11,7 @@ import { simulationSnapshot } from './simulation-engine';
 import type { ScenarioKey } from './simulation-engine';
 import type { CameraView } from './scene-math';
 import {buildSimulationSession} from './simulation-session-model';
+import {shouldAdvanceSimulation} from './render-performance';
 import type {SimulationSessionRepository} from '../../core/ports/simulation-session-repository';
 
 const SCENES:{id:ScenarioKey;tab:string;name:string;description:string;icon:string}[]=[
@@ -71,7 +72,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange,sessionReposit
    const now=performance.now();
    const delta=Math.min(180,now-frameRef.current.previous);
    frameRef.current.previous=now;
-   if(document.hidden)return; // No recalcular React/3D cuando la pestaña no está visible.
+   if(!shouldAdvanceSimulation(document.hidden,delta))return;
    setElapsed(value=>value+delta*speed/1000);
   },75);
   const resetClock=()=>{frameRef.current.previous=performance.now();};
