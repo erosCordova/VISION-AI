@@ -106,7 +106,8 @@ try {
     for (const [name, hash, selector] of [
       ['resumen', '#Resumen', '.scenario-grid'],
       ['analisis', '#An%C3%A1lisis%20en%20vivo', '.simulator-shell'],
-      ['historial', '#Historial', '.history-panel']
+      ['historial', '#Historial', '.history-panel'],
+      ['privacidad', '#Privacidad', '.privacy-center']
     ]) {
       await cdp.send('Page.navigate', { url: 'http://127.0.0.1:4173/' + hash });
       const view = await eventually(async () => {
@@ -220,6 +221,7 @@ try {
           ['#Visi%C3%B3n%20IA','Visión IA'],
           ['#Operaciones','Operaciones'],
           ['#Historial','Historial'],
+          ['#Privacidad','Privacidad'],
           ['#Configuraci%C3%B3n','Configuración'],
           ['#Administraci%C3%B3n','Administración']
         ]){
@@ -233,7 +235,7 @@ try {
           },'UI01 '+title);
         }
         await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Resumen'});
-        console.log('UI01 OK: seis rutas comprobadas; Análisis en vivo se verifica en los recorridos');
+        console.log('UI01 OK: siete rutas comprobadas; Análisis en vivo se verifica en los recorridos');
       }
       if (name === 'analisis' && width === 1440) {
         // DA01: guardar una sesión 3D, navegar y recargar; debe persistir.
@@ -1103,6 +1105,143 @@ try {
       checked++;
     }
   }
+
+  // PR01–PR07: solo al FINAL del QA, tras verificar las inferencias ONNX,
+  // se prueba el borrado real en una base aislada del perfil de Chromium.
+  const aged=await cdp.send('Runtime.evaluate',{
+    expression:"(async()=>{const db=await new Promise((ok,fail)=>{"+
+     "const r=indexedDB.open('vision-ai-simulation-sessions',3);"+
+     "r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error)});"+
+     "try{const tx=db.transaction('sessions','readwrite');"+
+     "const all=await new Promise((ok,fail)=>{const r=tx.objectStore('sessions').getAll();"+
+     "r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error)});"+
+     "const previous=all.find(x=>x.id.startsWith('qa-cap-'));"+
+     "if(!previous)throw Error('PR03 requiere un registro de QA para su antigüedad');"+
+     "tx.objectStore('sessions').put({...previous,savedAt:'2025-01-01T00:00:00.000Z'});"+
+     "await new Promise((ok,fail)=>{tx.oncomplete=ok;tx.onerror=()=>fail(tx.error)});"+
+     "return {id:previous.id,initial:all.length};"+
+     "}finally{db.close()}})()",awaitPromise:true,returnByValue:true
+  });
+  if(!aged.result?.value?.id)throw Error('PR03: falta sesión antigua de QA');
+  const agedId=aged.result.value.id,initialCount=aged.result.value.initial;
+  await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Privacidad'});
+  // El último recorrido ya estaba en esta misma ruta. CDP edita IndexedDB
+  // fuera del árbol React; recargar obliga a reconsultar los datos reales.
+  await cdp.send('Page.reload',{ignoreCache:true});
+  const initialPrivacy=await eventually(async()=>{
+    const r=await cdp.send('Runtime.evaluate',{
+      expression:'(() => ({values:Array.from(document.querySelectorAll(".privacy-metrics strong"))'
+       +'.map(x=>Number(x.textContent?.trim())),'
+       +'retention:document.querySelector("#privacy-retention-days")?.value,'
+       +'status:document.querySelector(".privacy-warning")?.textContent?.trim()}))()',
+      returnByValue:true
+    });
+    const p=r.result?.value;
+    return p?.values?.length===4&&p.values.every(Number.isFinite)&&
+      p.retention==='90'?p:null;
+  },'PR01 pantalla de privacidad inicializada');
+  if(initialPrivacy.values[0]<1||initialPrivacy.values[1]<1||
+     initialPrivacy.values[3]<1)
+    throw Error('PR01: discrepancia en almacenamiento: '+JSON.stringify(initialPrivacy));
+  if(!initialPrivacy.status?.includes('no es autenticación'))
+    throw Error('PR06: roles de demostración no identificados como tal');
+  console.log('PR01/PR06: conteos IndexedDB y limitación explícita del perfil demo');
+  const startPurge=await cdp.send('Runtime.evaluate',{
+    expression:'(() => {const b=Array.from(document.querySelectorAll(".privacy-retention button"))'
+     +'.find(x=>x.textContent?.includes("Revisar depuración"));b?.click();return Boolean(b);})()',
+    returnByValue:true
+  });
+  if(!startPurge.result?.value)throw Error('PR03: no existe control de depuración');
+  await eventually(async()=>{
+    const r=await cdp.send('Runtime.evaluate',{
+      expression:'document.querySelector(".privacy-confirm input")?.placeholder',
+      returnByValue:true
+    });return r.result?.value==='DEPURAR';
+  },'PR05 frase explícita para depuración');
+  const cannotDelete=await cdp.send('Runtime.evaluate',{
+    expression:'(() => ({disabled:document.querySelector(".privacy-confirm .privacy-danger")?.disabled,'
+     +'literal:document.querySelector(".privacy-confirm strong")?.textContent?.trim()}))()',
+    returnByValue:true
+  });
+  if(!cannotDelete.result?.value?.disabled||cannotDelete.result.value.literal!=='DEPURAR')
+    throw Error('PR05: eliminación habilitada antes de confirmar');
+  await cdp.send('Runtime.evaluate',{
+    expression:'(() => {const input=document.querySelector(".privacy-confirm input");'
+      +'const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value").set;'
+      +'setter.call(input,"DEPURAR");input.dispatchEvent(new Event("input",{bubbles:true}));})()'
+  });
+  const clickPurge=await eventually(async()=>{
+    const q=await cdp.send('Runtime.evaluate',{
+      expression:'(() => {const b=document.querySelector(".privacy-confirm .privacy-danger");'
+       +'if(!b||b.disabled)return false;b.click();return true;})()',
+      returnByValue:true
+    });return q.result?.value===true;
+  },'PR03 confirmación de depuración');
+  if(!clickPurge)throw Error('PR03: depuración no disponible');
+  await eventually(async()=>{
+    const r=await cdp.send('Runtime.evaluate',{
+      expression:'document.querySelector(".session-history-notice")?.textContent?.trim()||""',
+      returnByValue:true
+    });return r.result?.value?.includes('Depuración confirmada');
+  },'PR03 depuración local confirmada');
+  const afterPurge=await cdp.send('Runtime.evaluate',{
+    expression:"(async()=>{const db=await new Promise((ok,fail)=>{"+
+     "const r=indexedDB.open('vision-ai-simulation-sessions',3);"+
+     "r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error)});"+
+     "try{const tx=db.transaction(['sessions','reviewClosures'],'readonly');"+
+     "const count=await new Promise((ok,fail)=>{const r=tx.objectStore('sessions').count();"+
+     "r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error)});"+
+     "const old=await new Promise((ok,fail)=>{const r=tx.objectStore('sessions').get("+JSON.stringify(agedId)+");"+
+     "r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error)});"+
+     "const reviews=await new Promise((ok,fail)=>{const r=tx.objectStore('reviewClosures').count();"+
+     "r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error)});"+
+     "return {count,old:!!old,reviews};}finally{db.close()}})()",
+    awaitPromise:true,returnByValue:true
+  });
+  if(afterPurge.result?.value?.old||afterPurge.result?.value?.count!==initialCount-1||
+     afterPurge.result?.value?.reviews!==1)
+    throw Error('PR03: depuración modificó sesiones recientes o cierres no relacionados');
+  console.log('PR02/PR03: caducidad manual y transacción sin pérdidas de datos recientes');
+  const startErase=await cdp.send('Runtime.evaluate',{
+    expression:'(() => {const b=document.querySelector(".privacy-erase .privacy-danger");'
+     +'b?.click();return Boolean(b);})()',returnByValue:true
+  });
+  if(!startErase.result?.value)throw Error('PR04: control borrar todo no disponible');
+  await eventually(async()=>{
+    const r=await cdp.send('Runtime.evaluate',{
+      expression:'document.querySelector(".privacy-confirm input")?.placeholder',
+      returnByValue:true
+    });return r.result?.value==='BORRAR TODO';
+  },'PR05 confirmación de borrado total');
+  await cdp.send('Runtime.evaluate',{
+    expression:'(() => {const input=document.querySelector(".privacy-confirm input");'
+     +'const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,"value").set;'
+     +'setter.call(input,"BORRAR TODO");input.dispatchEvent(new Event("input",{bubbles:true}));})()'
+  });
+  await eventually(async()=>{
+    const r=await cdp.send('Runtime.evaluate',{
+      expression:'(() => {const b=document.querySelector(".privacy-confirm .privacy-danger");'
+       +'if(!b||b.disabled)return false;b.click();return true;})()',
+      returnByValue:true
+    });return r.result?.value;
+  },'PR04 borrado total confirmado');
+  await eventually(async()=>{
+    const r=await cdp.send('Runtime.evaluate',{
+      expression:'document.querySelector(".session-history-notice")?.textContent?.trim()||""',
+      returnByValue:true
+    });return r.result?.value?.includes('Historial local eliminado');
+  },'PR04 borrado atómico finalizado');
+  await cdp.send('Page.reload',{ignoreCache:true});
+  await eventually(async()=>{
+    const r=await cdp.send('Runtime.evaluate',{
+      expression:'(() => Array.from(document.querySelectorAll(".privacy-metrics strong"))'
+       +'.map(x=>Number(x.textContent?.trim())))()',
+      returnByValue:true
+    });
+    return r.result?.value?.length===4&&r.result.value.every(x=>x===0);
+  },'PR04 cero sesiones y cero revisiones después de recargar');
+  console.log('PR04/PR05/PR07: borrado total atómico y confirmación exacta; IndexedDB vacío tras recarga');
+
   console.log('QA terminado: ' + checked + ' recorridos; capturas en qa-artifacts/');
 } finally {
   cdp?.close();

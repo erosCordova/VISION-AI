@@ -2,7 +2,7 @@
 
 Última actualización: 2026-11-04. Referencia: manual avanzado de 16 fases y decisión vigente de utilizar exclusivamente simulaciones 3D.
 
-**ESTADO VIGENTE: 12 de 16 fases aprobadas = 75 %. Fase 13 pendiente.** Los registros de incrementos anteriores que aparecen más abajo son históricos y no sustituyen este cierre.
+**ESTADO VIGENTE: 13 de 16 fases aprobadas = 81,25 %. Fase 14 pendiente.** Los registros de incrementos anteriores que aparecen más abajo son históricos y no sustituyen este cierre.
 
 | Fase | Alcance validado | Evidencia |
 | --- | --- | --- |
@@ -18,8 +18,9 @@
 | 10 | Máscara cromática por píxeles ROI YOLO, limpieza, siluetas, contornos, áreas y PNG alfa | [CI de aceptación](https://github.com/erosCordova/VISION-AI/actions/runs/41926688909) |
 | 11 | Motor de reglas y revisión humana de detecciones YOLO | [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41928837022) |
 | 12 | Historial filtrado, tres CSV, auditoría JSON y reporte A4 | [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41931298826) |
+| 13 | Retención manual, borrado transaccional IndexedDB, aviso de roles demo y cabeceras HTTP | [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41933824408) |
 
-**Avance administrativo vigente: 75 % (12 de 16 fases aprobadas).** No mide precisión del modelo, mAP ni exactitud de los objetos estilizados.
+**Avance administrativo vigente: 81,25 % (13 de 16 fases aprobadas).** No mide precisión del modelo, mAP ni exactitud de los objetos estilizados.
 
 ## Verificación local
 
@@ -339,3 +340,29 @@ externas o servicios de pago. El resumen no declara precisión del modelo.
 **CI aprobada**: 294 pruebas TypeScript, 66 Python y 9 recorridos
 Chromium 360/768/1440 con los modelos ONNX en cuatro escenarios y
 las exportaciones EX01–EX06. Próxima: **Fase 13, seguridad y privacidad**.
+
+## Cierre Fase 13 — 4 de noviembre de 2026
+
+**13/16 = 81,25 % de avance administrativo.** La aceptación depende
+del resultado exitoso de GitHub Actions:
+https://github.com/erosCordova/VISION-AI/actions/runs/41933824408 .
+
+Se incorpora ruta Privacidad sin autenticación fingida, conteo local
+de sesiones y revisiones, retención MANUAL de 30/90/180 días, borrado
+atómico de sesiones antiguas y sus revisiones vinculadas, y borrado
+total de las dos colecciones IndexedDB con frase de confirmación.
+El borrado de historial no pretende eliminar modelos ONNX en caché
+ni archivos descargados. Se retira el nombre personal fijo de la
+barra lateral; se indica expresamente que los perfiles son demo.
+
+La configuración Vercel aplica `nosniff`, denegación de iframes,
+política de Referer y denegación de cámara/micrófono/geolocalización
+no utilizados. No hay autenticación real, cifrado a nivel aplicación
+ni CSP estricta validada; son límites expresos del producto.
+No se usan datasets externos.
+
+La prueba PR01–PR07 se ejecuta únicamente con datos de prueba
+del navegador Chromium aislado; comprueba las cifras, las frases,
+la retención y la persistencia del borrado total después de recargar.
+Las revisiones huérfanas no deben sobrevivir al borrado de una sesión.
+**Siguiente fase 14: pruebas integradas, rendimiento y accesibilidad.**

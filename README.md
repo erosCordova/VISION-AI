@@ -4,7 +4,7 @@ Plataforma empresarial de visión computacional con cuatro escenarios exclusivam
 
 ## Estado verificado
 
-**Fases 1 a 12 aprobadas; avance administrativo: 75 % (12 de 16). Fase 13 pendiente.** React + Vite ofrecen cuatro simulaciones 3D con humanos animados. YOLO ONNX (COCO y EPP) procesa fotogramas de estas escenas en el navegador; no se admiten datasets, fotografías, videos ni cámaras como entradas. Existen persistencia local IndexedDB, indicadores verificables y revisión humana de indicios EPP. El frontend se publica en Vercel Hobby; Render Free funciona como API ligera, sin inferencia remota. No se declara precisión, mAP ni rendimiento sostenido sin mediciones.
+**Fases 1 a 13 aprobadas; avance administrativo: 81,25 % (13 de 16). Fase 14 pendiente.** React + Vite ofrecen cuatro simulaciones 3D con humanos animados. YOLO ONNX (COCO y EPP) procesa fotogramas de estas escenas en el navegador; no se admiten datasets, fotografías, videos ni cámaras como entradas. Existen persistencia local IndexedDB, indicadores verificables y revisión humana de indicios EPP. El frontend se publica en Vercel Hobby; Render Free funciona como API ligera, sin inferencia remota. No se declara precisión, mAP ni rendimiento sostenido sin mediciones.
 
 ## Ejecutar y validar
 
@@ -101,7 +101,7 @@ El detector EPP de Seguridad tiene **señales temporales de revisión**, visible
 
 ## Progreso de fases — estado vigente 4 de noviembre de 2026
 
-**12 de 16 fases aprobadas = 75 %.** Fases 1–12 aprobadas; fase 13 pendiente.
+**13 de 16 fases aprobadas = 81,25 %.** Fases 1–13 aprobadas; fase 14 pendiente.
 La fase 8 validó KPI KP01–KP03, revisión humana EPP y rendimiento con sesiones locales.
 Pruebas: https://github.com/erosCordova/VISION-AI/actions/runs/41882458652 .
 Las fases 9 y 10 validaron YOLO real sobre los cuatro escenarios 3D, sincronización, fallos y reintentos, y máscaras cromáticas por píxel sin alterar evidencias.
@@ -128,3 +128,15 @@ al solicitarlos, sin imágenes, cámaras, datasets ni procesamiento
 remoto. Las CSV incluyen protección frente a fórmulas de hojas de cálculo.
 Ver [cierre Fase 12](docs/fase12_informes_historial.md) y
 [CI aprobada](https://github.com/erosCordova/VISION-AI/actions/runs/41931298826).
+
+## Fase 13 — Privacidad y protección del navegador
+
+La nueva sección **Privacidad** presenta sesiones, revisiones y datos
+incompatibles de IndexedDB. Permite retención manual de 30/90/180 días,
+depuración por antigüedad y borrado total atómico, con frases de
+confirmación. Los roles son perfiles de prueba y **no** autenticación.
+Las cabeceras de Vercel impiden iframes, deniegan permisos de
+cámara/micrófono/geolocalización y evitan sniffing de MIME.
+No se borran automáticamente backups, descargas o caché ONNX.
+Ver [documentación](docs/fase13_seguridad_privacidad.md) y
+[CI](https://github.com/erosCordova/VISION-AI/actions/runs/41933824408).

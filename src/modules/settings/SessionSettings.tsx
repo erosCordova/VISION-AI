@@ -10,12 +10,12 @@ export function SessionSettings() {
   const [notice, setNotice] = useState('');
   const fields = [{ key: 'confidence', label: 'Confianza mínima', unit: 'De 0.01 a 1', step: '0.01' }, { key: 'targetFps', label: 'Objetivo de inferencia', unit: 'De 1 a 30 FPS', step: '1' }, { key: 'overlayAgeMs', label: 'Caducidad de resultados', unit: 'De 100 a 5000 ms', step: '1' }] as const;
   const dirty = fields.some(f => Number(draft[f.key]) !== settings[f.key]);
-  return <section className="panel session-settings"><span className="eyebrow">PREPARACIÓN DEL MOTOR</span><h2>Parámetros de análisis</h2><p>Propuesta temporal para esta vista. YOLO no está conectado: estos valores aún no afectan la cámara ni se conservan al recargar.</p>
+  return <section className="panel session-settings"><span className="eyebrow">PREPARACIÓN DEL MOTOR</span><h2>Parámetros de análisis</h2><p>Configuración de referencia para pruebas. YOLO ONNX funciona desde Análisis en vivo, pero estos parámetros de ejemplo no controlan su motor ni se conservan al recargar.</p>
     <form noValidate onSubmit={e => {
       e.preventDefault(); const next = { confidence: Number(draft.confidence), targetFps: Number(draft.targetFps), overlayAgeMs: Number(draft.overlayAgeMs) };
       const invalid = validatePreviewSettings(next); setErrors(invalid); setNotice('');
       if (Object.keys(invalid).length) { document.getElementById('setting-' + Object.keys(invalid)[0])?.focus(); return; }
-      setSettings(next); setNotice('Propuesta actualizada en esta vista. El motor permanece sin conectar.');
+      setSettings(next); setNotice('Propuesta actualizada en esta vista. El motor YOLO real se configura desde Análisis en vivo.');
     }}>
       <div className="settings-fields">{fields.map(f => <label key={f.key} htmlFor={'setting-'+f.key}>{f.label}<input id={'setting-'+f.key} type="number" inputMode="decimal" step={f.step} value={draft[f.key]} aria-invalid={!!errors[f.key]} aria-describedby={'help-'+f.key} onChange={e => { setDraft({ ...draft, [f.key]: e.target.value }); setErrors({ ...errors, [f.key]: undefined }); setNotice(''); }} /><small id={'help-'+f.key} className={errors[f.key] ? 'field-error' : ''}>{errors[f.key] || f.unit}</small></label>)}</div>
       <div className="settings-actions"><button type="submit" className="primary" disabled={!dirty}>Aplicar propuesta</button><button type="button" onClick={() => setConfirm(true)}>Restablecer valores</button></div>
