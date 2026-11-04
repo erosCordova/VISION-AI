@@ -75,16 +75,29 @@ export function decodeYoloClasses(
   data.length!==anchors*channels)throw Error('La salida YOLO no coincide con el catálogo del modelo');
  if(letterbox.scale<=0||letterbox.sourceWidth<=0||letterbox.sourceHeight<=0)throw Error('Escala de captura inválida');
  const confidence=Math.max(.01,Math.min(.99,threshold));
- const at=(a:number,c:number)=>Number(data[channelsFirst?c*anchors+a:a*channels+c]);
+ // Camino caliente: evitar ~80 llamadas a una función indexadora por ancla
+ // en COCO y las conversiones Number() de Float32Array ya numérico.
+ // Mantiene el mismo orden de exploración y la misma comparación de empates.
  const raw:Pred[]=[];
  for(let i=0;i<anchors;i++){
   let best=-1,score=-Infinity;
-  for(let c=4;c<channels;c++){
-   const p=at(i,c);
-   if(p>score){score=p;best=c-4;}
+  let cx:number,cy:number,w:number,h:number;
+  if(channelsFirst){
+   for(let c=4;c<channels;c++){
+    const p=data[c*anchors+i];
+    if(p>score){score=p;best=c-4;}
+   }
+   if(!Number.isFinite(score)||score<confidence||best<0)continue;
+   cx=data[i];cy=data[anchors+i];w=data[2*anchors+i];h=data[3*anchors+i];
+  }else{
+   const offset=i*channels;
+   for(let c=4;c<channels;c++){
+    const p=data[offset+c];
+    if(p>score){score=p;best=c-4;}
+   }
+   if(!Number.isFinite(score)||score<confidence||best<0)continue;
+   cx=data[offset];cy=data[offset+1];w=data[offset+2];h=data[offset+3];
   }
-  if(!Number.isFinite(score)||score<confidence||best<0)continue;
-  const cx=at(i,0),cy=at(i,1),w=at(i,2),h=at(i,3);
   if(![cx,cy,w,h].every(Number.isFinite)||w<=0||h<=0)continue;
   const left=(cx-w/2-letterbox.padX)/letterbox.scale/letterbox.sourceWidth;
   const top=(cy-h/2-letterbox.padY)/letterbox.scale/letterbox.sourceHeight;
