@@ -382,7 +382,17 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
      {' · '}<b>{maskStats.selectedPixels.toLocaleString('es-PE')}</b> píxeles
      {' · '}{maskStats.regions.length} regiones YOLO evaluadas
     </p>}
-    {maskError&&<p className="browser-yolo-error" role="alert">{maskError}</p>}
+    {showChromaticMask&&maskStats&&maskStats.regions.length>0&&
+     <div className="browser-yolo-mask-regions" aria-label="Áreas cromáticas de las regiones detectadas">
+      {maskStats.regions.slice(0,6).map(region=><div className="browser-yolo-mask-region"
+       key={region.index}>
+       <span>{visibleDetections[region.index]?.label??'Región '+(region.index+1)}</span>
+       <div className="browser-yolo-mask-bar" aria-hidden="true"><span
+        style={{width:Math.min(100,region.coveragePercent)+'%'}}/></div>
+       <strong>{region.coveragePercent.toFixed(1)} %</strong>
+      </div>)}
+     </div>}
+    {maskError&&<p className="browser-yolo-error" role="alert">{maskError}</p>
     <small>La máscara se calcula por contraste RGB dentro de las cajas YOLO. Es una aproximación visual, no segmentación semántica ni una máscara del modelo YOLO.</small>
    </div>
    <p className="browser-yolo-modelnote">La cadencia es el intervalo mínimo objetivo entre capturas; el tiempo real depende del equipo. Al ocultar la pestaña se suspenden nuevas capturas.

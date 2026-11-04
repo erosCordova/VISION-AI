@@ -45,3 +45,12 @@ como superficie real industrial, calidad ni cumplimiento de EPP.
 **Validación pendiente:** TypeScript, Vitest, CI Chromium, rendimiento
 y revisión visual antes de aprobar la fase 10. No se han creado modelos
 nuevos, archivos de entrada ni dependencias de pago.
+
+## Mejora de presentación del primer incremento
+
+El visor muestra el porcentaje cromático aproximado por región YOLO,
+con barras visuales para las primeras seis detecciones, además del
+porcentaje total unido del fotograma. Los porcentajes por región son
+relativos al rectángulo detectado, no a superficie física del objeto.
+Se presenta **0,0 %** cuando no hay diferencia RGB suficiente, sin
+sustituirlo por una etiqueta de objeto segmentado.
