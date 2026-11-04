@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {segmentByContrast} from '../../src/modules/live/chromatic-segmentation';
+import {segmentByContrast,chromaticMaskPixels} from '../../src/modules/live/chromatic-segmentation';
 const prepare=(w:number,h:number)=>new Uint8ClampedArray(w*h*4).fill(255);
 const box={x:.1,y:.1,width:.8,height:.8};
 describe('Fase 10 — máscaras de contraste obtenidas de píxeles reales',()=>{
@@ -84,6 +84,22 @@ describe('Fase 10 — máscaras de contraste obtenidas de píxeles reales',()=>{
   expect(mask.selectedPixels).toBe(36);
   expect(mask.regions[0].selectedPixels).toBe(36);
   expect(mask.regions[1].selectedPixels).toBe(36);
+ });
+ it('el PNG cromático usa alfa transparente fuera de los píxeles marcados',()=>{
+  const rgba=prepare(20,20);
+  const color=(8*20+8)*4;rgba[color]=0;rgba[color+1]=0;rgba[color+2]=0;
+  const mask=segmentByContrast(rgba,20,20,[box],70,1);
+  const data=chromaticMaskPixels(mask);
+  expect(data.length).toBe(1600);
+  expect(data[color+3]).toBe(255);
+  expect(data[3]).toBe(0);
+  let opaque=0;
+  for(let k=3;k<data.length;k+=4)if(data[k]===255)opaque++;
+  expect(opaque).toBe(mask.selectedPixels);
+ });
+ it('rechaza exportar máscara con geometría corrupta',()=>{
+  const mask=segmentByContrast(prepare(20,20),20,20,[box],70,1);
+  expect(()=>chromaticMaskPixels({...mask,binary:new Uint8Array(100)})).toThrow();
  });
  it('rechaza opciones de limpieza inválidas',()=>{
   const rgba=prepare(20,20);

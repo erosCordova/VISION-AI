@@ -793,6 +793,18 @@ try {
           filterUnchanged.result?.value?.monitor!==afterRetry.monitor)
           throw Error('SG05: cambio de vista alteró inferencias o monitor original');
         console.log('SG05: limpieza y silueta no causan nuevas inferencias');
+
+        const exportMaskUi=await cdp.send('Runtime.evaluate',{
+          expression:'(() => ({'
+           +'button:!!document.querySelector(".browser-yolo-mask-export"),'
+           +'frame:Number(document.querySelector(".browser-yolo-count b")?.textContent||0),'
+           +'mask:document.querySelector(".browser-yolo-mask-summary")?.textContent?.trim()'
+           +'}))()',returnByValue:true
+        });
+        const maskExport=exportMaskUi.result?.value;
+        if(!maskExport?.button||maskExport.frame!==afterRetry.frames||!maskExport.mask)
+          throw Error('SG06: exportación transparente no corresponde al último fotograma');
+        console.log('SG06: opción de PNG de máscara disponible sin alterar lecturas YOLO');
         console.log('SG01: máscara RGB calculada con evidencia YOLO real, sin ONNX adicional');
         const runTag=await cdp.send('Runtime.evaluate',{
           expression:'document.querySelector(".browser-yolo-run")?.textContent?.trim()||""',

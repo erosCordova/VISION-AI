@@ -88,3 +88,18 @@ export function segmentByContrast(
  return {width,height,binary,imagePixels,selectedPixels:union,
   coveragePercent:100*union/imagePixels,regions:counted};
 }
+
+/** Canal alfa: únicamente los píxeles segmentados son opacos.
+ * PNG transparente independiente del fotograma original y de las cajas YOLO. */
+export function chromaticMaskPixels(mask:ChromaticMask):Uint8ClampedArray{
+ if(!Number.isInteger(mask.width)||!Number.isInteger(mask.height)||
+  mask.width<2||mask.height<2||mask.width>4096||mask.height>4096||
+  mask.binary.length!==mask.width*mask.height)
+  throw Error('Máscara cromática con dimensiones incompatibles.');
+ const pixels=new Uint8ClampedArray(mask.binary.length*4);
+ for(let i=0;i<mask.binary.length;i++)if(mask.binary[i]===1){
+  const offset=i*4;
+  pixels[offset]=255;pixels[offset+1]=190;pixels[offset+2]=105;pixels[offset+3]=255;
+ }
+ return pixels;
+}

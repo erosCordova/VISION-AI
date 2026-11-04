@@ -71,3 +71,16 @@ conectividad 4, solapamiento, validación de parámetros y QA de controles.
 
 La máscara continúa siendo una estimación por contraste; no representa
 identidades de objetos ni mediciones de superficie física.
+
+## Incremento 3: PNG transparente y separación de evidencias
+
+El usuario puede exportar la **máscara cromática visible** a un PNG
+de fondo transparente. Los píxeles que no superan el contraste se
+guardan con alfa cero. Este archivo es distinto del PNG original
+con cajas YOLO: los nombres comienzan con `vision-ai-mask-` y
+`vision-ai-yolo-`, respectivamente, y ambos conservan el mismo ID
+y fecha del frame. La máscara respeta los filtros visuales activos,
+no modifica el historial original y se genera localmente sin subir datos.
+La acción verifica que la máscara corresponde al fotograma actual.
+Se añaden pruebas para transparencia, integridad geométrica y
+nombres de los cuatro escenarios.

@@ -8,8 +8,8 @@ import type {ScenarioKey} from './simulation-engine';
 import {validYoloFrameSource} from './yolo-telemetry';
 import type {YoloTelemetryEvent,YoloFrameSource} from './yolo-telemetry';
 import {FrameAnalysisCycle,frameBoxPixels} from './frame-analysis-cycle';
-import {evidencePngName,saveEvidencePng} from './yolo-evidence';
-import {segmentByContrast} from './chromatic-segmentation';
+import {evidencePngName,chromaticMaskPngName,saveEvidencePng} from './yolo-evidence';
+import {segmentByContrast,chromaticMaskPixels} from './chromatic-segmentation';
 import type {ChromaticMask} from './chromatic-segmentation';
 import {captureWaitMs,shouldPauseCapture} from './inference-scheduler';
 import type {CapturePace} from './inference-scheduler';
@@ -79,6 +79,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
  const [maskMinPixels,setMaskMinPixels]=useState(4);
  const [maskStyle,setMaskStyle]=useState<'overlay'|'silhouette'>('overlay');
  const [maskStats,setMaskStats]=useState<ChromaticMask|null>(null);
+ const maskSource=useRef<HTMLCanvasElement|null>(null);
  const [maskError,setMaskError]=useState('');
  const [classFilter,setClassFilter]=useState('all');
  const [model,setModel]=useState<Model|null>(null);
@@ -233,7 +234,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
  const availableClasses=useMemo(()=>classesInDetections(detections),[detections]);
  useEffect(()=>{
   const frame=lastAnalyzed.current;
-  if(!frame||!preview.current){setMaskStats(null);return;}
+  if(!frame||!preview.current){maskSource.current=null;setMaskStats(null);return;}
   try{
    let mask:ChromaticMask|null=null;
    if(showChromaticMask){
@@ -244,8 +245,9 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
      visibleDetections.map(d=>d.box),maskContrast,maskMinPixels);
    }
    drawFrame({...frame,detections:visibleDetections},preview.current,family,mask,maskStyle);
+   maskSource.current=mask?frame.source:null;
    setMaskStats(mask);setMaskError('');
-  }catch(e){setMaskStats(null);setMaskError(explainError(e));}
+  }catch(e){maskSource.current=null;setMaskStats(null);setMaskError(explainError(e));}
  },[visibleDetections,family,showChromaticMask,maskContrast,maskMinPixels,maskStyle]);
  async function retryFailedFrame(){
   const previous=failedCanvas.current;
@@ -287,6 +289,26 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
    onTelemetry({type:'status',phase:'failed',model:family,error:explainError(e)});
    setMessage('El reintento no pudo analizar el fotograma guardado en memoria.');
   }
+ }
+ async function exportMask(){
+  const mask=maskStats,source=lastEvidenceSource.current,frame=lastAnalyzed.current,
+   completed=lastCompletedRun.current;
+  if(!mask||!source||!frame||!completed||maskSource.current!==frame.source){
+   setExportMessage('Activa la máscara después de una inferencia YOLO completa.');
+   return;
+  }
+  try{
+   const output=document.createElement('canvas');
+   output.width=mask.width;output.height=mask.height;
+   const ctx=output.getContext('2d');
+   if(!ctx)throw Error('El navegador no pudo crear el PNG de máscara.');
+   const image=ctx.createImageData(mask.width,mask.height);
+   image.data.set(chromaticMaskPixels(mask));
+   ctx.putImageData(image,0,0);
+   await saveEvidencePng(output,chromaticMaskPngName(source,
+    completed.run.frameId,completed.run.capturedAtMs));
+   setExportMessage('Máscara cromática PNG exportada sobre fondo transparente.');
+  }catch(e){setExportMessage('No se pudo exportar la máscara: '+explainError(e));}
  }
  async function exportEvidence(){
   const analyzed=lastAnalyzed.current;
@@ -404,6 +426,10 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
      {' · '}<b>{maskStats.selectedPixels.toLocaleString('es-PE')}</b> píxeles
      {' · '}{maskStats.regions.length} regiones YOLO evaluadas
     </p>}
+    {showChromaticMask&&maskStats&&lastEvidenceSource.current&&
+     <button type="button" className="browser-yolo-mask-export" onClick={()=>void exportMask()}>
+      ▣ Exportar máscara cromática PNG
+     </button>}
     {showChromaticMask&&maskStats&&maskStats.regions.length>0&&
      <div className="browser-yolo-mask-regions" aria-label="Áreas cromáticas de las regiones detectadas">
       {maskStats.regions.slice(0,6).map(region=><div className="browser-yolo-mask-region"
