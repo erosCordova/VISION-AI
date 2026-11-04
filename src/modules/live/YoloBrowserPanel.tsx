@@ -6,6 +6,8 @@ import {ppeColor,ppeFindings} from './ppe-model';
 import {MIN_RAW_YOLO_CONFIDENCE,filterDetectionsForDisplay,classesInDetections} from './detection-filter';
 import type {ScenarioKey} from './simulation-engine';
 import type {YoloTelemetryEvent} from './yolo-telemetry';
+import {FrameAnalysisCycle,frameBoxPixels} from './frame-analysis-cycle';
+import type {FrameAnalysisAttempt,FrameAnalysisOutcome} from './frame-analysis-cycle';
 type Model=Awaited<ReturnType<typeof loadYoloBrowser>>;
 type Phase='idle'|'loading'|'running'|'stopped'|'failed';
 interface Props {
@@ -23,9 +25,8 @@ function drawFrame(frame:YoloFrame,dest:HTMLCanvasElement,family:YoloFamily){
  ctx.drawImage(frame.source,0,0,frame.width,frame.height);
  const thickness=Math.max(2,frame.width/450);
  for(const detection of frame.detections){
-  const {x,y,width,height}=detection.box;
-  const px=x*frame.width,py=y*frame.height;
-  const pw=width*frame.width,ph=height*frame.height;
+  const {x:px,y:py,width:pw,height:ph}=frameBoxPixels(
+   detection.box,frame.width,frame.height);
   const color=family==='ppe'?ppeColor(detection.classId):detection.classId==='person'?'#5cf3c7':'#ffca78';
   ctx.strokeStyle=color;ctx.lineWidth=thickness;ctx.strokeRect(px,py,pw,ph);
   const text=detection.label+'  '+Math.round(detection.confidence*100)+'%';
@@ -58,12 +59,18 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
  const preview=useRef<HTMLCanvasElement>(null);
  const lastAnalyzed=useRef<YoloFrame|null>(null);
  const generation=useRef(0);
+ const startLocked=useRef(false);
+ const cycle=useRef(new FrameAnalysisCycle());
+ const failedCanvas=useRef<HTMLCanvasElement|null>(null);
+ const [lastRun,setLastRun]=useState<FrameAnalysisOutcome|null>(null);
  const frameNumber=useRef(0);
  const times=useRef<number[]>([]);
  const [error,setError]=useState('');
  const start=useCallback(async()=>{
-  if(phase==='loading'||phase==='running')return;
+  if(startLocked.current||phase==='loading'||phase==='running')return;
+  startLocked.current=true;
   const token=++generation.current;
+  cycle.current.reset();failedCanvas.current=null;setLastRun(null);
   setPhase('loading');setError('');
   onTelemetry({type:'status',phase:'loading',model:family});
   frameNumber.current=0;
@@ -83,6 +90,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
    onTelemetry({type:'status',phase:'running',model:family});
   }catch(e){
    if(generation.current!==token)return;
+   startLocked.current=false;
    setPhase('failed');
    onTelemetry({type:'status',phase:'failed',model:family,error:explainError(e)});
    setError(explainError(e));
@@ -90,14 +98,14 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   }
  },[phase,model,family,onTelemetry]);
  const stop=useCallback(()=>{
-  generation.current++;
+  generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;
   setPhase('stopped');
   onTelemetry({type:'status',phase:'stopped',model:family});
   setMessage('Inferencia detenida. No se están procesando más fotogramas.');
  },[onTelemetry,family]);
  function selectFamily(next:YoloFamily){
   if(next===family)return;
-  generation.current++;
+  generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;setLastRun(null);
   setPhase('idle');setModel(null);setFamily(next);
   onTelemetry({type:'status',phase:'idle',model:next});
   lastAnalyzed.current=null;
@@ -114,18 +122,25 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   const token=generation.current;
   const loop=async()=>{
    while(!cancelled&&generation.current===token){
-    if(paused&&times.current.length>0){await delay(450);continue;}
+    if(paused){await delay(450);continue;}
     const begin=performance.now();
+    let job:FrameAnalysisAttempt|null=null;
+    let frame:HTMLCanvasElement|null=null;
     try{
      const source=getSource();
      if(!source||source.width<2||source.height<2){
       onTelemetry({type:'capture-skip',model:model.family});
       await delay(350);continue;
      }
-     const frame=captureRenderedFrame(source);
+     frame=captureRenderedFrame(source);
      onTelemetry({type:'capture',model:model.family,capturedAtMs:Date.now()});
+     job=cycle.current.begin(scenarioId,model.family,frame.width,frame.height,Date.now());
+     if(!job){await delay(120);continue;}
      const result=await analyzeYoloFrame(model,frame,MIN_RAW_YOLO_CONFIDENCE);
-     if(cancelled||generation.current!==token)return;
+     if(cancelled||generation.current!==token){cycle.current.discard(job);return;}
+     const accepted=cycle.current.complete(job,result.detections,Date.now());
+     if(!accepted)return;
+     setLastRun(accepted);failedCanvas.current=null;
      lastAnalyzed.current=result;
      setDetections(result.detections);
      setInferenceMs(result.inferenceMs);
@@ -144,7 +159,16 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
       'YOLOv8s EPP examinó los píxeles de la imagen. Las alertas requieren revisión humana.':
       'YOLOv8n COCO analizó el último fotograma. No evalúa equipos de protección.');
     }catch(e){
-     if(cancelled||generation.current!==token)return;
+     if(cancelled||generation.current!==token){
+      if(job)cycle.current.discard(job);
+      return;
+     }
+     if(job){
+      const failed=cycle.current.fail(job,e,Date.now());
+      if(failed)setLastRun(failed);
+      failedCanvas.current=frame;
+     }
+     startLocked.current=false;
      setPhase('failed');setError(explainError(e));
      onTelemetry({type:'status',phase:'failed',model:family,error:explainError(e)});
      setMessage('El motor no pudo interpretar el fotograma.');
@@ -156,9 +180,9 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   };
   void loop();
   return ()=>{cancelled=true;};
- },[phase,model,getSource,paused,family,onTelemetry]);
+ },[phase,model,getSource,paused,family,onTelemetry,scenarioId]);
  useEffect(()=>{onTelemetry({type:'status',phase:'idle',model:family});
-  return ()=>{generation.current++;};
+  return ()=>{generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;};
   // One status reset per mounted detector instance; state changes send events explicitly.
  },[onTelemetry]);
  const visibleDetections=useMemo(()=>filterDetectionsForDisplay(detections,{
@@ -169,6 +193,39 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   const frame=lastAnalyzed.current;
   if(frame&&preview.current)drawFrame({...frame,detections:visibleDetections},preview.current,family);
  },[visibleDetections,family]);
+ async function retryFailedFrame(){
+  const previous=failedCanvas.current;
+  if(phase!=='failed'||!model||!previous)return;
+  const job=cycle.current.retry(Date.now());
+  if(!job)return;
+  setPhase('loading');setError('');
+  setMessage('Reintentando el mismo fotograma de la simulación…');
+  try{
+   const result=await analyzeYoloFrame(model,previous,MIN_RAW_YOLO_CONFIDENCE);
+   const accepted=cycle.current.complete(job,result.detections,Date.now());
+   if(!accepted)return;
+   setLastRun(accepted);failedCanvas.current=null;
+   lastAnalyzed.current=result;
+   setDetections(result.detections);setInferenceMs(result.inferenceMs);
+   const capturedAtMs=Date.now();
+   setLastFrameAt(capturedAtMs);
+   onTelemetry({type:'status',phase:'running',model:family});
+   onTelemetry({type:'frame',observation:{
+    frameNumber:++frameNumber.current,capturedAtMs,
+    inferenceMs:result.inferenceMs,detections:result.detections,model:family
+   }});
+   onTelemetry({type:'status',phase:'stopped',model:family});
+   setSampleCount(count=>count+1);
+   setPhase('stopped');
+   setMessage('Fotograma reintentado correctamente. Resultado disponible para guardar.');
+  }catch(e){
+   const failed=cycle.current.fail(job,e,Date.now());
+   if(failed)setLastRun(failed);
+   setPhase('failed');setError(explainError(e));
+   onTelemetry({type:'status',phase:'failed',model:family,error:explainError(e)});
+   setMessage('El reintento no pudo analizar el fotograma guardado en memoria.');
+  }
+ }
  const personCount=visibleDetections.filter(d=>d.classId==='person').length;
  const ppe=family==='ppe'?ppeFindings(detections):null;
  return <section className="browser-yolo-panel" aria-label="YOLO real en el navegador">
@@ -210,6 +267,10 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
       </button>}
     {(phase==='running'||phase==='loading')&&
       <button type="button" onClick={stop}>Ⅱ Detener inferencia</button>}
+    {phase==='failed'&&model&&failedCanvas.current&&
+      <button type="button" onClick={()=>void retryFailedFrame()}>
+       Reintentar último fotograma
+      </button>}
     <label htmlFor="yolo-confidence">Confianza visual mínima
       <strong>{Math.round(confidence*100)} %</strong>
     </label>
@@ -228,6 +289,13 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
     Las inferencias originales, desde {Math.round(MIN_RAW_YOLO_CONFIDENCE*100)} % de confianza, se conservan para el monitor y la sesión.
    </p>
    <p className="browser-yolo-status" role="status">{message}</p>
+   {lastRun&&<p className="browser-yolo-run" aria-label="Ejecución correlacionada del fotograma">
+    {lastRun.phase==='completed'?'ANÁLISIS COMPLETADO':'ANÁLISIS FALLIDO'}
+    {' · '}Frame #{lastRun.run.frameId}
+    {' · '}Intento {lastRun.run.attempt}
+    {' · '}Origen: simulación 3D
+    {lastRun.durationMs!==null&&' · '+Math.round(lastRun.durationMs)+' ms de ciclo'}
+   </p>}
    {error&&<p className="browser-yolo-error" role="alert">{error}</p>}
    <div className="browser-yolo-result">
     <div className="browser-yolo-preview">

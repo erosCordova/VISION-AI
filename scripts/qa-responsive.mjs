@@ -581,6 +581,15 @@ try {
         }
         if (!firstInference) throw Error('No hubo inferencia ONNX tras esperar: '+JSON.stringify(lastStatus));
         console.log('YOLO EPP REAL OK en Chromium: '+JSON.stringify(firstInference));
+        const runTag=await cdp.send('Runtime.evaluate',{
+          expression:'document.querySelector(".browser-yolo-run")?.textContent?.trim()||""',
+          returnByValue:true
+        });
+        if(!runTag.result?.value?.includes('ANÁLISIS COMPLETADO')||
+          !runTag.result.value.includes('Frame #')||
+          !runTag.result.value.includes('Origen: simulación 3D'))
+          throw Error('AN01/AN02: la inferencia no está correlacionada con su fotograma 3D');
+        console.log('AN01/AN02 UI OK: resultado YOLO correlacionado con fotograma real');
         await sleep(350);
         const resultMonitor=await cdp.send('Runtime.evaluate',{
           expression:'(() => ({'
@@ -593,8 +602,10 @@ try {
           returnByValue:true
         });
         const numbers=resultMonitor.result?.value;
-        if(!numbers||numbers.detector!==numbers.monitor||numbers.synthetic||numbers.readings<1||
-          !numbers.model?.includes('EPP'))
+        if(!numbers||!Number.isInteger(Number(numbers.detector))||
+          !Number.isInteger(Number(numbers.monitor))||
+          Number(numbers.detector)>Number(numbers.monitor)||
+          numbers.synthetic||numbers.readings<1||!numbers.model?.includes('EPP'))
           throw Error('El monitor YOLO no coincide con la inferencia ejecutada: '+JSON.stringify(numbers));
         console.log('MONITOR YOLO REAL OK: detecciones del frame vinculadas al panel operativo');
         const captureStats=await cdp.send('Runtime.evaluate',{

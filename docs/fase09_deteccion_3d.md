@@ -45,3 +45,24 @@ La selección visual no debe alterar los indicios almacenados.
 No aprobar Fase 9 hasta que OB01–OB05 superen pruebas automatizadas
 y se comprueben los cuatro escenarios en Chromium, incluidos
 errores del modelo, salidas vacías y consistencia de la sesión guardada.
+
+
+## Incremento 2: ciclo correlacionado y reintento de fotogramas
+
+El coordinador `frame-analysis-cycle.ts` distingue generación, frameId
+e intento. `YoloBrowserPanel` bloquea de forma síncrona dos comienzos
+consecutivos, solo acepta el resultado del intento activo, protege
+contra cambios de escena y valida cajas normalizadas antes de anunciar
+un fotograma completado. Un fallo deja la ejecución marcada como failed,
+sin inventar detecciones; el botón **Reintentar último fotograma**
+reutiliza la captura de esa misma simulación conservada temporalmente
+en memoria, con nuevo token e intento. El usuario no carga archivos.
+
+Los filtros de confianza/clase continúan afectando exclusivamente
+la presentación. El contador de detecciones del monitor refleja los
+resultados retenidos antes de aplicar filtros visuales. Una prueba de
+navegador comprueba el identificador de ejecución correlacionado con
+la salida ONNX. Las pruebas AN01–AN04 del coordinador comprueban
+antiduplicación, invalidación de respuestas anteriores, geometría
+al redimensionar, error y reintento. Falta todavía demostrar AN03/AN04
+con fallos de motor y persistencia en navegador para aprobar la fase.

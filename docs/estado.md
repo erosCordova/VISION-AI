@@ -259,3 +259,17 @@ aplica sus filtros sin reescribir resultados del monitor ni sesiones.
 Los casos de sincronización de fotogramas, errores de ejecución y
 aceptación integral de Fase 9 siguen pendientes. El sistema solo
 analiza fotogramas generados por los cuatro escenarios 3D.
+
+
+## Fase 9 — coordinación de ejecuciones por fotograma, segundo incremento
+
+Se integró `FrameAnalysisCycle` con identificador de generación, fotograma
+e intento, exclusión de doble inicio, descarte de resultados atrasados,
+validación de la salida YOLO y conservación temporal del mismo fotograma
+para reintentar tras un fallo de inferencia. El visor continúa filtrando
+confianza y clase **sin modificar las predicciones originales** del
+modelo ni el historial de la simulación. La posición de cada caja se
+convierte desde coordenadas normalizadas sobre el mismo fotograma
+representado en el canvas. AN01–AN04 tienen pruebas unitarias
+adicionales; su cierre final requiere CI y QA con errores controlados.
+El avance aprobado se mantiene en **8/16 = 50 %**.
