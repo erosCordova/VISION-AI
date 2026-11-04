@@ -55,3 +55,16 @@ se conserva la revisión no relacionada. Finalmente confirma «BORRAR TODO»
 y comprueba cero sesiones y cero revisiones incluso tras recargar.
 Se verifican deshabilitación previa de acciones y mensajes honestos
 sobre los perfiles de prueba. Sin alteraciones a datos de producción.
+
+## Incremento 3 — Protección HTTP y minimización visual
+
+Se añaden cabeceras en `vercel.json` para deshabilitar captura de
+cámara/micrófono y geolocalización (no se usan en las simulaciones),
+impedir `iframe`, impedir sniffing de tipos MIME y limitar
+`Referer` de terceros. Se incluyen pruebas declarativas con Vitest.
+No se añade una CSP que rompa trabajadores WebAssembly o modelos ONNX
+sin un inventario y validación completa de recursos externos.
+Se elimina del sidebar el nombre personal hardcodeado, reemplazado por
+un «Entorno de prueba» sin cuenta autenticada.
+Estas cabeceras se verifican en la configuración, pero su activación
+pública solo podrá confirmarse después de publicar en Vercel.
