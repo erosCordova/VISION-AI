@@ -9,7 +9,7 @@ import {validYoloFrameSource} from './yolo-telemetry';
 import type {YoloTelemetryEvent,YoloFrameSource} from './yolo-telemetry';
 import {FrameAnalysisCycle,frameBoxPixels} from './frame-analysis-cycle';
 import {evidencePngName,chromaticMaskPngName,saveEvidencePng} from './yolo-evidence';
-import {segmentByContrast,chromaticMaskPixels} from './chromatic-segmentation';
+import {segmentByContrast,chromaticMaskPixels,chromaticMaskBoundary} from './chromatic-segmentation';
 import type {ChromaticMask} from './chromatic-segmentation';
 import {captureWaitMs,shouldPauseCapture} from './inference-scheduler';
 import type {CapturePace} from './inference-scheduler';
@@ -26,7 +26,7 @@ interface Props {
 }
 /** El usuario controla descargas e inferencias. Muestra el fotograma EXACTO asociado a cada resultado. */
 function drawFrame(frame:YoloFrame,dest:HTMLCanvasElement,family:YoloFamily,
- mask:ChromaticMask|null=null,maskStyle:'overlay'|'silhouette'='overlay'){
+ mask:ChromaticMask|null=null,maskStyle:'overlay'|'silhouette'|'contour'='overlay'){
  dest.width=frame.width;dest.height=frame.height;
  const ctx=dest.getContext('2d');
  if(!ctx)throw Error('No se pudo dibujar el fotograma analizado.');
@@ -34,17 +34,18 @@ function drawFrame(frame:YoloFrame,dest:HTMLCanvasElement,family:YoloFamily,
   ctx.fillStyle='#0a1420';ctx.fillRect(0,0,frame.width,frame.height);
  }else ctx.drawImage(frame.source,0,0,frame.width,frame.height);
  if(mask){
+  const boundary=maskStyle==='contour'?chromaticMaskBoundary(mask).binary:null;
   const overlay=document.createElement('canvas');
   overlay.width=frame.width;overlay.height=frame.height;
   const layer=overlay.getContext('2d');
   if(!layer)throw Error('No se pudo dibujar la máscara cromática.');
   const buffer=layer.createImageData(frame.width,frame.height);
-  for(let i=0;i<mask.binary.length;i++)if(mask.binary[i]){
+  for(let i=0;i<mask.binary.length;i++)if((boundary??mask.binary)[i]===1){
    const j=i*4;
-   buffer.data[j]=maskStyle==='silhouette'?138:255;
-   buffer.data[j+1]=maskStyle==='silhouette'?244:169;
-   buffer.data[j+2]=maskStyle==='silhouette'?207:75;
-   buffer.data[j+3]=maskStyle==='silhouette'?255:95;
+   buffer.data[j]=maskStyle==='silhouette'?138:maskStyle==='contour'?255:255;
+   buffer.data[j+1]=maskStyle==='silhouette'?244:maskStyle==='contour'?232:169;
+   buffer.data[j+2]=maskStyle==='silhouette'?207:maskStyle==='contour'?122:75;
+   buffer.data[j+3]=maskStyle==='silhouette'||maskStyle==='contour'?255:95;
   }
   layer.putImageData(buffer,0,0);ctx.drawImage(overlay,0,0);
  }
@@ -77,8 +78,9 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
  const [showChromaticMask,setShowChromaticMask]=useState(false);
  const [maskContrast,setMaskContrast]=useState(70);
  const [maskMinPixels,setMaskMinPixels]=useState(4);
- const [maskStyle,setMaskStyle]=useState<'overlay'|'silhouette'>('overlay');
+ const [maskStyle,setMaskStyle]=useState<'overlay'|'silhouette'|'contour'>('overlay');
  const [maskStats,setMaskStats]=useState<ChromaticMask|null>(null);
+ const boundaryStats=useMemo(()=>maskStats?chromaticMaskBoundary(maskStats):null,[maskStats]);
  const maskSource=useRef<HTMLCanvasElement|null>(null);
  const [maskError,setMaskError]=useState('');
  const [classFilter,setClassFilter]=useState('all');
@@ -417,14 +419,17 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
      </select>
      <label htmlFor="yolo-mask-style">Visualización</label>
      <select id="yolo-mask-style" value={maskStyle}
-      onChange={e=>setMaskStyle(e.target.value as 'overlay'|'silhouette')}>
+      onChange={e=>setMaskStyle(e.target.value as 'overlay'|'silhouette'|'contour')}>
       <option value="overlay">Sobre imagen 3D</option>
       <option value="silhouette">Silueta sobre fondo oscuro</option>
+      <option value="contour">Contornos sobre imagen 3D</option>
      </select></>}
     {showChromaticMask&&sampleCount>0&&maskStats&&<p className="browser-yolo-mask-summary" role="status">
      Área cromática resaltada: <b>{maskStats.coveragePercent.toFixed(1)} %</b> del fotograma
      {' · '}<b>{maskStats.selectedPixels.toLocaleString('es-PE')}</b> píxeles
      {' · '}{maskStats.regions.length} regiones YOLO evaluadas
+     {boundaryStats&&<> · Bordes: {boundaryStats.boundaryPixels.toLocaleString('es-PE')} píxeles de contorno
+      {' · '}Perímetro estimado: {boundaryStats.perimeterEdges.toLocaleString('es-PE')} lados de píxel</>}
     </p>}
     {showChromaticMask&&maskStats&&lastEvidenceSource.current&&
      <button type="button" className="browser-yolo-mask-export" onClick={()=>void exportMask()}>

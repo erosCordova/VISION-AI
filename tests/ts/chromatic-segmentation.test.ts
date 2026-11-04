@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest';
-import {segmentByContrast,chromaticMaskPixels} from '../../src/modules/live/chromatic-segmentation';
+import {segmentByContrast,chromaticMaskPixels,chromaticMaskBoundary} from '../../src/modules/live/chromatic-segmentation';
 const prepare=(w:number,h:number)=>new Uint8ClampedArray(w*h*4).fill(255);
 const box={x:.1,y:.1,width:.8,height:.8};
 describe('Fase 10 — máscaras de contraste obtenidas de píxeles reales',()=>{
@@ -102,6 +102,44 @@ describe('Fase 10 — máscaras de contraste obtenidas de píxeles reales',()=>{
   expect(mask.selectedPixels).toBe(36);
   expect(mask.regions[0].selectedPixels).toBe(36);
   expect(mask.regions[1].selectedPixels).toBe(36);
+ });
+ it('contorno de cuadrado 3x3 tiene ocho píxeles y doce lados expuestos',()=>{
+  const rgba=prepare(20,20);
+  for(let y=8;y<11;y++)for(let x=8;x<11;x++){
+   const at=(y*20+x)*4;rgba[at]=0;rgba[at+1]=0;rgba[at+2]=0;
+  }
+  const mask=segmentByContrast(rgba,20,20,[box],70,1);
+  const border=chromaticMaskBoundary(mask);
+  expect(mask.selectedPixels).toBe(9);
+  expect(border.boundaryPixels).toBe(8);
+  expect(border.perimeterEdges).toBe(12);
+  expect(border.binary[9*20+9]).toBe(0);
+  expect(border.binary[8*20+8]).toBe(1);
+ });
+ it('un píxel aislado tiene cuatro bordes y una máscara vacía tiene cero',()=>{
+  const rgba=prepare(20,20);
+  const at=(9*20+9)*4;rgba[at]=0;rgba[at+1]=0;rgba[at+2]=0;
+  const border=chromaticMaskBoundary(segmentByContrast(rgba,20,20,[box],70,1));
+  expect(border.boundaryPixels).toBe(1);
+  expect(border.perimeterEdges).toBe(4);
+  const empty=chromaticMaskBoundary(segmentByContrast(prepare(20,20),20,20,[],70,1));
+  expect(empty.boundaryPixels).toBe(0);
+  expect(empty.perimeterEdges).toBe(0);
+ });
+ it('el contorno no cambia los píxeles ni porcentajes de la máscara original',()=>{
+  const rgba=prepare(20,20);
+  for(let y=8;y<11;y++)for(let x=8;x<11;x++){
+   const at=(y*20+x)*4;rgba[at]=0;rgba[at+1]=0;rgba[at+2]=0;
+  }
+  const mask=segmentByContrast(rgba,20,20,[box],70,1);
+  const copy=mask.binary.slice();
+  chromaticMaskBoundary(mask);
+  expect(mask.binary).toEqual(copy);
+  expect(mask.selectedPixels).toBe(9);
+ });
+ it('rechaza geometría inválida para evitar contornos corruptos',()=>{
+  const mask=segmentByContrast(prepare(20,20),20,20,[],70,1);
+  expect(()=>chromaticMaskBoundary({...mask,binary:new Uint8Array(30)})).toThrow();
  });
  it('el PNG cromático usa alfa transparente fuera de los píxeles marcados',()=>{
   const rgba=prepare(20,20);

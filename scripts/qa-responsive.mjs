@@ -795,6 +795,26 @@ try {
           filterUnchanged.result?.value?.monitor!==afterRetry.objects||
           !filterUnchanged.result?.value?.mask)
           throw Error('SG05: cambio de vista alteró inferencias o monitor original');
+        const contourMode=await cdp.send('Runtime.evaluate',{
+          expression:'(() => {const select=document.querySelector("#yolo-mask-style");'
+           +'if(!select)return false;select.value="contour";'
+           +'select.dispatchEvent(new Event("change",{bubbles:true}));return true;})()',
+          returnByValue:true
+        });
+        if(!contourMode.result?.value)throw Error('SG07: contornos no seleccionables');
+        const contourInfo=await eventually(async()=>{
+          const result=await cdp.send('Runtime.evaluate',{
+            expression:'(() => ({value:document.querySelector("#yolo-mask-style")?.value,'
+             +'summary:document.querySelector(".browser-yolo-mask-summary")?.textContent?.trim(),'
+             +'frames:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0)}))()',
+            returnByValue:true
+          });
+          const info=result.result?.value;
+          return info?.value==='contour'&&info.summary?.includes('Perímetro estimado')?info:null;
+        },'SG07 contorno desde máscaras YOLO');
+        if(contourInfo.frames!==afterRetry.frames)
+          throw Error('SG07: activar contorno generó una inferencia adicional');
+        console.log('SG07: contornos de cromaticidad sin alterar lecturas YOLO');
         console.log('SG05: limpieza y silueta no causan nuevas inferencias');
 
         const exportMaskUi=await cdp.send('Runtime.evaluate',{

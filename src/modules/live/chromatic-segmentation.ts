@@ -105,3 +105,31 @@ export function chromaticMaskPixels(mask:ChromaticMask):Uint8ClampedArray{
  }
  return pixels;
 }
+
+/** Bordes de píxeles derivados de la máscara, sin geometría programada del simulador. */
+export interface ChromaticBoundary {
+ readonly binary:Uint8Array;
+ readonly boundaryPixels:number;
+ /** Suma de lados de píxel expuestos; unidad: bordes de píxel, NO metros. */
+ readonly perimeterEdges:number;
+}
+export function chromaticMaskBoundary(mask:ChromaticMask):ChromaticBoundary{
+ const {width,height,binary}=mask;
+ if(!Number.isInteger(width)||!Number.isInteger(height)||width<2||height<2||
+  width>4096||height>4096||binary.length!==width*height)
+  throw Error('Dimensiones incompatibles para calcular contornos.');
+ const edges=new Uint8Array(binary.length);
+ let boundaryPixels=0,perimeterEdges=0;
+ for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+  const at=y*width+x;
+  if(binary[at]!==1)continue;
+  let exposed=0;
+  if(x===0||binary[at-1]!==1)exposed++;
+  if(x+1===width||binary[at+1]!==1)exposed++;
+  if(y===0||binary[at-width]!==1)exposed++;
+  if(y+1===height||binary[at+width]!==1)exposed++;
+  if(exposed){edges[at]=1;boundaryPixels++;}
+  perimeterEdges+=exposed;
+ }
+ return {binary:edges,boundaryPixels,perimeterEdges};
+}

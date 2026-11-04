@@ -221,3 +221,6 @@ color:#c3e2d9;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
  border:1px solid #ac8658;border-radius:7px;padding:8px 10px;font-size:11px;
  font-weight:750;cursor:pointer}
 .browser-yolo-mask-options .browser-yolo-mask-export:hover{background:#7a5d3e}
+
+/* Fase 10 — vista de contornos derivada de máscara cromática medida. */
+.browser-yolo-mask-summary{white-space:normal;overflow-wrap:anywhere}

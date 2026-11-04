@@ -101,3 +101,18 @@ antes de revisar sus controles y confirmar «Detener» sin pulsarlo.
 Ahora exige una reanudación real que produce una nueva lectura
 antes de detener el motor. También verifica que el 85 % del filtro
 sea un valor de estado React y no solo un atributo DOM alterado.
+
+## Incremento 5: contornos y perímetro de píxeles
+
+La máscara cromática permite una tercera vista **Contornos sobre imagen
+3D**, que destaca únicamente los píxeles situados en el borde de las
+regiones seleccionadas. Se calcula el número de píxeles de contorno y
+el perímetro estimado por lados de píxel expuestos, usando vecindad
+de 4 píxeles. Las medidas están expresadas en unidades de imagen,
+no en metros ni en superficies físicas.
+
+La vista no modifica las cajas, la telemetría ni el PNG original de YOLO.
+El PNG exportable de máscara sigue siendo el canal alfa de la máscara
+completa, incluso cuando se muestran solo contornos.
+Pruebas matemáticas: bloque 3×3 (8 píxeles de borde, 12 lados),
+un píxel aislado, máscara vacía e invariancia del área.
