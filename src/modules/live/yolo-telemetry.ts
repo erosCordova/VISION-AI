@@ -1,6 +1,20 @@
 import type {Detection} from '../../core/domain/model';
 import type {ScenarioKey} from './simulation-engine';
 import type {YoloFamily} from './yolo-browser';
+import type {CameraView} from './scene-math';
+/** Metadatos del estado 3D cuando se captura el mismo frame que recibe YOLO. */
+export interface YoloFrameSource {
+ readonly scenarioId:ScenarioKey;
+ readonly elapsedMs:number;
+ readonly graphics:'human'|'light';
+ readonly camera:CameraView;
+}
+export function validYoloFrameSource(source:YoloFrameSource):boolean{
+ return ['safety','quality','retail','warehouse'].includes(source.scenarioId)&&
+  Number.isInteger(source.elapsedMs)&&source.elapsedMs>=0&&source.elapsedMs<=3_600_000&&
+  ['human','light'].includes(source.graphics)&&
+  ['isometric','frontal','superior','persona'].includes(source.camera);
+}
 
 export type MonitorPhase='idle'|'loading'|'running'|'retrying'|'stopped'|'failed';
 export interface YoloObservation {
@@ -11,6 +25,8 @@ export interface YoloObservation {
  readonly inferenceMs:number;
  readonly detections:readonly Detection[];
  readonly model:YoloFamily;
+ /** Opcional por compatibilidad con lecturas anteriores a la fase 9. */
+ readonly source?:YoloFrameSource;
 }
 export interface YoloReviewIncident {
  readonly id:string;
@@ -107,6 +123,7 @@ export function updateYoloTelemetry(previous:YoloTelemetry,event:YoloTelemetryEv
  if(!Number.isSafeInteger(incoming.frameNumber)||incoming.frameNumber<1||
   !Number.isFinite(incoming.capturedAtMs)||!Number.isFinite(incoming.inferenceMs)||
   incoming.inferenceMs<0||
+  (incoming.source!==undefined&&!validYoloFrameSource(incoming.source))||
   (incoming.completedAtMs!==undefined&&
    (!Number.isFinite(incoming.completedAtMs)||incoming.completedAtMs<incoming.capturedAtMs)))
   return previous;

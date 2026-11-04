@@ -130,3 +130,20 @@ motor puede detenerse y ofrecer reanudación.
 sin asignar a `main`, para no activar Vercel. Se deben ejecutar la
 batería TypeScript, la compilación y la prueba Chromium con el nuevo
 paquete antes de considerar la fase aprobada. Avance oficial 50 %.
+
+## Incremento 6: trazabilidad del origen 3D en el historial
+
+Cada lectura nueva incorpora `source` con escenario, instante de
+la animación, calidad visual y cámara de la captura. El componente
+capturador conserva ese contexto al fallar y reintentar **el mismo**
+frame. Las sesiones guardadas usan esa procedencia y no la posición
+de la simulación al pulsar Guardar; la huella reproducible continúa
+calculándose a partir de la versión y tiempo de escena asociados a
+la detección. No se almacena imagen, archivo ni dataset.
+Una lectura con origen de escenario diferente se rechaza, y se
+mantiene compatibilidad con lecturas históricas sin este campo.
+Las pruebas cubren las cuatro instalaciones y un cambio de cámara,
+modo de representación y tiempo después de la captura.
+
+**Estado:** incremento en commit preparado fuera de main, pendiente
+de ejecución integral de TypeScript/Chromium; fase 9 no aprobada.

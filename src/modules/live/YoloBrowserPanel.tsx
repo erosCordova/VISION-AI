@@ -5,7 +5,8 @@ import type {YoloFrame,YoloFamily} from './yolo-browser';
 import {ppeColor,ppeFindings} from './ppe-model';
 import {MIN_RAW_YOLO_CONFIDENCE,filterDetectionsForDisplay,classesInDetections} from './detection-filter';
 import type {ScenarioKey} from './simulation-engine';
-import type {YoloTelemetryEvent} from './yolo-telemetry';
+import {validYoloFrameSource} from './yolo-telemetry';
+import type {YoloTelemetryEvent,YoloFrameSource} from './yolo-telemetry';
 import {FrameAnalysisCycle,frameBoxPixels} from './frame-analysis-cycle';
 import {captureWaitMs,shouldPauseCapture} from './inference-scheduler';
 import type {CapturePace} from './inference-scheduler';
@@ -14,6 +15,7 @@ type Model=Awaited<ReturnType<typeof loadYoloBrowser>>;
 type Phase='idle'|'loading'|'running'|'retrying'|'stopped'|'failed';
 interface Props {
  readonly getSource:()=>HTMLCanvasElement|null;
+ readonly getFrameSource:()=>YoloFrameSource;
  readonly scenarioName:string;
  readonly scenarioId:ScenarioKey;
  readonly paused:boolean;
@@ -46,7 +48,7 @@ const explainError=(error:unknown)=>{
  const info=error instanceof Error?error.message:String(error);
  return info.length>230?info.slice(0,230)+'…':info;
 };
-export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTelemetry}:Props){
+export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenarioId,paused,onTelemetry}:Props){
  const [phase,setPhase]=useState<Phase>('idle');
  const [message,setMessage]=useState('El modelo solo se descarga cuando presionas Iniciar YOLO.');
  const [confidence,setConfidence]=useState(.35);
@@ -65,6 +67,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
  const startLocked=useRef(false);
  const cycle=useRef(new FrameAnalysisCycle());
  const failedCanvas=useRef<HTMLCanvasElement|null>(null);
+ const failedSource=useRef<YoloFrameSource|null>(null);
  const [lastRun,setLastRun]=useState<FrameAnalysisOutcome|null>(null);
  const times=useRef<number[]>([]);
  const [error,setError]=useState('');
@@ -72,7 +75,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   if(startLocked.current||phase==='loading'||phase==='running'||phase==='retrying')return;
   startLocked.current=true;
   const token=++generation.current;
-  cycle.current.reset();failedCanvas.current=null;setLastRun(null);
+  cycle.current.reset();failedCanvas.current=null;failedSource.current=null;setLastRun(null);
   setPhase('loading');setError('');
   onTelemetry({type:'status',phase:'loading',model:family});
   setMessage('Preparando el motor de inferencia…');
@@ -99,14 +102,14 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   }
  },[phase,model,family,onTelemetry]);
  const stop=useCallback(()=>{
-  generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;
+  generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;failedSource.current=null;
   setPhase('stopped');
   onTelemetry({type:'status',phase:'stopped',model:family});
   setMessage('Inferencia detenida. No se están procesando más fotogramas.');
  },[onTelemetry,family]);
  function selectFamily(next:YoloFamily){
   if(next===family)return;
-  generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;setLastRun(null);
+  generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;failedSource.current=null;setLastRun(null);
   setPhase('idle');setModel(null);setFamily(next);
   onTelemetry({type:'status',phase:'idle',model:next});
   lastAnalyzed.current=null;
@@ -127,6 +130,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
     const begin=performance.now();
     let job:FrameAnalysisAttempt|null=null;
     let frame:HTMLCanvasElement|null=null;
+    let frameSource:YoloFrameSource|null=null;
     try{
      const source=getSource();
      if(!source||source.width<2||source.height<2){
@@ -134,6 +138,9 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
       await delay(350);continue;
      }
      frame=captureRenderedFrame(source);
+     frameSource=getFrameSource();
+     if(frameSource.scenarioId!==scenarioId||!validYoloFrameSource(frameSource))
+      throw Error('Estado de captura de la simulación inválido.');
      const captureAt=Date.now();
      job=cycle.current.begin(scenarioId,model.family,frame.width,frame.height,captureAt);
      if(!job){await delay(120);continue;}
@@ -142,7 +149,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
      if(cancelled||generation.current!==token){cycle.current.discard(job);return;}
      const accepted=cycle.current.complete(job,result.detections,Date.now());
      if(!accepted)return;
-     setLastRun(accepted);failedCanvas.current=null;
+     setLastRun(accepted);failedCanvas.current=null;failedSource.current=null;
      lastAnalyzed.current=result;
      setDetections(result.detections);
      setInferenceMs(result.inferenceMs);
@@ -151,7 +158,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
      setLastFrameAt(capturedAtMs);
      onTelemetry({type:'frame',observation:{frameNumber:job.frameId,
        capturedAtMs,completedAtMs,inferenceMs:result.inferenceMs,detections:result.detections,
-       model:model.family}});
+       model:model.family,source:frameSource??undefined}});
      const now=performance.now();
      times.current=[...times.current.filter(t=>t>now-10_000),now].slice(-20);
      const stamps=times.current;
@@ -170,6 +177,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
       const failed=cycle.current.fail(job,e,Date.now());
       if(failed)setLastRun(failed);
       failedCanvas.current=frame;
+      failedSource.current=frameSource;
      }
      startLocked.current=false;
      setPhase('failed');setError(explainError(e));
@@ -183,9 +191,9 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
   };
   void loop();
   return ()=>{cancelled=true;};
- },[phase,model,getSource,paused,family,onTelemetry,scenarioId,capturePace]);
+ },[phase,model,getSource,getFrameSource,paused,family,onTelemetry,scenarioId,capturePace]);
  useEffect(()=>{onTelemetry({type:'status',phase:'idle',model:family});
-  return ()=>{generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;};
+  return ()=>{generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;failedSource.current=null;};
   // One status reset per mounted detector instance; state changes send events explicitly.
  },[onTelemetry]);
  const visibleDetections=useMemo(()=>filterDetectionsForDisplay(detections,{
@@ -198,7 +206,8 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
  },[visibleDetections,family]);
  async function retryFailedFrame(){
   const previous=failedCanvas.current;
-  if(phase!=='failed'||!model||!previous)return;
+  const previousSource=failedSource.current;
+  if(phase!=='failed'||!model||!previous||!previousSource)return;
   const job=cycle.current.retry(Date.now());
   if(!job)return;
   const token=generation.current;
@@ -210,7 +219,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
    if(generation.current!==token){cycle.current.discard(job);return;}
    const accepted=cycle.current.complete(job,result.detections,Date.now());
    if(!accepted)return;
-   setLastRun(accepted);failedCanvas.current=null;
+   setLastRun(accepted);failedCanvas.current=null;failedSource.current=null;
    lastAnalyzed.current=result;
    setDetections(result.detections);setInferenceMs(result.inferenceMs);
    const capturedAtMs=job.capturedAtMs;
@@ -219,7 +228,8 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTel
    onTelemetry({type:'status',phase:'running',model:family});
    onTelemetry({type:'frame',observation:{
     frameNumber:job.frameId,capturedAtMs,completedAtMs,
-    inferenceMs:result.inferenceMs,detections:result.detections,model:family
+    inferenceMs:result.inferenceMs,detections:result.detections,model:family,
+    source:previousSource
    }});
    onTelemetry({type:'status',phase:'stopped',model:family});
    setSampleCount(count=>count+1);

@@ -5,7 +5,7 @@ import { SimulationAnalytics } from './SimulationAnalytics';
 import { YoloBrowserPanel } from './YoloBrowserPanel';
 import { YoloMonitor } from './YoloMonitor';
 import { INITIAL_YOLO_TELEMETRY,updateYoloTelemetry } from './yolo-telemetry';
-import type {YoloTelemetry,YoloTelemetryEvent} from './yolo-telemetry';
+import type {YoloTelemetry,YoloTelemetryEvent,YoloFrameSource} from './yolo-telemetry';
 import type { IndustrialSceneHandle,LayerName } from './IndustrialScene3D';
 import { simulationSnapshot } from './simulation-engine';
 import type { ScenarioKey } from './simulation-engine';
@@ -58,6 +58,10 @@ export function InteractiveSimulator({scenarioId,onScenarioChange,sessionReposit
  const frameRef=useRef({previous:0});
  const sceneRef=useRef<IndustrialSceneHandle>(null);
  const getRenderedSource=useCallback(()=>sceneRef.current?.rawCanvas()??null,[]);
+ // Evita reiniciar ONNX cuando el reloj de la simulación avanza cada 75 ms.
+ const sceneCapture=useRef<YoloFrameSource>({scenarioId,elapsedMs:0,graphics,camera:view});
+ sceneCapture.current={scenarioId,elapsedMs:Math.round(elapsed*1000),graphics,camera:view};
+ const getFrameSource=useCallback(()=>({...sceneCapture.current}),[]);
  const shellRef=useRef<HTMLElement>(null);
  const config=SCENES.find(item=>item.id===scenarioId)??SCENES[0];
  useEffect(()=>{
@@ -209,7 +213,8 @@ export function InteractiveSimulator({scenarioId,onScenarioChange,sessionReposit
        </div>
      </div>
      {analysisMode==='yolo'&&<YoloBrowserPanel key={scenarioId+'-'+graphics}
-       getSource={getRenderedSource} scenarioName={config.name} scenarioId={scenarioId}
+       getSource={getRenderedSource} getFrameSource={getFrameSource}
+       scenarioName={config.name} scenarioId={scenarioId}
        paused={paused} onTelemetry={onYoloTelemetry}/>}
      {analysisMode==='synthetic'&&<div className={'simulator-event '+(snapshot.alert?'is-alert':'')} role="status">
        <span className="simulator-event-dot"/>
