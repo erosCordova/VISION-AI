@@ -414,7 +414,8 @@ try {
              +'URL.createObjectURL=function(blob){captured=blob;return "blob:qa-report-test";};'
              +'HTMLAnchorElement.prototype.click=function(){};'
              +'try{button.click();return captured?'
-             +'{type:captured.type,text:await captured.text(),bytes:captured.size}:'
+             +'{type:captured.type,text:await captured.text(),bytes:captured.size,'
+             +'prefix:Array.from(new Uint8Array(await captured.arrayBuffer()).slice(0,3))}:'
              +'{error:"No se creó Blob"};'
              +'}finally{URL.createObjectURL=original;HTMLAnchorElement.prototype.click=origClick;}'
              +'})()',
@@ -424,12 +425,16 @@ try {
         };
         const sessionCsv=await exportCapture('Exportar sesiones CSV');
         const detectedCsv=await exportCapture('Exportar detecciones CSV');
-        if(!sessionCsv?.text?.startsWith('\uFEFF')||
+        if(sessionCsv?.prefix?.join(',')!=='239,187,191'||
           !sessionCsv.text.includes('qa-review-session')||
           !detectedCsv?.text?.includes('qa-person')||
           detectedCsv.text.includes('Datos sintéticos')||
           sessionCsv.text.split('\r\n').filter(Boolean).length!==3)
-          throw Error('EX02: CSV no refleja dos registros persistentes con detección YOLO');
+          throw Error('EX02: CSV no refleja dos registros persistentes con detección YOLO: '+
+            JSON.stringify({bom:sessionCsv?.prefix,sessionRows:sessionCsv?.text?.split('\r\n').filter(Boolean).length,
+             sessionId:sessionCsv?.text?.includes('qa-review-session'),
+             detections:detectedCsv?.text?.includes('qa-person'),
+             size:sessionCsv?.bytes,output:sessionCsv?.text?.slice(0,200)}));
         const jsonAudit=await exportCapture('Exportar auditoría JSON');
         const exportAuditPayload=JSON.parse(jsonAudit?.text??'null');
         if(exportAuditPayload?.source!=='indexeddb-local'||exportAuditPayload.sessions.length!==2||
