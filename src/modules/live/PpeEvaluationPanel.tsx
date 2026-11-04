@@ -9,7 +9,6 @@ import {PPE_MODEL} from './ppe-model';
 
 interface Props {readonly disabled:boolean}
 type Phase='idle'|'preparing'|'evaluating'|'complete'|'stopped'|'error';
-const scalar=(value:number)=>Number.isFinite(value)?value.toFixed(1):'—';
 function download(name:string,text:string,type:string){
  const blob=new Blob([text],{type});
  const url=URL.createObjectURL(blob);
