@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { IndustrialScene3D } from './IndustrialScene3D';
+import { SimulationAnalytics } from './SimulationAnalytics';
 import type { IndustrialSceneHandle,LayerName } from './IndustrialScene3D';
 import { simulationSnapshot } from './simulation-engine';
 import type { ScenarioKey } from './simulation-engine';
@@ -37,7 +38,6 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
  const [view,setView]=useState<CameraView>('isometric');
  const [renderFps,setRenderFps]=useState(0);
  const [captureError,setCaptureError]=useState('');
- const [recording,setRecording]=useState(false);
  const frameRef=useRef({previous:0});
  const sceneRef=useRef<IndustrialSceneHandle>(null);
  const shellRef=useRef<HTMLElement>(null);
@@ -55,17 +55,10 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
  },[paused,speed]);
  const snapshot=useMemo(()=>simulationSnapshot(scenarioId,elapsed),[scenarioId,elapsed]);
  const filterCount=snapshot.entities.filter(entity=>entity.score>=threshold).length;
- const trend=useMemo(()=>Array.from({length:45},(_,index)=>{
-  const time=Math.max(0,elapsed-(44-index)*.6);
-  return simulationSnapshot(scenarioId,time).count;
- }),[scenarioId,elapsed]);
- const trendMax=Math.max(3,...trend);
- const svgPoints=trend.map((value,index)=>
-  String(index*(310/(trend.length-1)))+','+String(53-(value/trendMax)*43)).join(' ');
  function changeScenario(id:ScenarioKey){
   onScenarioChange(id);setElapsed(0);setPaused(false);
   setView('isometric');sceneRef.current?.resetCamera();
-  setCaptureError('');setRecording(false);
+  setCaptureError('');
  }
  function toggle(layer:LayerName){
   setLayers(prev=>({...prev,[layer]:!prev[layer]}));
@@ -90,19 +83,14 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
    else await node.requestFullscreen();
   }catch{setCaptureError('El navegador no permitió activar pantalla completa.');}
  }
- function restart(){setElapsed(0);setPaused(false);setRecording(false);}
- const eventLog=[
-  {time:Math.max(0,elapsed-1),label:snapshot.event,alarm:snapshot.alert},
-  {time:Math.max(0,elapsed-6.1),label:'Objetos sintéticos actualizados según el movimiento de escena',alarm:false},
-  {time:Math.max(0,elapsed-13.8),label:'Geometría, zonas y cámara del escenario cargadas',alarm:false}
- ];
- return <section className="simulator-shell simulator-v2" ref={shellRef}
+ function restart(){setElapsed(0);setPaused(false);}
+ return <section className="simulator-shell simulator-v2 simulator-v3" ref={shellRef}
    aria-label="Laboratorio tridimensional de simulaciones industriales">
    <div className="simulator-topline">
     <div>
      <span className="simulator-overline">VISION-AI / LABORATORIO INDUSTRIAL</span>
-     <h2>Centro de simulación 3D</h2>
-     <p>Instalaciones tridimensionales, objetos móviles, cámaras y eventos por escenario.</p>
+     <h2>Simulación industrial 3D <span className="simulator-pro-label">PRO</span></h2>
+     <p>Un gemelo digital experimental con rutas autónomas, supervisión de zonas y analítica contextual.</p>
     </div>
     <span className="simulator-mode"><span className="simulator-signal"/> ESCENA SINTÉTICA · NO YOLO</span>
    </div>
@@ -112,7 +100,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
    </nav>
    <div className="simulator-3d-summary" aria-label="Estado de la simulación">
      <div><span>ESCENARIO ACTIVO</span><strong>{config.name}</strong></div>
-     <div><span>MOTOR GRÁFICO</span><strong>WebGL2 / 3D</strong></div>
+     <div><span>TIPO DE MOVIMIENTO</span><strong>Rutas múltiples</strong></div>
      <div><span>RENDERIZADO</span><strong>{renderFps||'—'} FPS <small>visuales</small></strong></div>
      <div><span>OBJETOS ANOTADOS</span><strong>{filterCount.toString().padStart(2,'0')}</strong></div>
      <div><span>ESTADO</span><strong className={snapshot.alert?'sim-status-alert':'sim-status-normal'}>
@@ -173,7 +161,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
      <span className="simulator-kicker">SISTEMA DE SUPERVISIÓN</span>
      <div className="simulator-control-section">
        <span className="simulator-control-label">Estado del sistema</span>
-       <strong>{paused?'Simulación pausada':'Instalación digital operativa'}</strong>
+       <strong>{paused?'Simulación pausada':'Rutas autónomas en ejecución'}</strong>
        <p>La escena se calcula geométricamente en tu dispositivo; los objetos no son detecciones de IA real.</p>
        <div className="simulator-health"><span>Motor WebGL2</span><b>ACTIVO</b></div>
        <div className="simulator-health"><span>Escenario digital</span><b>{snapshot.entities.length} objetos</b></div>
@@ -205,36 +193,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
         onClick={()=>setSpeed(n)}>{n}×</button>)}
       </div>
      </div>
-     <div className="simulator-control-section">
-      <span className="simulator-control-label">Lecturas gráficas de referencia</span>
-      {snapshot.palette.map(p=><div className="simulator-class-bar" key={p.label}>
-        <div><span>{p.label}</span><small>{Math.round(p.score*100)}%* </small></div>
-        <div className="simulator-track"><div style={{width:Math.round(p.score*100)+'%',background:p.color}}/></div>
-       </div>)}
-      <p>*Porcentajes creados por la simulación, no salidas YOLO.</p>
-     </div>
-     <div className="simulator-control-section simulator-trend">
-      <div className="simulator-inline"><span className="simulator-control-label">{snapshot.metricLabel}</span><strong>{snapshot.count}</strong></div>
-      <svg viewBox="0 0 310 60" preserveAspectRatio="none"
-       role="img" aria-label="Historial de conteos sintéticos en la simulación">
-       {[17,36,55].map(y=><path key={y} d={'M0 '+y+' H310'} stroke="#43605d" strokeOpacity=".58" strokeDasharray="3 5"/>)}
-       <polyline fill="none" stroke="#61e6bd" strokeWidth="2.5" strokeLinejoin="round"
-        strokeLinecap="round" points={svgPoints}/>
-      </svg>
-      <small>Gráfico ilustrativo creado por el motor de simulación.</small>
-     </div>
-     <div className="simulator-control-section simulator-events">
-      <span className="simulator-control-label">Registro de eventos sintéticos</span>
-      {eventLog.map((entry,index)=><div key={index} className="simulator-event-item">
-       <span className={entry.alarm?'simulator-event-light danger':'simulator-event-light'}/>
-       <div><small>{secondsText(entry.time)}</small><p>{entry.label}</p></div>
-      </div>)}
-      <button type="button" className="simulator-alert-toggle"
-       aria-pressed={recording} onClick={()=>setRecording(value=>!value)}>
-        {recording?'Visualización de eventos ampliada':'Resaltar registro de eventos'}
-      </button>
-      {recording&&<p className="simulator-events-note">Estos eventos son generados a partir de posiciones sintéticas; no son alertas certificadas.</p>}
-     </div>
+     <SimulationAnalytics snapshot={snapshot} elapsed={elapsed} fps={renderFps}/>
     </aside>
    </div>
    <div className="simulator-footnote">

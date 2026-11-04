@@ -74,3 +74,10 @@ Se implementa una escena digital SVG animada y autocontenida en «Análisis en v
 Se sustituye la escena 2D por un escenario tridimensional con mallas procedurales, luces por normales, perspectiva y profundidad de WebGL2, cámara orbital controlable, vistas isométrica/frontal/superior y decorado industrial específico para los cuatro sectores. Se incorporan controles de pausa, velocidad, línea de tiempo, cámara, captura PNG, capas y registro de eventos. El motor de geometría y sus eventos son sintéticos y no se presentan como inferencia real.
 
 Se conserva la aplicación Vercel Hobby y la API de estado en Render Free, sin costes de servidor de GPU. Las pruebas de geometría 3D y QA responsive verifican los componentes disponibles; la calidad visual y WebGL2 hardware requieren validación en distintos dispositivos. **No declarar Fase 6 cerrada ni variar el 31.25 %** sin completar sus criterios.
+
+
+## Noveno incremento de Fase 6 — movimiento multidireccional y analítica V3
+
+Se implementa un planificador de trayectorias interconectadas, con decisiones pseudoaleatorias reproducibles, velocidad por tramo, inspecciones, pausas, repulsión de proximidad y rumbo propio para cada entidad. El renderizador gira los modelos 3D y anima marcha y brazos en función del movimiento; el montacargas cambia dirección visualmente. Los cuatro escenarios tienen comportamientos diferenciados y sus alertas se derivan de posiciones sintéticas.
+
+Panel analítico renovado con tarjetas KPI, curva de actividad operacional, minimapa de actores y bitácora derivada del estado, con etiquetado sintético visible y sin confusión con inferencia YOLO. Se agregan pruebas puras de trayectoria y métricas y QA responsive del panel. No se ha modificado Render Free ni añadido ningún coste de GPU, y el avance sigue en 31.25 % hasta el cierre de fase 6.

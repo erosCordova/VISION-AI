@@ -125,7 +125,11 @@ try {
           + 'hasCameraPresets: document.querySelectorAll(".simulator-view-group button").length === 3, '
           + 'hasSyntheticDisclosure: !!document.querySelector(".simulator-footnote"), '
           + 'hasSyntheticLabel: !!document.querySelector(".simulator-mode"), '
-          + 'hasScenarioTabs: document.querySelectorAll(".simulator-scenarios button").length === 4 }; '
+          + 'hasScenarioTabs: document.querySelectorAll(".simulator-scenarios button").length === 4, '
+          + 'hasAnalytics: !!document.querySelector(".sim-analytics"), '
+          + 'hasActivityChart: !!document.querySelector(".sim-analytics-activity svg"), '
+          + 'hasMiniMap: !!document.querySelector(".sim-analytics-map svg"), '
+          + 'hasKPIs: document.querySelectorAll(".sim-analytics-kpis .sim-kpi").length === 3 }; '
           + '})()';
         const response = await cdp.send('Runtime.evaluate', { expression, returnByValue: true });
         return response.result?.value ?? null;
@@ -133,7 +137,7 @@ try {
       if (view.viewport !== width || view.pageWidth > width + 1
           || view.elementLeft < -1 || view.elementLeft + view.elementWidth > width + 1
           || !view.hasFocusableMain || !view.hasSkip || !view.hasText
-          || (name === 'analisis' && (!view.hasSimulationModes || !view.hasSimulatorStage || !view.hasSimulatorControls || !view.hasCameraPresets || !view.hasSyntheticDisclosure || !view.hasSyntheticLabel || !view.hasScenarioTabs))) {
+          || (name === 'analisis' && (!view.hasSimulationModes || !view.hasSimulatorStage || !view.hasSimulatorControls || !view.hasCameraPresets || !view.hasSyntheticDisclosure || !view.hasSyntheticLabel || !view.hasScenarioTabs || !view.hasAnalytics || !view.hasActivityChart || !view.hasMiniMap || !view.hasKPIs))) {
         throw Error('QA falló (' + width + ' px, ' + name + '): ' + JSON.stringify(view));
       }
       const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });

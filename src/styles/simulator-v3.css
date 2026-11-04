@@ -1,0 +1,94 @@
+/* Consola V3: analítica geométrica y jerarquía visual empresarial. */
+.simulator-v3{border:1px solid #2a4a58;background:#0a1e2b;box-shadow:0 24px 70px rgba(6,26,38,.26)}
+.simulator-v3 .simulator-topline{background:
+ radial-gradient(circle at 74% -40%,rgba(29,189,159,.21),transparent 46%),
+ linear-gradient(115deg,#112d3d,#102736 57%,#0a2833)}
+.simulator-pro-label{display:inline-flex;vertical-align:middle;align-items:center;
+ font:800 10px/1 "DM Sans",sans-serif;letter-spacing:1.5px;color:#091e24;
+ background:linear-gradient(125deg,#83edd1,#3ccfad);border-radius:5px;padding:7px 9px;margin-left:8px}
+.simulator-v3 .simulator-3d-summary{background:#102d3a}
+.simulator-v3 .simulator-3d-summary>div{border-color:#284856}
+.simulator-v3 .simulator-canvas-wrap{border-color:#416873;box-shadow:0 18px 50px #04121fa1}
+.simulator-v3 .simulator-visual{background:linear-gradient(155deg,#0c2430,#091c29)}
+.simulator-v3 .simulator-controls{background:#112b39;border-color:#2a5260}
+.simulator-v3 .simulator-control-label{color:#a8ccc4}
+.simulator-v3 .simulator-control-section{border-bottom-color:#2f5360}
+.simulator-v3 .simulator-visual-head h3{letter-spacing:-.35px}
+.sim-analytics{display:grid;gap:14px;min-width:0}
+.sim-analytics-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;padding:4px 0 5px}
+.sim-analytics-eyebrow{display:block;color:#72cbb7;font-size:9px;font-weight:800;letter-spacing:1.5px}
+.sim-analytics-head h3{font:800 17px/1.3 "Manrope","DM Sans",sans-serif;color:#f0fff7;margin:7px 0 0;letter-spacing:-.4px}
+.sim-analytics-synthetic{font:800 9px/1.3 "DM Sans",sans-serif;color:#f4c891;
+ background:#47362a;border:1px solid #8e663e;padding:7px 10px;border-radius:5px;letter-spacing:.55px}
+.sim-analytics-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.sim-kpi{display:flex;flex-direction:column;justify-content:space-between;min-width:0;min-height:100px;
+ padding:13px 10px 11px;background:linear-gradient(160deg,#193c49,#102d3b);
+ border:1px solid #3a5b68;border-radius:9px}
+.sim-kpi-featured{border-color:#418978;background:linear-gradient(142deg,#175447,#123e3f)}
+.sim-kpi-alert{background:linear-gradient(145deg,#5a3631,#362a30);border-color:#b36d58}
+.sim-kpi>span:first-child{font-size:9px;font-weight:700;color:#a8c6c8;line-height:1.35;min-height:25px}
+.sim-kpi strong{color:#ecfff5;font:800 27px/.95 "Manrope",sans-serif;font-variant-numeric:tabular-nums;
+ letter-spacing:-1px;margin:9px 0}
+.sim-kpi strong small{font:700 11px "DM Sans",sans-serif;color:#98c8b9}
+.sim-kpi-tiny{color:#79d8bd;font-size:9px;line-height:1.35}
+.sim-kpi-alert .sim-kpi-tiny{color:#ffbf99}
+.sim-analytics-activity,.sim-analytics-map,.sim-analytics-class,.sim-analytics-events{
+ border:1px solid #325463;border-radius:10px;padding:16px 14px;
+ background:linear-gradient(150deg,#163545,#102b39);min-width:0}
+.sim-analytics-section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:11px;margin-bottom:10px}
+.sim-analytics-section-head h4{color:#e8f7f3;font:800 12px/1.35 "Manrope","DM Sans",sans-serif;margin:0}
+.sim-analytics-section-head p{color:#8eacb6;font-size:10px;line-height:1.4;margin:5px 0 0}
+.sim-analytics-value{font:800 25px/.9 "Manrope",sans-serif;color:#7cf8d0;font-variant-numeric:tabular-nums}
+.sim-analytics-value small{font-size:10px;color:#86b7b8;margin-left:3px}
+.sim-analytics-activity svg{display:block;width:100%;height:132px}
+.sim-activity-axis{display:flex;justify-content:space-between;color:#7399a4;font:700 9px "DM Sans",sans-serif;letter-spacing:.5px;margin-top:-5px}
+.sim-analytics-map svg{display:block;width:100%;height:auto;aspect-ratio:480/260;border-radius:7px}
+.sim-map-live{color:#83eac4;font:800 8px "DM Sans",sans-serif;white-space:nowrap;letter-spacing:.6px}
+.sim-map-legend{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}
+.sim-map-legend span{color:#a9c3c6;font-size:9px;display:flex;align-items:center;gap:6px}
+.sim-map-legend i{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.sim-legend-person{background:#69eaca}.sim-legend-forklift{background:#ffca82}
+.sim-map-legend i.sim-legend-zone{border-radius:0;background:transparent;border:1.5px dashed #61d8c4}
+.sim-analytic-class-row{display:grid;grid-template-columns:9px minmax(58px,1.1fr) minmax(40px,1fr) 38px;
+ gap:9px;align-items:center;margin:13px 0}
+.sim-analytic-class-row>span:nth-child(2){font-size:11px;color:#d2e8e1;font-weight:700;min-width:0;overflow-wrap:anywhere}
+.sim-class-dot{width:8px;height:8px;border-radius:2px}
+.sim-class-gauge{height:5px;background:#315260;border-radius:7px;overflow:hidden}
+.sim-class-gauge i{height:100%;display:block;border-radius:7px}
+.sim-analytic-class-row small{text-align:right;font-size:10px;color:#a1c3be;font-weight:700}
+.sim-analytics-eventcount{font-size:9px;color:#8de6d2;white-space:nowrap}
+.v2-events-list{border-left:1px solid #41606c;margin-left:7px;padding:1px 0 0}
+.v2-event-row{display:flex;gap:13px;margin:0 0 14px 0;min-width:0;position:relative;padding-left:15px}
+.v2-event-row:last-child{margin-bottom:0}
+.v2-event-marker{position:absolute;left:-5px;top:6px;width:9px;height:9px;
+ border-radius:50%;background:#75e7c7;border:2px solid #153644;box-sizing:border-box}
+.v2-event-marker.is-critical{background:#ffa27c}
+.v2-event-time{font:800 10px "DM Sans",sans-serif;color:#73d9b9}
+.v2-event-row p{margin:4px 0 0;color:#afc9c9;font-size:10px;line-height:1.55;overflow-wrap:anywhere}
+.sim-analytics-note{color:#8dafb4!important;font-size:10px!important;line-height:1.6!important;margin:2px 0 4px!important}
+.simulator-v3 .simulator-scenarios button:hover{border-color:#55998a}
+.simulator-v3 .simulator-speed button[aria-pressed=true]{background:#2c725f;border-color:#5cdfb2}
+@media(max-width:1180px){
+ .simulator-v3 .simulator-content{grid-template-columns:minmax(0,1.5fr) minmax(295px,1fr)}
+}
+@media(max-width:1040px){
+ .simulator-v3 .simulator-content{grid-template-columns:1fr}
+ .simulator-v3 .simulator-controls{display:block}
+ .sim-analytics{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+ .sim-analytics-head,.sim-analytics-kpis,.sim-analytics-note{grid-column:1/-1}
+ .sim-analytics-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:690px){
+ .sim-analytics{grid-template-columns:1fr}
+ .sim-analytics-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .sim-kpi{min-height:100px;padding:10px 8px}
+ .sim-kpi strong{font-size:23px}
+ .sim-kpi>span:first-child{font-size:9px}
+ .sim-analytics-activity,.sim-analytics-map,.sim-analytics-class,.sim-analytics-events{padding:14px 13px}
+ .simulator-pro-label{font-size:8px;padding:6px 7px}
+}
+@media(max-width:380px){
+ .sim-analytics-kpis{gap:4px}
+ .sim-kpi{padding:9px 6px}
+ .sim-kpi strong{font-size:20px}
+}

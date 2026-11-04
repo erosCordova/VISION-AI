@@ -55,3 +55,17 @@ Las otras modalidades «Video con YOLO» y «Cámara con YOLO» conservan su con
 ## Despliegue
 
 El repositorio se mantiene en rama \`main\`; Vercel Hobby publica frontend y sirve WebGL2. Render Free permanece para la API ligera de estado. No se necesita otro servicio o plan de pago para las escenas 3D. No se altera el avance administrativo 31.25 %, dado que aún falta validar el cierre de Fase 6.
+
+
+## Simulador 3D Pro — segunda revisión (navegación y supervisión)
+
+Se eliminan desplazamientos basados en seno/coseno para peatones y montacargas. El motor de rutas `motion-planner.ts` utiliza nodos interconectados con decisiones de destino reproducibles, velocidades variables, interpolación suave, tiempos de espera y estados de inspección/transporte. Cada objeto tiene trayectoria independiente y orientación angular; los modelos 3D giran en el eje vertical de acuerdo con el rumbo. Se introduce separación espacial suave entre peatones próximos y entre operarios y montacargas. **No se trata de física certificada, simulación de multitudes validada ni sistema de prevención real**.
+
+- Seguridad: los tres operarios recorren varios puestos, se detienen y atraviesan distintas áreas. La alerta depende de la ubicación geométrica del operario sin casco.
+- Logística: montacargas gira, espera junto a zonas de carga, mientras dos operarios siguen sus propias rutas. Los pallets continúan en sus posiciones de almacenamiento.
+- Retail: cinco visitantes circulan por rutas de pasillos con paradas y salidas de zonas; el indicador de conteo se recalcula con las posiciones.
+- Manufactura: las piezas continúan la cinta con tiempos de detención en la estación de inspección, mientras un operario inspecciona varias posiciones.
+
+Se incorpora `SimulationAnalytics.tsx`: tres KPI legibles, tendencia temporal de actividad sintética, minimapa cenital con rumbo de cada actor y bitácora de cambios de estado. La métrica **índice de actividad 0–100** se deriva de agentes desplazándose, conteos y alertas; no representa confianza de YOLO ni precisión de un detector. Los eventos de la bitácora se obtienen de cambios reales del estado sintético, no de textos de ejemplo con marcas horarias inventadas.
+
+La navegación sigue determinada por tiempo y es reproducible al pausar o mover el control temporal. El sistema conserva GPU local WebGL2, Vercel Hobby y API ligera en Render Free. Se amplían pruebas de orientación, continuidad temporal, no repetición corta y QA responsive para el minimapa/gráfico/KPIs. Las capacidades visuales deben revisarse con navegador acelerado para dar por cerrada la fase 6.

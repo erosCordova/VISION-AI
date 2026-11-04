@@ -85,3 +85,12 @@ En Seguridad se representan trabajadores con casco/chaleco y áreas restringidas
 UI: selección de cámara isométrica/frontal/superior, giro por arrastre y teclado, zoom por rueda o botones, línea de tiempo navegable, velocidades 0.5× a 4×, reproducción, pausa, reinicio, pantalla completa, filtros de anotación, máscaras visuales esquemáticas, registro y exportación PNG. Pruebas puras de cámara, proyección y mallas 3D; QA responsive verifica el lienzo y controles de los escenarios. La disponibilidad real de WebGL2 depende del dispositivo.
 
 **Separación de dominios:** la vista 3D se denomina simulación sintética, no inferencia YOLO. El backend Render Free sigue sin PyTorch y sin procesamiento visual. Se mantiene la fase abierta hasta validación física y accesibilidad completa.
+
+
+## Noveno incremento — mejoras de realismo operacional de la simulación 3D
+
+Solicitud: hacer profesional la visualización, superar las trayectorias repetitivas y lograr movimientos en múltiples direcciones. Se añade motor determinista de rutas dirigidas con transiciones entre puntos, semilla por agente, espera, inspección, aceleración/desaceleración, orientación y repulsión de proximidad. Los modelos volumétricos rotan según rumbo; la marcha y los giros se dibujan sobre el escenario existente.
+
+Se reemplazan barras y gráfico simples por consola de supervisión con KPI compactos, actividad sintética temporal, minimapa real de la maqueta y bitácora de transiciones calculadas. Se mantienen explícitamente las etiquetas de simulación y la separación con los modos YOLO.
+
+Pruebas: nuevas suites del planificador y del panel. QA Chromium extiende la verificación a mapa, gráfica y tarjetas a 360, 768 y 1440 px. La compilación y publicación deben comprobarse con sus run IDs respectivos; pruebas automáticas no acreditan fidelidad visual ni procesamiento YOLO real.

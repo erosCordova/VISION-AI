@@ -58,3 +58,8 @@ En **Análisis en vivo → Simulador interactivo** aparecen los cuatro escenario
 Las puntuaciones, escenas y alertas del simulador siguen siendo **datos sintéticos** y están rotulados como tales. Las otras dos modalidades son **Video con YOLO** y **Cámara con YOLO**, que no pretenden inferencia disponible en Render Free.
 
 Ver [manual técnico del laboratorio 3D](docs/simulacion_interactiva_3d.md).
+
+
+## Simulador 3D Pro (movimiento no cíclico)
+
+El modo de simulación usa rutas multidirigidas, paradas de inspección, comportamiento por escenario y orientaciones 3D. Incluye dashboard con KPI sintéticos, un gráfico de actividad y minimapa actualizados a partir de los estados de la escena. No representa YOLO real. Consulta [documentación de simulación 3D](docs/simulacion_interactiva_3d.md).

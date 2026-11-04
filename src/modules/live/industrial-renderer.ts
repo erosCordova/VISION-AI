@@ -13,9 +13,21 @@ type Face=[Vec3,Vec3,Vec3,Vec3,Vec3];
 /** Una sola malla dinámica batched evita cientos de draw calls por fotograma. */
 export class SceneBuilder {
  private vertices:number[]=[];
+ private orientation:{x:number;z:number;cos:number;sin:number}|null=null;
  get triangleCount():number{return this.vertices.length/27;}
+ /** Rotación en Y alrededor de los pies: permite que el vehículo gire y la persona cambie de dirección. */
+ orientAround(x:number,z:number,heading:number,draw:()=>void):void {
+  const previous=this.orientation;
+  this.orientation={x,z,cos:Math.cos(heading),sin:Math.sin(heading)};
+  try{draw();}finally{this.orientation=previous;}
+ }
  private vertex(p:Vec3,n:Vec3,c:Color){
-  this.vertices.push(...p,...n,...c);
+  const r=this.orientation;
+  if(!r){this.vertices.push(...p,...n,...c);return;}
+  const dx=p[0]-r.x,dz=p[2]-r.z;
+  const point:Vec3=[r.x+dx*r.cos+dz*r.sin,p[1],r.z-dx*r.sin+dz*r.cos];
+  const normal:Vec3=[n[0]*r.cos+n[2]*r.sin,n[1],-n[0]*r.sin+n[2]*r.cos];
+  this.vertices.push(...point,...normal,...c);
  }
  tri(a:Vec3,b:Vec3,c:Vec3,color:Color,n:Vec3){
   this.vertex(a,n,color);this.vertex(b,n,color);this.vertex(c,n,color);
@@ -93,8 +105,17 @@ function facility(b:SceneBuilder,scenario:string,time:number){
  b.box(0,-.01,0,16.5,.015,10.5,C.concrete);
  for(let x=-8;x<=8;x+=1)b.box(x,.006,0,.016,.01,10.5,C.grid);
  for(let z=-5;z<=5;z+=1)b.box(0,.006,z,16.5,.01,.016,C.grid);
+ // Industrial floor lane marks and cable tracks.
+ for(let x=-7.5;x<7.5;x+=.92){
+  b.box(x,.018,4.28,.55,.014,.055,C.amber);
+  b.box(x,.018,-3.86,.42,.013,.04,C.steel);
+ }
  // Architectural enclosure and overhead lines.
  b.box(0,2.7,-5.12,17,5.4,.19,C.wall);
+ for(const x of [-6.3,0,6.3]){
+  b.box(x,3.55,-4.96,1.52,.43,.07,C.dark);
+  b.box(x,3.55,-4.91,1.35,.27,.035,C.mint);
+ }
  b.box(-8.23,2.7,0,.18,5.4,10.4,C.wall);
  b.box(0,.24,-5.01,16.5,.05,.13,C.steel);
  for(const x of [-7,-3.5,0,3.5,7]){
@@ -170,40 +191,56 @@ function zone(b:SceneBuilder,z:SimZone,active:boolean,time:number){
 }
 function worker(b:SceneBuilder,o:SimEntity,time:number,hasHelmet:boolean,hasVest:boolean){
  const [x,,z]=entityFootprint(o);
- b.disc(x,.02,z,.45,.35,C.dark);
- const stride=Math.sin(time*3+(x*1.8))*.14;
- b.box(x-.17,.44,z+stride,.21,.84,.23,C.steel);
- b.box(x+.17,.44,z-stride,.21,.84,.23,C.steel);
- for(const offset of [-.17,.17])b.box(x+offset,.11,z+(offset<0?stride:-stride)+.04,.29,.19,.43,C.dark);
- b.box(x,1.12,z,.76,.85,.41,hasVest?C.green:C.blue);
- b.box(x,1.41,z+.23,.55,.19,.035,hasVest?C.mint:C.steel);
- for(const side of [-1,1]){
-  b.box(x+side*.5,1.12,z,.17,.65,.20,C.pale);
-  b.sphere(x+side*.49,.74,z,.12,.12,.12,C.wood,7,4);
- }
- b.box(x,1.63,z,.23,.22,.24,C.wood);
- b.sphere(x,1.86,z,.30,.32,.29,C.wood,10,5);
- if(hasHelmet){
-  b.sphere(x,2.065,z,.35,.18,.33,C.amber,12,4);
-  b.box(x,2.02,z+.23,.73,.065,.24,C.amber);
- }else{
-  b.sphere(x,2.11,z-.02,.30,.13,.27,C.dark,10,3);
- }
+ const isMoving=o.state==='walking'||o.state==='transporting';
+ const phase=o.motionPhase??time*4;
+ const stride=isMoving?Math.sin(phase)*.22:0;
+ const sway=isMoving?Math.sin(phase)*.025:0;
+ // Ground contact and a soft contact shadow are stationary in ground coordinates.
+ b.disc(x,.018,z,.43,.33,C.dark);
+ b.orientAround(x,z,o.heading??0,()=>{
+  // Feet have opposite phases, hands counter-swing and helmet/vest are attached to torso.
+  for(const side of [-1,1]){
+   const offset=side*stride;
+   b.box(x+side*.15,.46,z+offset,.20,.80,.26,C.steel);
+   b.box(x+side*.15,.11,z+offset+.10,.28,.20,.43,C.dark);
+   b.box(x+side*.45,1.12,z-side*stride*.7,.18,.67,.24,hasVest?C.pale:C.steel);
+   b.sphere(x+side*.45,.74,z-side*stride*.7,.13,.13,.13,C.wood,8,5);
+  }
+  b.box(x,1.11+sway,z,.75,.86,.43,hasVest?C.green:C.blue);
+  // high-visibility reflective strips and front panel
+  b.box(x,1.29+sway,z+.226,.70,.10,.024,hasVest?C.mint:C.steel);
+  b.box(x,1.05+sway,z+.23,.66,.085,.02,hasVest?C.pale:C.blue);
+  b.box(x,1.66+sway,z,.22,.21,.22,C.wood);
+  b.sphere(x,1.88+sway,z,.29,.31,.28,C.wood,12,6);
+  b.sphere(x,2.12+sway,z-.07,.26,.11,.23,C.dark,10,4);
+  if(hasHelmet){
+   b.sphere(x,2.10+sway,z,.36,.18,.34,C.amber,12,5);
+   b.box(x,2.045+sway,z+.26,.71,.065,.23,C.amber);
+  }
+  // face and a clear forward direction
+  for(const side of [-1,1])b.sphere(x+side*.11,1.91+sway,z+.264,.025,.035,.025,C.dark,6,3);
+  b.box(x,1.82+sway,z+.276,.12,.018,.017,C.wood);
+ });
 }
 function forklift(b:SceneBuilder,o:SimEntity){
  const [x,,z]=entityFootprint(o);
  b.disc(x,.017,z,1.18,.73,C.dark);
- b.box(x,.7,z,1.7,.64,1.2,C.amber);
- b.box(x-.32,1.12,z,.78,.32,1.1,C.amber);
- b.box(x,1.78,z,1.26,.10,1.03,C.steel);
- for(const dx of [-.55,.55])for(const dz of [-.44,.44]){
-  b.box(x+dx,1.29,z+dz,.10,.99,.12,C.pale);
-  b.sphere(x+dx,.35,z+dz,.27,.28,.26,C.dark,10,5);
- }
- b.sphere(x-.20,1.42,z,.24,.27,.23,C.wood,9,5);
- b.box(x+1.05,.97,z,.12,2.0,.95,C.steel);
- for(const dz of [-.4,.4])b.box(x+1.51,.19,z+dz,1.30,.12,.16,C.pale);
- b.box(x+.42,.89,z+.55,.44,.23,.08,C.mint);
+ b.orientAround(x,z,o.heading??0,()=>{
+  b.box(x,.64,z,1.76,.66,1.25,C.amber);
+  b.box(x-.35,1.05,z,.77,.30,1.12,C.amber);
+  b.box(x,1.83,z,1.30,.12,1.16,C.steel);
+  for(const dx of [-.56,.56])for(const dz of [-.48,.48]){
+   b.box(x+dx,1.33,z+dz,.10,.98,.11,C.pale);
+   b.sphere(x+dx,.35,z+dz,.29,.29,.27,C.dark,11,5);
+   b.sphere(x+dx,.35,z+dz,.12,.12,.12,C.steel,9,4);
+  }
+  b.sphere(x-.20,1.42,z,.23,.27,.23,C.wood,10,5);
+  b.box(x+.98,1.0,z,.12,2.06,1.05,C.steel);
+  for(const dz of [-.40,.40])b.box(x+1.50,.21,z+dz,1.30,.11,.17,C.pale);
+  b.box(x-.60,1.19,z+.63,.20,.10,.035,C.red);
+  b.box(x+.44,.90,z+.64,.34,.13,.045,C.mint);
+  b.box(x-.95,.58,z,.09,.62,1.15,C.amber);
+ });
 }
 function pallet(b:SceneBuilder,o:SimEntity){
  const [x,,z]=entityFootprint(o);

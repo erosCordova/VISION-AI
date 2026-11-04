@@ -5,6 +5,7 @@ import { createFoundation } from './app/bootstrap';
 import './styles/base.css';
 import './styles/simulator.css';
 import './styles/simulator-3d.css';
+import './styles/simulator-v3.css';
 const root = document.getElementById('root');
 if (!root) throw new Error('No se encontró el punto de entrada de VISION AI.');
 try {
