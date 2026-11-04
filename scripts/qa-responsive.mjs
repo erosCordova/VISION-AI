@@ -13,6 +13,8 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'vision-qa-chrome-'));
 const artifacts = path.resolve('qa-artifacts');
 fs.mkdirSync(artifacts, { recursive: true });
+const measuredPerformance = [];
+const accessibilityChecks = [];
 
 function findBrowser() {
   if (process.env.CHROME_BIN) return process.env.CHROME_BIN;
@@ -98,6 +100,7 @@ try {
   await cdp.open();
   await cdp.send('Page.enable');
   await cdp.send('Runtime.enable');
+  await cdp.send('Performance.enable');
   let checked = 0;
   for (const width of [360, 768, 1440]) {
     await cdp.send('Emulation.setDeviceMetricsOverride', {
@@ -109,6 +112,7 @@ try {
       ['historial', '#Historial', '.history-panel'],
       ['privacidad', '#Privacidad', '.privacy-center']
     ]) {
+      const navigationStart=performance.now();
       await cdp.send('Page.navigate', { url: 'http://127.0.0.1:4173/' + hash });
       const view = await eventually(async () => {
         const expression = '(() => { '
@@ -145,6 +149,18 @@ try {
           || (name === 'analisis' && (!view.hasSimulationOnly || !view.noExternalSources || !view.hasYoloModeSwitch || !view.hasSimulatorStage || !view.hasSimulatorControls || !view.hasCameraPresets || !view.hasHumanMode || !view.hasHumanCanvas || !view.hasSyntheticDisclosure || !view.hasSyntheticLabel || !view.hasScenarioTabs || !view.hasAnalytics || !view.hasActivityChart || !view.hasMiniMap || !view.hasKPIs || !view.hasNoMonitorBeforeYolo))) {
         throw Error('QA falló (' + width + ' px, ' + name + '): ' + JSON.stringify(view));
       }
+      const metrics=await cdp.send('Performance.getMetrics');
+      const rawHeap=metrics.metrics?.find(x=>x.name==='JSHeapUsedSize')?.value;
+      const sample={
+        route:name,width,measuredAt:new Date().toISOString(),
+        pageReadyMs:Number((performance.now()-navigationStart).toFixed(1)),
+        heapUsedMiB:Number.isFinite(rawHeap)?Number((rawHeap/1048576).toFixed(2)):null,
+        renderFps:null,webgl:null
+      };
+      measuredPerformance.push(sample);
+      // La cifra corresponde al tiempo observado por CDP en CI, no a Web Vitals.
+      if(sample.pageReadyMs<=0||sample.pageReadyMs>30000)
+        throw Error('PF01: navegación fuera de presupuesto de 30 s: '+JSON.stringify(sample));
       const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
       fs.writeFileSync(path.join(artifacts, name + '-' + width + '.png'), Buffer.from(capture.data, 'base64'));
       if (name === 'analisis') {
@@ -170,8 +186,32 @@ try {
         });
         fs.writeFileSync(path.join(artifacts, 'escena3d-' + width + '.png'),
           Buffer.from(modelScreenshot.data, 'base64'));
+        const fpsResult=await cdp.send('Runtime.evaluate',{
+          expression:'(() => Number.parseFloat(document.querySelector(".simulator-3d-summary > div:nth-child(3) strong")?.textContent||""))()',
+          returnByValue:true
+        });
+        sample.webgl=modelStatus.webgl;
+        sample.renderFps=Number.isFinite(fpsResult.result?.value)?fpsResult.result.value:null;
+        if(sample.renderFps===null||sample.renderFps<=0||sample.renderFps>120)
+          throw Error('PF02: renderizador sin FPS medidos válidos: '+JSON.stringify(sample));
         console.log('Escena 3D OK a ' + width + ' px: ' + JSON.stringify(modelStatus));
+        console.log('PF02: FPS WebGL medidos en Chromium: '+sample.renderFps+' a '+width+' px');
         if (width === 1440) {
+          const keyboardAudit=await cdp.send('Runtime.evaluate',{
+            expression:'(() => {const canvas=document.querySelector(".simulator-human-stage canvas");'
+             +'if(!canvas)return null;canvas.focus();'
+             +'const e=new KeyboardEvent("keydown",{key:"ArrowRight",bubbles:true,cancelable:true});'
+             +'canvas.dispatchEvent(e);'
+             +'return {focus:document.activeElement===canvas,prevented:e.defaultPrevented,'
+             +'name:canvas.getAttribute("aria-label"),tabIndex:canvas.tabIndex};})()',
+            returnByValue:true
+          });
+          const keyboard=keyboardAudit.result?.value;
+          if(!keyboard?.focus||!keyboard.prevented||keyboard.tabIndex!==0||
+             !keyboard.name?.includes('Flechas'))
+            throw Error('A11Y01: canvas 3D sin navegación de teclado y nombre accesible');
+          accessibilityChecks.push({id:'A11Y01',width,passed:true});
+          console.log('A11Y01: cámara 3D operable por teclado y foco real');
           await cdp.send('Runtime.evaluate', {
             expression: 'Array.from(document.querySelectorAll(".simulator-view-group button"))'
               + '.find(button => button.textContent.includes("Primer plano"))?.click()'
@@ -1241,6 +1281,54 @@ try {
     return r.result?.value?.length===4&&r.result.value.every(x=>x===0);
   },'PR04 cero sesiones y cero revisiones después de recargar');
   console.log('PR04/PR05/PR07: borrado total atómico y confirmación exacta; IndexedDB vacío tras recarga');
+
+
+  // A11Y02: sistema con movimiento reducido; render y fotogramas
+  // deben detenerse al entrar en la simulación, sin ocultar controles.
+  await cdp.send('Emulation.setEmulatedMedia',{
+    features:[{name:'prefers-reduced-motion',value:'reduce'}]
+  });
+  await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#An%C3%A1lisis%20en%20vivo'});
+  const reduceCheck=await eventually(async()=>{
+    const a=await cdp.send('Runtime.evaluate',{
+      expression:'(() => ({pause:document.querySelector(".simulator-pause")?.textContent?.trim(),'
+       +'pref:matchMedia("(prefers-reduced-motion: reduce)").matches,'
+       +'canvas:!!document.querySelector(".simulator-human-stage canvas"),'
+       +'buttons:document.querySelectorAll(".simulator-view-group button").length}))()',
+      returnByValue:true
+    });
+    const c=a.result?.value;return c?.pref&&c.pause?.includes('Reanudar')?c:null;
+  },'A11Y02 pausa de simulación para movimiento reducido');
+  if(!reduceCheck.canvas||reduceCheck.buttons!==4)
+    throw Error('A11Y02: acceso a cámaras 3D perdido en movimiento reducido');
+  accessibilityChecks.push({id:'A11Y02',width:1440,passed:true});
+  await cdp.send('Emulation.setEmulatedMedia',{features:[]});
+  // A11Y03: barra de navegación y campos de privacidad identificables.
+  await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Privacidad'});
+  const labelAudit=await eventually(async()=>{
+    const a=await cdp.send('Runtime.evaluate',{
+      expression:'(() => ({nav:!!document.querySelector("nav[aria-label]"),'
+       +'history:!!document.querySelector(".privacy-history-link"),'
+       +'retention:document.querySelector("#privacy-retention-days")?.labels?.length,'
+       +'main:!!document.querySelector("main[tabindex]"),'
+       +'skip:!!document.querySelector("a.skip")}))()',
+      returnByValue:true
+    });
+    const result=a.result?.value;
+    return result?.nav&&result?.history&&result?.retention>=1&&result?.main&&result?.skip?result:null;
+  },'A11Y03 etiquetas de navegación y privacidad');
+  accessibilityChecks.push({id:'A11Y03',width:1440,passed:true});
+  fs.writeFileSync(path.join(artifacts,'fase14-rendimiento-accesibilidad.json'),
+    JSON.stringify({
+      schemaVersion:'vision-ai-qa-performance-v1',
+      measuredAt:new Date().toISOString(),
+      note:'Tiempos de navegación CDP; memoria JS no incluye WebAssembly ni VRAM; FPS medido en Chromium headless, no en equipos de usuarios.',
+      targets:{navigationMs:30000,animatedFpsMinExclusive:0},
+      samples:measuredPerformance,
+      accessibility:accessibilityChecks
+    },null,2)+'\n');
+  console.log('PF01/PF02 y A11Y01–A11Y03: '+measuredPerformance.length+
+   ' mediciones reales guardadas en fase14-rendimiento-accesibilidad.json');
 
   console.log('QA terminado: ' + checked + ' recorridos; capturas en qa-artifacts/');
 } finally {
