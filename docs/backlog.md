@@ -18,7 +18,7 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 | 12 | Historial, reportes y exportación | Tres CSV, JSON auditado y A4 | Aprobada con CI integral |
 | 13 | Seguridad, privacidad y gobierno de datos | Retención y borrado local confirmado, cabeceras y aviso de roles demo | Aprobada con CI integral |
 | 14 | Pruebas integradas, rendimiento y accesibilidad | WebGL optimizado, 12 mediciones CDP, teclado y movimiento reducido | Aprobada por CI integral |
-| 15 | Integración de inteligencia artificial real | Optimización de modelos preentrenados y medición sobre simulaciones 3D, sin datasets externos | Próxima fase |
+| 15 | Integración de inteligencia artificial real | Cadencia adaptable, perfil por etapas ONNX y optimización de decodificación sobre simulaciones 3D | En validación |
 | 16 | Despliegue, operación y cierre técnico | Versión entregada, restauración y manuales | Pendiente |
 
 ## Tareas actuales de Fase 1
