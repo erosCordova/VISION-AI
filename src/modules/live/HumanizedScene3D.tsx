@@ -202,20 +202,20 @@ export const HumanizedScene3D=forwardRef<IndustrialSceneHandle,Props>(function H
   try{renderer=new THREE.WebGLRenderer({canvas:element,antialias:true,preserveDrawingBuffer:true,alpha:false});}
   catch{setError('No hay WebGL compatible. Usa Chrome o Edge con aceleración gráfica.');return;}
   renderer.outputColorSpace=THREE.SRGBColorSpace;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.4;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.14;
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   const stage=new THREE.Scene();
   stage.background=new THREE.Color(0x1b3847);
   stage.fog=new THREE.FogExp2(0x243c48,.012);
-  stage.add(new THREE.HemisphereLight(0xf5fffa,0x526c7a,2.7));
-  const sun=new THREE.DirectionalLight(0xfff1dd,3.2);
+  stage.add(new THREE.HemisphereLight(0xf5fffa,0x526c7a,1.9));
+  const sun=new THREE.DirectionalLight(0xfff1dd,2.4);
   sun.position.set(-7,13,8);sun.castShadow=true;
   sun.shadow.mapSize.set(1024,1024);
   sun.shadow.camera.left=-14;sun.shadow.camera.right=14;
   sun.shadow.camera.top=14;sun.shadow.camera.bottom=-14;
   sun.shadow.normalBias=.024;
   stage.add(sun);
-  const fill=new THREE.DirectionalLight(0xb1e5ff,1.35);
+  const fill=new THREE.DirectionalLight(0xb1e5ff,.9);
   fill.position.set(8,7,-6);stage.add(fill);
   const snap=state.current.snapshot;
   const empty={...snap,entities:[],zones:[]} as SimSnapshot;
@@ -291,6 +291,19 @@ export const HumanizedScene3D=forwardRef<IndustrialSceneHandle,Props>(function H
     }
    }
    const camera=makeCamera(orbit.current,element.width,element.height);
+   if(current.view==='persona'){
+    const subject=current.snapshot.entities.find(e=>e.kind==='person');
+    if(subject){
+     const [x,,z]=entityFootprint(subject);
+     const o=boundedOrbit(orbit.current);
+     const target=new THREE.Vector3(x,1.12,z);
+     camera.position.set(x+Math.sin(o.yaw)*Math.cos(o.pitch)*o.distance,
+       1.12+Math.sin(o.pitch)*o.distance,
+       z+Math.cos(o.yaw)*Math.cos(o.pitch)*o.distance);
+     camera.lookAt(target);
+     camera.updateMatrixWorld();
+    }
+   }
    renderer.render(stage,camera);
    drawAnnotations(layers,camera,current.snapshot,current.layers,current.threshold,current.showScore);
    count++;

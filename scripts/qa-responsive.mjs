@@ -122,7 +122,7 @@ try {
           + 'hasSimulationModes: !!document.querySelector(".simulation-source-tabs button[aria-pressed=true]"), '
           + 'hasSimulatorStage: !!document.querySelector(".simulator-3d-stage canvas"), '
           + 'hasSimulatorControls: !!document.querySelector(".simulator-controls input[type=range]"), '
-          + 'hasCameraPresets: document.querySelectorAll(".simulator-view-group button").length === 3, '
+          + 'hasCameraPresets: document.querySelectorAll(".simulator-view-group button").length === 4, '
           + 'hasHumanMode: !!document.querySelector(".simulator-render-preset button[aria-pressed=true]"), '
           + 'hasHumanCanvas: !!document.querySelector(".simulator-human-stage canvas"), '
           + 'hasSyntheticDisclosure: !!document.querySelector(".simulator-footnote"), '
@@ -168,6 +168,19 @@ try {
         fs.writeFileSync(path.join(artifacts, 'escena3d-' + width + '.png'),
           Buffer.from(modelScreenshot.data, 'base64'));
         console.log('Escena 3D OK a ' + width + ' px: ' + JSON.stringify(modelStatus));
+        if (width === 1440) {
+          await cdp.send('Runtime.evaluate', {
+            expression: 'Array.from(document.querySelectorAll(".simulator-view-group button"))'
+              + '.find(button => button.textContent.includes("Primer plano"))?.click()'
+          });
+          await sleep(700);
+          const closeUp = await cdp.send('Page.captureScreenshot', {
+            format: 'png', captureBeyondViewport: false
+          });
+          fs.writeFileSync(path.join(artifacts, 'personaje-primer-plano.png'),
+            Buffer.from(closeUp.data, 'base64'));
+          console.log('Primer plano del personaje capturado correctamente');
+        }
       }
       console.log('QA OK: ' + name + ' a ' + width + ' px; sin desbordamiento horizontal');
       checked++;

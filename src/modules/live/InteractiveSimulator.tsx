@@ -14,7 +14,8 @@ const SCENES:{id:ScenarioKey;tab:string;name:string;description:string;icon:stri
  {id:'warehouse',tab:'Logística',name:'Almacén inteligente',description:'Montacargas, pallets, estanterías y rutas de paso.',icon:'▣'}
 ];
 const CAMERAS:{id:CameraView;label:string}[]=[
- {id:'isometric',label:'Isométrica'},{id:'frontal',label:'Frontal'},{id:'superior',label:'Superior'}
+ {id:'isometric',label:'Isométrica'},{id:'frontal',label:'Frontal'},{id:'superior',label:'Superior'},
+ {id:'persona',label:'Primer plano'}
 ];
 const controls:{id:LayerName;label:string}[]=[
  {id:'boxes',label:'Cajas de seguimiento'},
@@ -112,7 +113,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
     <div className="simulator-visual">
      <div className="simulator-visual-head">
       <div><span className="simulator-kicker">ESCENA TRIDIMENSIONAL / {config.tab.toUpperCase()}</span>
-       <h3>{config.name}</h3><p>{config.description}</p></div>
+       <h3>{config.name}</h3><p>{config.description} Prueba «Primer plano» para observar a los personajes.</p></div>
       <div className="simulator-runtime">
        <span className="simulator-runtime-dot"/>{paused?'EN PAUSA':'REPRODUCIENDO'}
        <strong>{secondsText(elapsed)}</strong>

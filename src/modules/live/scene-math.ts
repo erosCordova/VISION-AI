@@ -24,7 +24,8 @@ const norm=(v:Vec3):Vec3=>{
 export const presets={
  isometric:{yaw:.57,pitch:.76,distance:19},
  frontal:{yaw:0,pitch:.46,distance:21},
- superior:{yaw:.12,pitch:1.48,distance:19}
+ superior:{yaw:.12,pitch:1.48,distance:19},
+ persona:{yaw:.38,pitch:.28,distance:8.5}
 } as const satisfies Record<string,Orbit>;
 export type CameraView=keyof typeof presets;
 export function boundedOrbit(orbit:Orbit):Orbit{

@@ -86,3 +86,7 @@ La interfaz muestra «Humanos animados» (por defecto) y «Modo ligero» (render
 - Three.js tiene licencia MIT. Ningún archivo de fuente ni animación con licencia no verificada se introduce en el proyecto.
 
 **Limitación:** el resultado es un *gemelo digital sintético* con humanos mejor representados, no video real, aprendizaje de red neuronal ni inferencia YOLO. La velocidad de renderizado se mide por separado y las cifras sintéticas se distinguen de los resultados de detector.
+
+### Inspección cercana de avatares
+
+La perspectiva **Primer plano** sigue al primer personaje del escenario mientras se desplaza. Se conserva el giro mediante arrastre, el zoom y las vistas panorámica, frontal y superior. La iluminación PBR se ajusta para evitar la apariencia sobreexpuesta de la versión anterior. Las capturas de QA incluyen la escena 3D y un primer plano para su revisión; no equivalen a mediciones de FPS reales de GPU integrada.
