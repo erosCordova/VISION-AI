@@ -1,4 +1,4 @@
-# Evidencias en construcción — Fase 7
+# Evidencias de aprobación — Fase 7
 
 - Cuatro escenarios reproducibles sin carga de datos externos.
 - Persistencia IndexedDB versión 1, registros de simulación y detecciones reales separadas.
@@ -34,3 +34,20 @@ operativo; verifica el límite de producto y la ausencia de éxito falso.
 
 **El cierre definitivo de Fase 7 queda condicionado al resultado de CI
 sobre este commit.**
+
+
+## Cierre verificado en CI — 4 de noviembre de 2026
+
+**Fase 7 APROBADA**. Ejecución:
+https://github.com/erosCordova/VISION-AI/actions/runs/41873829082 .
+
+Extractos comprobados de Chromium:
+- `DA01 OK: simulación guardada, consultada y recuperada tras recarga del navegador`.
+- `DA04: 100 registros en IndexedDB v2 con índice de escenarios`.
+- `DA04 OK: cuota de 100, rechazo sin falso guardado, corrupción aislada y recuperación explícita`.
+- `Fase 8 KPI inicial OK: sesiones, detecciones y filtros reales desde IndexedDB`.
+- `YOLO EPP REAL OK`: dos fotogramas procesados.
+- 178 pruebas TypeScript, 66 Python, 9/9 recorridos responsive.
+
+**DA01–DA04 aprobados.** Esta anotación sustituye las declaraciones
+históricas de pendientes de los apartados anteriores.

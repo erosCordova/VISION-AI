@@ -1,7 +1,7 @@
 
 # Fase 7 — Modelo de datos y sesiones reproducibles de simulaciones
 
-Estado: **en curso**. Dependencia: fase 6 revisada con pruebas UI01–UI04.
+Estado: **APROBADA (4 de noviembre de 2026)**. Fase 6 aprobada; evidencia CI 41873829082.
 
 ## Alcance actualizado
 
@@ -62,12 +62,12 @@ stores históricos durante un `onupgradeneeded`.
 | Caso | Comprobación | Estado |
 | --- | --- | --- |
 | DA01 | Guardar, navegar, recargar y recuperar relaciones | **Aprobado en Chromium, ejecución 41869875516** |
-| DA02 | Mismo escenario y tiempo → misma huella; IDs distintos | Prueba unitaria |
-| DA03 | Etiqueta histórica conservada tras cambiar catálogo vivo | Prueba unitaria |
-| DA04 | Rechazo de cuota y fallo sin afirmar persistencia | Validación de código; prueba automatizada de cuota pendiente |
+| DA02 | Mismo escenario y tiempo → misma huella; IDs distintos | Aprobado por pruebas unitarias |
+| DA03 | Etiqueta histórica conservada tras cambiar catálogo vivo | Aprobado por pruebas unitarias |
+| DA04 | Rechazo de capacidad, corrupción y recuperación | **Aprobado en Chromium, ejecución 41873829082** |
 
-Por estas dependencias, **la Fase 7 sigue en curso**. La Fase 8
-no se marca completada por los indicadores actuales del simulador.
+La Fase 7 se declaró **aprobada** tras superar DA01–DA04. La Fase 8
+comenzó y permanece en curso; sus indicadores se calculan con sesiones guardadas.
 
 
 ## Incremento de robustez y migración física v2
@@ -95,3 +95,17 @@ Los registros usados para QA son *fixtures internos de verificación*, no
 datasets ni archivos que deba aportar el usuario.
 
 La versión física 2 no modifica las clases ni los pesos YOLO.
+
+
+## Resultado final de aceptación
+
+**CI aprobada**: https://github.com/erosCordova/VISION-AI/actions/runs/41873829082 .
+DA04 añadió una prueba reproducible de 100 registros, protección contra
+guardar datos falsamente, incompatibilidades de versión y huella, conservación
+de datos dañados hasta eliminación confirmada y recuperación de guardado.
+Los datos solo pertenecen a las simulaciones 3D y las predicciones ONNX;
+no se necesitan datasets ni archivos de usuario.
+
+La validación de migración de esquema comprobó IndexedDB v2 y su índice
+por escenario; no constituye una prueba de migración de historiales privados
+de terceros. Ese alcance corresponde a una migración futura, si se requiere.

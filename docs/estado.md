@@ -1,6 +1,6 @@
 # Estado verificado del proyecto
 
-Fecha: 2026-11-03. Referencia: manual 5.0 y decisiones D08 a D12.
+Última actualización: 2026-11-04. Referencia: manual 5.0 y decisión de trabajar exclusivamente con simulaciones 3D.
 
 | Fase | Alcance validado | Evidencia |
 | --- | --- | --- |
@@ -10,8 +10,9 @@ Fecha: 2026-11-03. Referencia: manual 5.0 y decisiones D08 a D12.
 | 4 | Casos de uso, estados, permisos y errores | [Cierre de negocio](evidencias_fase_04.md) |
 | 5 | React, contratos, arquitectura, instalación limpia y build | [Cierre técnico](evidencias_fase_05.md) |
 | 6 | Interfaz navegable, cuatro simulaciones 3D, teclado, responsive y movimiento reducido | [Cierre UX](evidencias_fase_06.md) |
+| 7 | Sesiones reproducibles, IndexedDB v2, integridad y recuperación DA01–DA04 | [Cierre y evidencias](evidencias_fase_07.md) |
 
-**Avance administrativo vigente: 37,5 % (6 de 16 fases aprobadas).** No mide precisión de un modelo ni porcentaje de interfaz terminada.
+**Avance administrativo vigente: 43,75 % (7 de 16 fases aprobadas).** No mide precisión de un modelo ni porcentaje de interfaz terminada.
 
 ## Verificación local
 
@@ -188,3 +189,38 @@ no significa que la Fase 8 esté aprobada.
 Hasta que finalicen las pruebas de este incremento, el avance oficial
 sigue siendo **6/16 = 37,5 %**. La Fase 7 se aprobará exclusivamente cuando
 DA01–DA04 pasen y quede verificada la migración.
+
+
+## Registro definitivo — Fase 7 APROBADA, Fase 8 EN CURSO
+
+**Aprobación: 4 de noviembre de 2026**. Código verificado:
+`5cb73e4e04d37646f3e371c39b4f95ebcf2745c4`.
+Evidencia CI: https://github.com/erosCordova/VISION-AI/actions/runs/41873829082 .
+
+Casos de aceptación:
+- **DA01** aprobado: guardar sesión, navegar al historial, recargar y recuperar.
+- **DA02** aprobado: los cuatro escenarios conservan huella reproducible y
+  generan identificadores de ejecución diferentes.
+- **DA03** aprobado: etiqueta y resultado histórico no cambian al modificar
+  los objetos de origen en memoria.
+- **DA04** aprobado: límite de 100 sesiones, rechazo visible sin falso guardado,
+  inyección de dos registros incompatibles, aislamiento sin eliminación
+  automática, recuperación tras recarga y eliminación confirmada para
+  recuperar la capacidad de escritura.
+
+Migración física IndexedDB 1→2 implementada de forma aditiva, conservando
+el almacén y la versión lógica v1 de cada registro; Chromium comprobó la
+estructura v2 y el índice por escenario. **No se han realizado pruebas
+sobre datos históricos de usuarios reales**; cualquier migración futura
+requiere una prueba sobre copia antes de utilizarla en producción.
+
+Validación: **178 pruebas TypeScript, 66 Python, 9 recorridos responsive y
+YOLO EPP real en Chromium**. Vercel `READY`. Las advertencias o limitaciones
+del almacenamiento del navegador siguen siendo aplicables; los registros
+son locales al dispositivo y perfil.
+
+**Avance administrativo definitivo: 7/16 = 43,75 %.**
+La **Fase 8** está en curso; KP01 y KP03 cuentan con pruebas unitarias y
+de navegador iniciales. KP02 y las pruebas de rendimiento quedan pendientes.
+Las cifras históricas 31,25 % y 37,5 % de las secciones precedentes
+corresponden a fechas anteriores y ya no son el estado vigente.

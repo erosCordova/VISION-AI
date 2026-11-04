@@ -101,11 +101,13 @@ El detector EPP de Seguridad tiene **señales temporales de revisión**, visible
 
 ## Progreso de fases — estado vigente 4 de noviembre de 2026
 
-**6 de 16 fases aprobadas = 37,5 %.**
-La **Fase 6 (Interfaz UX/UI)** quedó aprobada con pruebas UI01–UI04.
-La **Fase 7 (Modelo de datos y escenarios reproducibles)** está en curso:
-IndexedDB guarda sesiones de los cuatro escenarios 3D con metadatos de
-simulación y, si se ejecutó YOLO, sus predicciones e indicios reales.
-El registro sobrevive a recarga; no hay cargas de datasets ni videos.
-Pruebas: https://github.com/erosCordova/VISION-AI/actions/runs/41869875516 .
-Consulta [estado](docs/estado.md) y [Fase 7](docs/fase07_sesiones_simuladas.md).
+**7 de 16 fases aprobadas = 43,75 %.**
+Fases 1–7 aprobadas. La **Fase 8 (Dashboard e indicadores verificables)**
+está en desarrollo: los KPI se calculan exclusivamente a partir de las
+sesiones 3D guardadas en IndexedDB, con filtros por escenario, origen y
+periodo, sin datos demo ni carga de datasets.
+La Fase 7 aprobó DA01–DA04 (persistencia, reproducibilidad,
+integridad y recuperación de capacidad).
+Pruebas: https://github.com/erosCordova/VISION-AI/actions/runs/41873829082 .
+Consulta [estado](docs/estado.md), [cierre Fase 7](docs/fase07_sesiones_simuladas.md)
+e [indicadores Fase 8](docs/indicadores.md).

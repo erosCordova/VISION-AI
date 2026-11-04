@@ -43,3 +43,11 @@ Se añadieron pruebas TypeScript para KP01 y KP03 (cálculo manual, vacío,
 filtros y límites de fecha). Chromium comprueba la primera sesión guardada,
 KPIs coherentes sin detecciones y filtros que devuelven cero. KP02 y
 pruebas con volúmenes mayores permanecen pendientes.
+
+
+## Primera comprobación automática — completada
+
+El commit `5cb73e4e04d37646f3e371c39b4f95ebcf2745c4` aprobó
+las pruebas iniciales KP01 y KP03, los filtros y la recuperación de KPI
+desde IndexedDB en Chromium. La Fase 8 **permanece abierta** por KP02
+(revisión/cierre de señales) y la validación integral de los indicadores.
