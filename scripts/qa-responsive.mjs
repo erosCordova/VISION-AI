@@ -1139,6 +1139,17 @@ try {
         });
         fs.writeFileSync(path.join(artifacts, 'yolo-inferencia-real-1440.png'),
           Buffer.from(inferenceShot.data,'base64'));
+        // IA15: seleccionar cadencia automática antes de reanudar el
+        // mismo modelo en memoria, sin recargar pesos ni alterar predicciones.
+        const adaptiveSelected=await cdp.send('Runtime.evaluate',{
+          expression:'(() => {const s=document.querySelector("#yolo-capture-pace");'
+           +'if(!s)return false;'
+           +'const setter=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,"value").set;'
+           +'setter.call(s,"auto");s.dispatchEvent(new Event("change",{bubbles:true}));'
+           +'return true;})()',returnByValue:true
+        });
+        if(!adaptiveSelected.result?.value)
+          throw Error('IA15: no está disponible la cadencia adaptativa');
         // Un reintento exitoso concluye detenido; comprobar ahora reanudación
         // real del mismo modelo en memoria, no solo la presencia de un botón.
         const resumed=await cdp.send('Runtime.evaluate',{
@@ -1155,6 +1166,19 @@ try {
           const s=result.result?.value;
           return s?.phase?.includes('EJECUTÁNDOSE')&&s.frames>0?s:null;
         },'OB05 reanudación del motor y nuevo fotograma',340);
+        const adaptiveReported=await eventually(async()=>{
+          const result=await cdp.send('Runtime.evaluate',{
+            expression:'(() => ({pace:document.querySelector("#yolo-capture-pace")?.value,'
+             +'info:document.querySelector(".browser-yolo-adaptive")?.textContent?.trim(),'
+             +'frames:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0)}))()',
+            returnByValue:true
+          });
+          const x=result.result?.value;
+          const match=x?.info?.match(/Intervalo estimado: ([0-9]+) ms/);
+          const interval=match?Number(match[1]):null;
+          return x?.pace==='auto'&&x.frames>0&&interval>=500&&interval<=2500?x:null;
+        },'IA15 cadencia auto con intervalo real acotado');
+        console.log('IA15: cadencia adaptativa en ejecución '+JSON.stringify(adaptiveReported));
         const stopClicked=await cdp.send('Runtime.evaluate',{
           expression:'(() => {const b=Array.from(document.querySelectorAll(".browser-yolo-actions button"))'
            +'.find(x=>x.textContent.includes("Detener inferencia"));'
