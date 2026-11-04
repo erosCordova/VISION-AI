@@ -8,10 +8,6 @@ interface Props {
  readonly fps:number;
 }
 const clamp=(v:number)=>Math.min(100,Math.max(0,Math.round(v)));
-const stateLabel:Record<string,string>={
- walking:'En tránsito',transporting:'Transportando',
- waiting:'En espera',inspecting:'En inspección'
-};
 const actors=(snapshot:SimSnapshot)=>snapshot.entities.filter(e=>
  e.kind==='person'||e.kind==='forklift');
 export function activityIndex(snapshot:SimSnapshot):number{
