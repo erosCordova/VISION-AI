@@ -584,6 +584,48 @@ try {
               x.noImports&&x.noSynthetic&&x.cadence==='balanced'&&x.filter==='all'?x:null;
           },'OB03/OB04 selector '+tab);
           console.log('OB03/OB04: '+tab+' sin datos residuales; detector '+state.model);
+          // Prueba real de YOLO COCO EN CADA uno de los 3 escenarios
+          // generales: se descargan los pesos ONNX una sola vez y se
+          // reutilizan desde la caché del navegador. Cero imágenes externas.
+          if(expected==='YOLOv8n'){
+            const started=await cdp.send('Runtime.evaluate',{
+              expression:'(() => {const b=document.querySelector(".browser-yolo-actions button.primary");'
+                +'b?.click();return Boolean(b);})()',returnByValue:true
+            });
+            if(!started.result?.value)
+              throw Error('OB01: no se pudo iniciar COCO en '+tab);
+            const verified=await eventually(async()=>{
+              const result=await cdp.send('Runtime.evaluate',{
+                expression:'(() => ({'
+                  +'count:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0),'
+                  +'phase:document.querySelector(".browser-yolo-phase")?.textContent?.trim(),'
+                  +'error:document.querySelector(".browser-yolo-error")?.textContent?.trim(),'
+                  +'run:document.querySelector(".browser-yolo-run")?.textContent?.trim(),'
+                  +'source:document.querySelector(".yolo-monitor-source")?.textContent?.trim()'
+                  +'}))()',returnByValue:true
+              });
+              const x=result.result?.value;
+              if(x?.error)throw Error('COCO '+tab+': '+x.error);
+              return x?.count>=1&&x.run?.includes('ANÁLISIS COMPLETADO')&&
+                x.source?.includes('COCO')?x:null;
+            },'OB01 COCO real en '+tab,340);
+            if(!verified.run.includes('Origen: simulación 3D'))
+              throw Error('OB01: COCO no conservó procedencia 3D en '+tab);
+            await cdp.send('Runtime.evaluate',{
+              expression:'(() => {const b=Array.from(document.querySelectorAll(".browser-yolo-actions button"))'
+               +'.find(x=>x.textContent?.includes("Detener inferencia"));b?.click();return Boolean(b);})()',
+              returnByValue:true
+            });
+            const stopped=await eventually(async()=>{
+              const result=await cdp.send('Runtime.evaluate',{
+                expression:'(() => document.querySelector(".browser-yolo-phase")?.textContent?.includes("DETENIDO"))()',
+                returnByValue:true
+              });
+              return result.result?.value===true;
+            },'OB05 COCO detenido en '+tab);
+            if(!stopped)throw Error('OB05: COCO no se detuvo en '+tab);
+            console.log('YOLO COCO REAL: '+tab+' procesó '+verified.count+' fotograma(s) ONNX sin datasets');
+          }
         }
         // El último escenario es Seguridad; ejecutar ahora el detector EPP real.
         // Prueba real: ONNX + WASM debe ejecutar al menos un frame GPU.

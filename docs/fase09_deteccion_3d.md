@@ -232,3 +232,16 @@ originales/visibles) y `browser-yolo-count-frames` (fotogramas realmente
 procesados). La QA usa exclusivamente el segundo para verificar que
 filtros, reintentos y máscaras no desencadenen análisis adicionales;
 antes el selector de clase compartida podía confundir objetos con frames.
+
+## Validación adicional obligatoria de los cuatro escenarios
+
+La aceptación exige ejecutar YOLO ONNX real con el modelo COCO en
+**Manufactura, Retail y Logística**, comprobar al menos un fotograma
+procesado en cada escena y detenerlo antes del siguiente cambio.
+**Seguridad** debe ejecutar el detector EPP real, incluyendo error
+temporal, reintento, reanudación y detención. La salida puede ser
+vacía cuando el modelo no identifica objetos en escenas 3D; eso no
+constituye un fallo de motor ni permite inventar detecciones.
+
+Esta ampliación sustituye a una simple inspección de pestañas;
+no se considerará validada hasta completar la nueva ejecución CI.
