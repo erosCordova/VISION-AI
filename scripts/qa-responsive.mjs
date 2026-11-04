@@ -119,7 +119,7 @@ try {
           + 'return { viewport, pageWidth, elementWidth: bounds.width, elementLeft: bounds.left, '
           + 'hasFocusableMain: !!document.querySelector("main[tabindex=\\\"-1\\\"]"), '
           + 'hasSkip: !!document.querySelector("a.skip"), hasText: !!element.textContent.trim(), '
-          + 'hasSimulationModes: !!document.querySelector(".simulation-source-tabs button[aria-pressed=true]"), '
+          + 'hasSimulationOnly: !!document.querySelector(".simulation-only-notice"),  noExternalSources: !document.querySelector(".simulation-source-tabs") && !document.querySelector(".browser-yolo-upload") && !document.querySelector(".ppe-evaluation"), '
           + 'hasYoloModeSwitch: Array.from(document.querySelectorAll(".simulator-ai-switch button")).some(b=>b.textContent.includes("YOLO real")), '
           + 'hasSimulatorStage: !!document.querySelector(".simulator-3d-stage canvas"), '
           + 'hasSimulatorControls: !!document.querySelector(".simulator-controls input[type=range]"), '
@@ -140,7 +140,7 @@ try {
       if (view.viewport !== width || view.pageWidth > width + 1
           || view.elementLeft < -1 || view.elementLeft + view.elementWidth > width + 1
           || !view.hasFocusableMain || !view.hasSkip || !view.hasText
-          || (name === 'analisis' && (!view.hasSimulationModes || !view.hasYoloModeSwitch || !view.hasSimulatorStage || !view.hasSimulatorControls || !view.hasCameraPresets || !view.hasHumanMode || !view.hasHumanCanvas || !view.hasSyntheticDisclosure || !view.hasSyntheticLabel || !view.hasScenarioTabs || !view.hasAnalytics || !view.hasActivityChart || !view.hasMiniMap || !view.hasKPIs))) {
+          || (name === 'analisis' && (!view.hasSimulationOnly || !view.noExternalSources || !view.hasYoloModeSwitch || !view.hasSimulatorStage || !view.hasSimulatorControls || !view.hasCameraPresets || !view.hasHumanMode || !view.hasHumanCanvas || !view.hasSyntheticDisclosure || !view.hasSyntheticLabel || !view.hasScenarioTabs || !view.hasAnalytics || !view.hasActivityChart || !view.hasMiniMap || !view.hasKPIs))) {
         throw Error('QA falló (' + width + ' px, ' + name + '): ' + JSON.stringify(view));
       }
       const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
@@ -225,25 +225,17 @@ try {
         const safetyModelCheck=await cdp.send('Runtime.evaluate',{
           expression:'(() => ({ selected:Array.from(document.querySelectorAll(".browser-yolo-picker button"))'
             + '.find(b=>b.textContent.includes("EPP industrial"))?.getAttribute("aria-pressed"),'
-            + ' photoOption:!!Array.from(document.querySelectorAll(".browser-yolo-picker button"))'
-            + '.find(b=>b.textContent.includes("Imagen real local"))'
+            + ' noUploads:!document.querySelector(".browser-yolo-upload")'
+            + ' && !document.querySelector(".ppe-evaluation")'
+            + ' && !document.querySelector(".ppe-evaluation-uploads")'
+            + ' && !Array.from(document.querySelectorAll(".browser-yolo-picker button"))'
+            + '.some(b=>b.textContent.includes("Imagen real local"))'
             + ' }))()',
           returnByValue:true
         });
-        const evaluationPresence=await cdp.send('Runtime.evaluate',{
-          expression:'(() => ({ panel:!!document.querySelector(".ppe-evaluation"),'
-            + ' uploads:document.querySelectorAll(".ppe-evaluation-uploads input[type=file]").length,'
-            + ' hasFakeMetrics:!!document.querySelector(".ppe-eval-summary"),'
-            + ' startDisabled:document.querySelector(".ppe-eval-start")?.disabled'
-            + ' }))()',
-          returnByValue:true
-        });
-        const evalBefore=evaluationPresence.result?.value;
-        if(!evalBefore?.panel||evalBefore.uploads!==3||evalBefore.hasFakeMetrics||!evalBefore.startDisabled)
-         throw Error('El evaluador EPP no inicia sin dataset real: '+JSON.stringify(evalBefore));
         console.log('Detector EPP seleccionado: '+JSON.stringify(safetyModelCheck.result?.value));
-        if(safetyModelCheck.result?.value?.selected!=='true'||!safetyModelCheck.result?.value?.photoOption)
-          throw Error('Seguridad no eligió el detector EPP ni permite imágenes reales');
+        if(safetyModelCheck.result?.value?.selected!=='true'||!safetyModelCheck.result?.value?.noUploads)
+          throw Error('Seguridad debe utilizar EPP y no mostrar cargas externas');
         await cdp.send('Runtime.evaluate', {
           expression: 'document.querySelector(".browser-yolo-panel")?.scrollIntoView({block:"center"})'
         });
@@ -253,7 +245,7 @@ try {
         });
         fs.writeFileSync(path.join(artifacts, 'modo-yolo-1440.png'),
           Buffer.from(yoloScreen.data, 'base64'));
-        console.log('UI YOLO OK: modo independiente, sin overlays sintéticos');
+        console.log('UI YOLO OK: simulación 3D exclusiva, sin cargas ni overlays sintéticos');
         // Prueba real: ONNX + WASM debe ejecutar al menos un frame GPU.
         // No exigimos detecciones: un modelo COCO puede devolver cero objetos 3D.
         const startResponse = await cdp.send('Runtime.evaluate', {
@@ -292,55 +284,6 @@ try {
           expression: 'Array.from(document.querySelectorAll(".browser-yolo-panel button"))'
             + '.find(b=>b.textContent.includes("Detener inferencia"))?.click()'
         });
-        // Fixture de QA, NO evidencia de precisión: imagen blanca y anotación vacía.
-        // Se comprueba el pipeline real del evaluador sin atribuirle objetos inventados.
-        const injected=await cdp.send('Runtime.evaluate',{
-          expression:'(async () => {'
-           + 'const canvas=document.createElement("canvas");canvas.width=64;canvas.height=64;'
-           + 'const ctx=canvas.getContext("2d");ctx.fillStyle="white";ctx.fillRect(0,0,64,64);'
-           + 'const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));'
-           + 'const files=['
-           + 'new File([blob],"qa-blanco.png",{type:"image/png"}),'
-           + 'new File([""],"qa-blanco.txt",{type:"text/plain"}),'
-           + 'new File(["names: [person]"],"data.yaml",{type:"text/yaml"})];'
-           + 'const inputs=Array.from(document.querySelectorAll(".ppe-evaluation-uploads input[type=file]"));'
-           + 'if(inputs.length!==3)return {loaded:false};'
-           + 'for(let i=0;i<3;i++){const dt=new DataTransfer();dt.items.add(files[i]);'
-           + 'inputs[i].files=dt.files;inputs[i].dispatchEvent(new Event("change",{bubbles:true}));}'
-           + 'return {loaded:true,names:files.map(f=>f.name)}'
-           + '})()',
-          awaitPromise:true,returnByValue:true
-        });
-        if(!injected.result?.value?.loaded)throw Error('El dataset de QA no se pudo cargar.');
-        await sleep(450);
-        const evalStart=await cdp.send('Runtime.evaluate',{
-          expression:'(() => {const button=document.querySelector(".ppe-eval-start");'
-           + 'if(button&&!button.disabled)button.click();'
-           + 'return {found:!!button,disabled:button?.disabled};})()',
-          returnByValue:true
-        });
-        if(!evalStart.result?.value?.found||evalStart.result.value.disabled)
-         throw Error('El evaluador no aceptó un dataset YOLO de prueba.');
-        let evaluationFinished=null;
-        for(let attempt=0;attempt<170;attempt++){
-         const response=await cdp.send('Runtime.evaluate',{
-           expression:'(() => ({'
-            + ' status:document.querySelector(".ppe-eval-status")?.textContent||"",'
-            + ' error:document.querySelector(".ppe-eval-error")?.textContent||"",'
-            + ' metrics:Array.from(document.querySelectorAll(".ppe-eval-summary strong")).map(e=>e.textContent),'
-            + ' rows:document.querySelectorAll(".ppe-eval-class-performance tbody tr").length'
-            + ' }))()',
-           returnByValue:true
-         });
-         evaluationFinished=response.result?.value;
-         if(evaluationFinished?.error)throw Error('Evaluador EPP falló: '+JSON.stringify(evaluationFinished));
-         if(evaluationFinished?.status?.includes('Evaluación completa'))break;
-         await sleep(200);
-        }
-        if(!evaluationFinished?.status?.includes('Evaluación completa')||
-          evaluationFinished.rows!==1||evaluationFinished.metrics?.[0]!=='—')
-         throw Error('Evaluación sin GT generó métricas inventadas o no terminó: '+JSON.stringify(evaluationFinished));
-        console.log('EVALUACIÓN EPP OK en Chromium: pipeline real de imagen vacía sin mAP inventado.');
 
       }
       console.log('QA OK: ' + name + ' a ' + width + ' px; sin desbordamiento horizontal');

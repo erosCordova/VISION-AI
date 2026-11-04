@@ -103,3 +103,8 @@ Se amplió YOLO de 80 clases generales COCO a un **modelo especializado de 14 cl
 ## Decimotercer incremento de Fase 6 — validación cuantitativa de EPP
 
 Se implementa un laboratorio de evaluación con carga de imágenes reales locales, anotaciones TXT, data.yaml obligatorio y mapeo explícito de clases al modelo EPP. Se calculan TP/FP/FN, precisión, recall, F1 y AP@50/mAP@50 mediante comparación por IoU; se descartan resultados de métricas sin GT. Hay revisión gráfica por fotografía y exportación CSV/JSON con procedencia y parámetros. El sistema no genera puntuaciones ficticias ni considera detecciones de la simulación como verdad terreno. Para obtener métricas del proyecto hace falta un dataset real independiente y etiquetado. [Manual de evaluación](evaluacion_epp.md). Persisten Vercel Hobby y Render Free, sin backend de GPU. Fase 6 abierta y 31,25 % administrativo.
+
+
+## Decimocuarto incremento de Fase 6 — alcance corregido: solo simulaciones
+
+Se deja exclusivamente «Simulador 3D» en el análisis en vivo. Se desactivan las entradas de cámara y video y se elimina la carga de fotografías, el importador de datasets y el laboratorio de evaluación EPP. YOLO (COCO/EPP según escenario) recibe **solo fotogramas de las simulaciones 3D**, con recuadros generados por inferencia ONNX. Las reglas programadas y la analítica sintética siguen rotuladas por separado. No se piden datasets ni se publican métricas de precisión no comprobadas. El backend sigue en Render Free, el frontend en Vercel Hobby. Se mantienen las cuatro simulaciones y la Fase 6 abierta al 31,25 % administrativo.

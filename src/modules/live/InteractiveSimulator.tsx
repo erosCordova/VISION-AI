@@ -139,7 +139,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
      </div>
      <div className="simulator-ai-select" role="group" aria-label="Origen de las detecciones">
        <div><strong>ORIGEN DE LAS DETECCIONES</strong>
-        <span>{analysisMode==='yolo'?'Red neuronal COCO real':'Datos geométricos programados'}</span></div>
+        <span>{analysisMode==='yolo'?'YOLO analiza exclusivamente la escena 3D':'Datos geométricos programados'}</span></div>
        <div className="simulator-ai-switch">
         <button type="button" aria-pressed={analysisMode==='synthetic'}
          onClick={()=>setAnalysisMode('synthetic')}>Simulación visual</button>
@@ -194,7 +194,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
      </div>
      <div className="simulator-bottomline"><span><i/> Renderizado tridimensional y animación de personajes en navegador</span>
       <span>{analysisMode==='synthetic'?'Las cajas y alertas mostradas son sintéticas.':
-       'YOLO analiza píxeles sin consultar posiciones internas de la escena.'}</span></div>
+       'YOLO analiza los fotogramas de la simulación, sin importar archivos.'}</span></div>
     </div>
     <aside className="simulator-controls" aria-label="Controles avanzados de simulación">
      <span className="simulator-kicker">SISTEMA DE SUPERVISIÓN</span>
@@ -237,8 +237,8 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
    </div>
    <div className="simulator-footnote">
     <strong>Dos flujos independientes:</strong> «Simulación visual» calcula objetos y alertas con reglas programadas.
-    «YOLO real (navegador)» examina fotogramas de la escena con una red neuronal ONNX, muestra sus detecciones
-    sobre la imagen analizada y no recibe posiciones ni clases sintéticas. Los indicadores de la derecha
+    «YOLO real (navegador)» examina únicamente fotogramas de los cuatro escenarios 3D con una red ONNX,
+    muestra detecciones sobre el fotograma analizado y no requiere fotografías, videos ni datasets. Los indicadores de la derecha
     siguen describiendo la simulación, no la precisión de YOLO. Render Free mantiene exclusivamente la API ligera.
    </div>
  </section>;

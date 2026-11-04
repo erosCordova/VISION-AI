@@ -3,7 +3,6 @@ import type {Detection} from '../../core/domain/model';
 import {analyzeYoloFrame,captureRenderedFrame,loadYoloBrowser} from './yolo-browser';
 import type {YoloFrame,YoloFamily} from './yolo-browser';
 import {ppeColor,ppeFindings} from './ppe-model';
-import {PpeEvaluationPanel} from './PpeEvaluationPanel';
 import type {ScenarioKey} from './simulation-engine';
 type Model=Awaited<ReturnType<typeof loadYoloBrowser>>;
 type Phase='idle'|'loading'|'running'|'stopped'|'failed';
@@ -47,10 +46,6 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
  const [confidence,setConfidence]=useState(.35);
  const [model,setModel]=useState<Model|null>(null);
  const [family,setFamily]=useState<YoloFamily>(scenarioId==='safety'?'ppe':'coco');
- const [sourceMode,setSourceMode]=useState<'scene'|'photo'>('scene');
- const [photo,setPhoto]=useState<HTMLCanvasElement|null>(null);
- const [photoName,setPhotoName]=useState('');
- const photoCompleted=useRef(false);
  const [detections,setDetections]=useState<readonly Detection[]>([]);
  const [sampleCount,setSampleCount]=useState(0);
  const [inferenceMs,setInferenceMs]=useState<number|null>(null);
@@ -62,14 +57,10 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
  const [error,setError]=useState('');
  const start=useCallback(async()=>{
   if(phase==='loading'||phase==='running')return;
-  if(sourceMode==='photo'&&!photo){
-   setError('Selecciona una imagen JPG, PNG o WebP antes de iniciar la inferencia.');
-   return;
-  }
   const token=++generation.current;
   setPhase('loading');setError('');
   setMessage('Preparando el motor de inferencia…');
-  times.current=[];photoCompleted.current=false;setSampleCount(0);setObservedFps(null);
+  times.current=[];setSampleCount(0);setObservedFps(null);
   setDetections([]);setInferenceMs(null);setLastFrameAt(null);
   if(preview.current){const ctx=preview.current.getContext('2d');ctx?.clearRect(0,0,preview.current.width,preview.current.height);}
   try{
@@ -86,7 +77,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
    setError(explainError(e));
    setMessage('No fue posible inicializar el modelo YOLO.');
   }
- },[phase,model,family,sourceMode,photo]);
+ },[phase,model,family]);
  const stop=useCallback(()=>{
   generation.current++;
   setPhase('stopped');
@@ -98,37 +89,8 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
   setPhase('idle');setModel(null);setFamily(next);
   setError('');setDetections([]);setSampleCount(0);
   setObservedFps(null);setInferenceMs(null);setLastFrameAt(null);
-  photoCompleted.current=false;
   setMessage('Seleccionado '+(next==='ppe'?'YOLOv8s EPP (44,8 MB)':'YOLOv8n COCO (13 MB)')+
    '. Presiona Iniciar YOLO real para cargarlo.');
- }
- function selectSource(next:'scene'|'photo'){
-  if(next===sourceMode)return;
-  generation.current++;setPhase('idle');setSourceMode(next);
-  setError('');setDetections([]);setSampleCount(0);setLastFrameAt(null);
-  setInferenceMs(null);setObservedFps(null);photoCompleted.current=false;
-  setMessage(next==='photo'?'Selecciona una imagen local y después inicia YOLO.':
-   'Captura directa de los píxeles de la escena tridimensional.');
- }
- async function openLocalPhoto(file:File|undefined){
-  if(!file)return;
-  generation.current++;setPhase('idle');setError('');setSampleCount(0);
-  setDetections([]);setInferenceMs(null);setObservedFps(null);photoCompleted.current=false;
-  if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>12_000_000){
-   setPhoto(null);setError('Solo JPG, PNG o WebP de hasta 12 MB.');return;
-  }
-  try{
-   const bitmap=await createImageBitmap(file);
-   const factor=Math.min(1,960/Math.max(bitmap.width,bitmap.height));
-   const canvas=document.createElement('canvas');
-   canvas.width=Math.max(2,Math.round(bitmap.width*factor));
-   canvas.height=Math.max(2,Math.round(bitmap.height*factor));
-   const ctx=canvas.getContext('2d');
-   if(!ctx){bitmap.close();throw Error('No se pudo abrir la imagen.');}
-   ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
-   bitmap.close();setPhoto(canvas);setPhotoName(file.name);
-   setMessage('Imagen local preparada (no se envía a Render). Presiona Iniciar YOLO real.');
-  }catch(e){setPhoto(null);setError(explainError(e));}
  }
  useEffect(()=>{
   if(phase!=='running'||!model)return;
@@ -136,11 +98,10 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
   const token=generation.current;
   const loop=async()=>{
    while(!cancelled&&generation.current===token){
-    if(sourceMode==='scene'&&paused&&times.current.length>0){await delay(450);continue;}
-    if(sourceMode==='photo'&&photoCompleted.current){await delay(450);continue;}
+    if(paused&&times.current.length>0){await delay(450);continue;}
     const begin=performance.now();
     try{
-     const source=sourceMode==='photo'?photo:getSource();
+     const source=getSource();
      if(!source||source.width<2||source.height<2){
       await delay(350);continue;
      }
@@ -148,7 +109,6 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
      const result=await analyzeYoloFrame(model,frame,confidence);
      if(cancelled||generation.current!==token)return;
      if(preview.current)drawFrame(result,preview.current,model.family);
-     if(sourceMode==='photo')photoCompleted.current=true;
      setDetections(result.detections);
      setInferenceMs(result.inferenceMs);
      setLastFrameAt(Date.now());
@@ -173,7 +133,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
   };
   void loop();
   return ()=>{cancelled=true;};
- },[phase,model,getSource,confidence,paused,sourceMode,photo,family]);
+ },[phase,model,getSource,confidence,paused,family]);
  useEffect(()=>()=>{generation.current++;},[]);
  const personCount=detections.filter(d=>d.classId==='person').length;
  const ppe=family==='ppe'?ppeFindings(detections):null;
@@ -181,41 +141,29 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
    <div className="browser-yolo-heading">
     <div><span className="eyebrow">INFERENCIA REAL • ONNX / WASM</span>
       <h3>{family==='ppe'?'YOLOv8s — Equipos de protección':'YOLOv8n — Objetos generales'}</h3>
-      <p>El modelo examina píxeles de la escena 3D o de una imagen local. Las cajas proceden
-      exclusivamente de sus predicciones; nunca de las posiciones programadas.</p></div>
+      <p>YOLO examina automáticamente fotogramas de la simulación 3D mientras está en marcha.
+      Las cajas provienen del modelo, nunca de las posiciones programadas.</p></div>
     <span className={'browser-yolo-phase '+(phase==='running'?'is-live':'')} role="status">
      {phase==='running'?'● YOLO EJECUTÁNDOSE':phase==='loading'?'CARGANDO MODELO':
       phase==='failed'?'ERROR DE MODELO':'YOLO DETENIDO'}</span>
    </div>
-   <div className="browser-yolo-selectors">
+   <div className="browser-yolo-selectors browser-yolo-simulation-only">
     <div className="browser-yolo-picker">
-     <span>MODELO DE DETECCIÓN</span>
-     <div role="group" aria-label="Seleccionar modelo YOLO">
+     <span>DETECTOR YOLO</span>
+     <div role="group" aria-label="Seleccionar modelo YOLO para la simulación">
       <button type="button" aria-pressed={family==='coco'} onClick={()=>selectFamily('coco')}>
-       COCO · 80 clases
+       General · 80 clases
       </button>
       {scenarioId==='safety'&&<button type="button" aria-pressed={family==='ppe'}
        onClick={()=>selectFamily('ppe')}>EPP industrial · 14 clases</button>}
      </div>
     </div>
-    <div className="browser-yolo-picker">
-     <span>ORIGEN DE LA IMAGEN</span>
-     <div role="group" aria-label="Fuente analizada por YOLO">
-      <button type="button" aria-pressed={sourceMode==='scene'} onClick={()=>selectSource('scene')}>
-       Escena 3D
-      </button>
-      <button type="button" aria-pressed={sourceMode==='photo'} onClick={()=>selectSource('photo')}>
-       Imagen real local
-      </button>
-     </div>
+    <div className="browser-yolo-source-locked">
+     <strong>FUENTE EXCLUSIVA</strong>
+     <span>Escenario 3D en ejecución</span>
+     <small>Los fotogramas se capturan automáticamente. No se cargan archivos.</small>
     </div>
    </div>
-   {sourceMode==='photo'&&<div className="browser-yolo-upload">
-    <label htmlFor="yolo-photo">Imagen para comprobar detecciones</label>
-    <input id="yolo-photo" type="file" accept="image/jpeg,image/png,image/webp"
-     onChange={e=>void openLocalPhoto(e.target.files?.[0])}/>
-    <small>{photoName||'Máximo 12 MB · se analiza solo en tu navegador'}</small>
-   </div>}
    {family==='ppe'&&<p className="browser-yolo-modelnote">
     Modelo industrial especializado: descarga bajo demanda de 44,8 MB, licencia AGPL-3.0.
     Detecta cascos, chalecos, personas y algunas ausencias de EPP.
@@ -240,18 +188,17 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
    <div className="browser-yolo-result">
     <div className="browser-yolo-preview">
      <div className="browser-yolo-subhead"><strong>ÚLTIMO FOTOGRAMA ANALIZADO</strong>
-       <span>{sourceMode==='photo'?'YOLO · fotografía local':'YOLO · escena 3D'}</span></div>
+       <span>YOLO · simulación 3D</span></div>
      <div className="browser-yolo-preview-frame">
       <canvas ref={preview} width={960} height={550} role="img"
        aria-label={'Fotograma de '+scenarioName+' con las cajas realmente inferidas por YOLO'} />
       {sampleCount===0&&<p className="browser-yolo-placeholder">
        {phase==='loading'?'Preparando red neuronal…':
-        sourceMode==='photo'?'Selecciona una imagen y ejecuta YOLO.':
-        'Inicia YOLO para analizar un fotograma de la escena.'}
+        'Inicia YOLO para analizar los fotogramas de la simulación.'}
       </p>}
      </div>
-     <p>Las cajas corresponden exactamente al fotograma procesado y nunca a
-      posiciones internas del simulador. Las imágenes locales permanecen en el navegador.</p>
+     <p>Las cajas provienen exactamente del fotograma de la escena procesado por YOLO,
+      sin consultar las posiciones internas del simulador.</p>
     </div>
     <div className="browser-yolo-summary">
      <span className="eyebrow">LECTURA DEL MODELO</span>
@@ -288,7 +235,5 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
      </p>
     </div>
    </div>
-   {family==='ppe'&&scenarioId==='safety'&&
-     <PpeEvaluationPanel disabled={phase==='running'||phase==='loading'}/>}
  </section>;
 }

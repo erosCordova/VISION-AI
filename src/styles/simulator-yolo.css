@@ -75,13 +75,6 @@ color:#c3e2d9;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
 .browser-yolo-picker button:focus-visible{outline:2px solid #b8ffe5;outline-offset:2px}
 .browser-yolo-modelnote{background:#363829;border:1px solid #77704b;padding:11px 13px;
  border-radius:8px;font-size:10px;color:#e3d6ae;line-height:1.65;margin:9px 0}
-.browser-yolo-upload{border:1px solid #3c6367;background:#12353e;border-radius:9px;
- padding:13px;margin:10px 0;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
-.browser-yolo-upload label{font-weight:800;color:#e4f8ec;font-size:11px}
-.browser-yolo-upload input{font-size:10px;color:#cee9e2;max-width:100%;min-width:0}
-.browser-yolo-upload input::file-selector-button{border-radius:7px;border:1px solid #4c9e8b;
- background:#226d60;padding:8px 10px;color:#f4fff9;cursor:pointer;margin-right:10px}
-.browser-yolo-upload small{font-size:10px;color:#9fc9c0;max-width:100%;overflow-wrap:anywhere}
 .browser-ppe-summary{margin:12px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 .browser-ppe-summary>div{padding:10px;border:1px solid #3c6867;background:#174039;border-radius:7px}
 .browser-ppe-summary>div span{display:block;font-size:9px;color:#b9d9ca;line-height:1.3}
@@ -93,3 +86,15 @@ color:#c3e2d9;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
  .browser-yolo-picker>div{width:100%}
  .browser-yolo-picker button{flex:1}
 }
+
+.simulation-only-notice{display:flex;align-items:center;justify-content:space-between;gap:12px;
+ flex-wrap:wrap;margin:0 0 12px;padding:13px 16px;border-radius:10px;
+ border:1px solid #41877a;background:linear-gradient(110deg,#113d41,#133647)}
+.simulation-only-notice strong{font-size:10px;font-weight:800;letter-spacing:1px;color:#9ef4d3}
+.simulation-only-notice span{font-size:11px;color:#bddbd4;line-height:1.5}
+.browser-yolo-simulation-only .browser-yolo-source-locked{display:flex;flex-direction:column;gap:8px;
+ border:1px solid #3c7770;background:#153e43;border-radius:9px;padding:13px;justify-content:center}
+.browser-yolo-source-locked strong{font-size:9px;letter-spacing:1px;color:#94e7ca}
+.browser-yolo-source-locked span{font-weight:800;color:#e2faf1;font-size:12px}
+.browser-yolo-source-locked small{font-size:10px;color:#abd1c4;line-height:1.5}
+@media(max-width:690px){.simulation-only-notice{align-items:flex-start;flex-direction:column}}

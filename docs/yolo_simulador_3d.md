@@ -77,8 +77,15 @@ Clases en el orden oficial: persona, casco, sin casco, chaleco, sin chaleco, sin
 
 La interfaz **no deduce incumplimiento cuando un casco o chaleco no aparece**: solo contabiliza como indicio para revisión las predicciones positivas de clases explícitas `no-hardhat`, `no-safety vest`, `no-goggles` y `no-gloves`. Se excluye `no-mask` de las señales de revisión, ya que el autor advierte que esa clase no fue aprendida de forma fiable. No se asocia automáticamente una prenda a una persona concreta; una inferencia espacial de asociación requeriría calibración y evaluación separadas.
 
-Se admite una **imagen local JPG, PNG o WebP de hasta 12 MB** para probar escenas fotográficas reales, además de la captura de fotogramas 3D. Se escala localmente a 960 px como máximo, no se envía a Render y se descarta al desmontar el panel. La inferencia de imagen local se ejecuta una vez por inicio (no se hacen repeticiones innecesarias de una imagen estática).
+**La fuente de entrada del usuario es exclusivamente el simulador 3D**. No existen controles para cargar fotografías, videos, datasets o etiquetas de entrenamiento. Los pesos ONNX ya están preentrenados; el usuario solo decide cuándo ejecutar inferencia sobre fotogramas simulados.
 
-La ficha del publicador informa un mAP@50 global de 0.634 en su evaluación; **NO es un resultado medido en VISION-AI**. Para poder afirmar precisión en los escenarios sintéticos necesitamos un banco de pruebas etiquetado manualmente e independiente, con precisión, recall, mAP y matriz de confusión. Hasta contar con él, los conteos de EPP y las advertencias se consideran exclusivamente resultados exploratorios sin uso para prevención de riesgos ni cumplimiento normativo.
+La ficha del publicador informa un mAP@50 global de 0.634 en su evaluación; **NO es un resultado medido en VISION-AI**. El sistema no afirma precisión, recall ni mAP para nuestros escenarios, porque no se han medido; se presentan únicamente predicciones y latencias de cada ejecución. Hasta contar con él, los conteos de EPP y las advertencias se consideran exclusivamente resultados exploratorios sin uso para prevención de riesgos ni cumplimiento normativo.
 
 La carga de 44.8 MB y la ejecución CPU/WASM pueden ser más lentas en un ordenador de recursos limitados. El modelo COCO liviano sigue disponible. Backend Render Free sin cambios. No se han añadido dependencias npm ni API de pago.
+
+
+## Decisión de producto — simulación exclusiva (4 de noviembre de 2026)
+
+Se ha retirado la opción de «Imagen real local», la importación de archivos y el laboratorio de evaluación EPP por solicitud del usuario. **El único origen de YOLO es el fotograma generado por WebGL2/Three.js en alguno de los cuatro escenarios.** Las variantes de renderizado no modifican la procedencia de las detecciones.
+
+No confundir el requisito «sin datasets para el usuario» con que el modelo neuronal no necesite conocimientos preentrenados: los pesos de detección proceden de entrenamiento externo y se verifican con SHA256 antes de la inferencia. El usuario nunca deberá cargar ni entrenar datasets.

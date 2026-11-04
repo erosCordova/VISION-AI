@@ -55,7 +55,7 @@ En **Análisis en vivo → Simulador interactivo** aparecen los cuatro escenario
 
 **Análisis en vivo → Simulador 3D** abre una instalación interactiva WebGL2: geometría volumétrica de personas, EPP, montacargas, racks, cajas, productos, cinta y zonas en suelo. Incorpora tres vistas de cámara (isométrica, frontal y superior), rotación con ratón y flechas, zoom de rueda, ajustes de visualización, cronología, cambio de velocidad, pausa, reinicio, pantalla completa y captura PNG. Su renderizador es WebGL2 nativo con shaders y mallas 3D generadas localmente, sin bibliotecas adicionales ni coste de GPU remota.
 
-Las puntuaciones, escenas y alertas del simulador siguen siendo **datos sintéticos** y están rotulados como tales. Las otras dos modalidades son **Video con YOLO** y **Cámara con YOLO**, que no pretenden inferencia disponible en Render Free.
+Las puntuaciones, escenas y alertas del simulador siguen siendo **datos sintéticos** y están rotulados como tales. **La única modalidad operativa del análisis en vivo es el simulador 3D**, que admite detecciones de YOLO realizadas sobre sus fotogramas.
 
 Ver [manual técnico del laboratorio 3D](docs/simulacion_interactiva_3d.md).
 
@@ -77,9 +77,13 @@ En «Análisis en vivo» → «Simulador 3D» se puede elegir entre **Simulació
 
 ### Detector EPP para Seguridad Industrial
 
-El simulador 3D permite elegir **YOLOv8s EPP (14 clases)** o **YOLOv8n COCO (80 clases)**. El especializado se descarga cuando se solicita (44.8 MB; SHA256 verificado), identifica personas, cascos, chalecos y ciertas señales explícitas de EPP ausente. También se puede elegir una imagen real local sin subirla a servidor. Las observaciones EPP solo sirven para revisión; resultados vacíos no demuestran cumplimiento. Datos, límites y licencia AGPL-3.0: [manual del piloto](docs/yolo_simulador_3d.md).
+El simulador 3D permite elegir **YOLOv8s EPP (14 clases)** o **YOLOv8n COCO (80 clases)**. El especializado se descarga cuando se solicita (44.8 MB; SHA256 verificado), identifica personas, cascos, chalecos y ciertas señales explícitas de EPP ausente. Las observaciones EPP solo sirven para revisión; resultados vacíos no demuestran cumplimiento. Datos, límites y licencia AGPL-3.0: [manual del piloto](docs/yolo_simulador_3d.md).
 
 
-### Laboratorio de evaluación EPP (sin demos)
+## Decisión vigente: exclusivamente simulaciones 3D
 
-En Seguridad → YOLO real → EPP industrial, la sección «Laboratorio de precisión» procesa **imágenes JPG/PNG/WebP, etiquetas YOLO TXT y data.yaml** desde tu ordenador, sin enviar archivos a Render. Calcula precisión, recall, F1 y mAP@50 respecto a etiquetas verificables, incluye vista de errores y exportación CSV/JSON. El resultado permanece vacío hasta cargar un dataset real; si no hay GT, no se inventan métricas. No es un informe oficial COCO mAP@50-95 ni certificación de cumplimiento industrial. Consulta [guía de evaluación y formato](docs/evaluacion_epp.md).
+VISION-AI se desarrolla **únicamente con cuatro escenarios 3D generados en el navegador**: seguridad industrial, manufactura, retail y logística. No existe un flujo de usuario para importar datasets, etiquetas, fotografías, videos ni cámaras. La fuente de fotogramas de YOLO es siempre la propia simulación; el detector general COCO se utiliza en los escenarios y el especializado EPP permanece disponible en Seguridad.
+
+Se distinguen dos vistas de un mismo escenario: **Simulación visual** (reglas y anotaciones programadas) y **YOLO real** (inferencia sobre los píxeles renderizados, sin leer etiquetas ni coordenadas del simulador). La descarga de pesos preentrenados ONNX es automática tras pulsar Iniciar YOLO; no se solicita cargar ni entrenar datasets. El usuario puede pausar, reanudar, ajustar velocidad, cámara y confianza. Los resultados reales dependen de los objetos que el detector consiga reconocer.
+
+Esta decisión sustituye las opciones anteriores de cargas locales y laboratorio de evaluación. **No se comunica precisión ni mAP no medido.** Vercel aloja el frontend, Render Free permanece exclusivamente como backend ligero, sin inferencia de visión remota.
