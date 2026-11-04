@@ -147,3 +147,7 @@ modo de representación y tiempo después de la captura.
 
 **Estado:** incremento en commit preparado fuera de main, pendiente
 de ejecución integral de TypeScript/Chromium; fase 9 no aprobada.
+
+Validación adicional: el origen de un fotograma se comprueba también
+cuando llega como dato corrupto (incluido `null`); el monitor no falla
+ni registra inferencia inválida. No se altera la compatibilidad histórica.

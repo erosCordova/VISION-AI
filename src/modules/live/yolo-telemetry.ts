@@ -9,7 +9,10 @@ export interface YoloFrameSource {
  readonly graphics:'human'|'light';
  readonly camera:CameraView;
 }
-export function validYoloFrameSource(source:YoloFrameSource):boolean{
+/** La telemetría puede proceder de registros migrados o datos corruptos. */
+export function validYoloFrameSource(candidate:unknown):candidate is YoloFrameSource{
+ if(!candidate||typeof candidate!=='object')return false;
+ const source=candidate as YoloFrameSource;
  return ['safety','quality','retail','warehouse'].includes(source.scenarioId)&&
   Number.isInteger(source.elapsedMs)&&source.elapsedMs>=0&&source.elapsedMs<=3_600_000&&
   ['human','light'].includes(source.graphics)&&

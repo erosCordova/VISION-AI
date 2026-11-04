@@ -36,6 +36,16 @@ describe('Fase 9 — historial vinculado al frame YOLO, no al estado al guardar'
    elapsed:12,graphics:'human',camera:'frontal',mode:'yolo',telemetry},
    new Date('2026-11-04T16:00:00Z'),'wrong')).toThrow(/no corresponde/);
  });
+ it('no rompe el monitor con metadatos de escena corruptos o ausentes',()=>{
+  const broken=updateYoloTelemetry(updateYoloTelemetry(INITIAL_YOLO_TELEMETRY,
+   {type:'status',phase:'running',model:'coco'}),{type:'frame',observation:{
+    frameNumber:1,capturedAtMs:1000,inferenceMs:100,model:'coco',detections:[],
+    source:null as unknown as YoloFrameSource
+   }});
+  expect(broken.observations).toHaveLength(0);
+  const strange=make({...scene('safety'),camera:'inventada' as YoloFrameSource['camera']});
+  expect(strange.observations).toHaveLength(0);
+ });
  it('ignora una observación con datos de origen inválidos',()=>{
   const bad={...scene('quality'),elapsedMs:-100};
   const telemetry=make(bad);
