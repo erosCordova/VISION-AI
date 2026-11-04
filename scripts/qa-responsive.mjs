@@ -659,6 +659,75 @@ try {
           filtered.visual>Number(filtered.monitor)||filtered.confidence!=='85')
           throw Error('OB02: el filtro afectó datos originales o activó inferencia: '+JSON.stringify({baseline,filtered}));
         console.log('OB02/OB05: confianza visual filtrada con detector pausado sin alterar evidencia');
+
+        // AN03/AN04: fallo controlado SOLO en Chromium QA, nunca en producción.
+        // La siguiente lectura del tensor YOLO falla; el reintento reutiliza
+        // el fotograma 3D real capturado y los pesos ONNX ya descargados.
+        const armed=await cdp.send('Runtime.evaluate',{
+          expression:'(() => {'
+           +'if(!window.__visionQaOriginalGetImageData){'
+           +'window.__visionQaOriginalGetImageData=CanvasRenderingContext2D.prototype.getImageData;}'
+           +'window.__visionQaFaultArmed=true;'
+           +'CanvasRenderingContext2D.prototype.getImageData=function(...args){'
+           +'if(window.__visionQaFaultArmed && this.canvas.width===640 && this.canvas.height===640){'
+           +'window.__visionQaFaultArmed=false;'
+           +'throw new Error("QA: error temporal en lectura de píxeles YOLO");}'
+           +'return window.__visionQaOriginalGetImageData.apply(this,args);};'
+           +'const resume=Array.from(document.querySelectorAll(".simulator-timeline-actions button"))'
+           +'.find(b=>b.textContent?.includes("Reanudar"));'
+           +'resume?.click();return Boolean(resume);'
+           +'})()',returnByValue:true
+        });
+        if(!armed.result?.value)throw Error('AN03: no se pudo reanudar la escena');
+        const beforeRetry=await eventually(async()=>{
+          const result=await cdp.send('Runtime.evaluate',{
+            expression:'(() => ({'
+              +'error:document.querySelector(".browser-yolo-error")?.textContent?.trim(),'
+              +'attempt:document.querySelector(".browser-yolo-run")?.textContent?.trim(),'
+              +'retry:Array.from(document.querySelectorAll(".browser-yolo-actions button"))'
+              +'.some(b=>b.textContent?.includes("Reintentar último fotograma")),'
+              +'frames:Number(document.querySelector(".browser-yolo-count b")?.textContent||0)'
+              +'}))()',returnByValue:true
+          });
+          const s=result.result?.value;
+          return s?.retry&&s.error?.includes('QA: error temporal')&&
+            s.attempt?.includes('ANÁLISIS FALLIDO')?s:null;
+        },'AN03 fallo temporal y opción de reintento',340);
+        const failedFrame=beforeRetry.attempt.match(/Frame #([0-9]+)/)?.[1];
+        if(!failedFrame)throw Error('AN03: no existe ID del frame fallido');
+        const doRetry=await cdp.send('Runtime.evaluate',{
+          expression:'(() => { const b=Array.from(document.querySelectorAll(".browser-yolo-actions button"))'
+            +'.find(x=>x.textContent?.includes("Reintentar último fotograma"));'
+            +'b?.click();return Boolean(b);})()',returnByValue:true
+        });
+        if(!doRetry.result?.value)throw Error('AN04: botón de reintento inaccesible');
+        const afterRetry=await eventually(async()=>{
+          const result=await cdp.send('Runtime.evaluate',{
+            expression:'(() => ({'
+             +'tag:document.querySelector(".browser-yolo-run")?.textContent?.trim(),'
+             +'error:document.querySelector(".browser-yolo-error")?.textContent?.trim(),'
+             +'phase:document.querySelector(".browser-yolo-phase")?.textContent?.trim(),'
+             +'monitor:document.querySelector(".yolo-monitor-status")?.textContent?.trim(),'
+             +'frames:Number(document.querySelector(".browser-yolo-count b")?.textContent||0)'
+             +'}))()',returnByValue:true
+          });
+          const s=result.result?.value;
+          return s?.tag?.includes('ANÁLISIS COMPLETADO')&&
+            s.tag.includes('Intento 2')&&s.phase?.includes('DETENIDO')&&
+            s.monitor?.includes('DETENIDA')&&!s.error?s:null;
+        },'AN04 reintento ONNX del mismo fotograma',340);
+        if(afterRetry.tag.match(/Frame #([0-9]+)/)?.[1]!==failedFrame||
+          afterRetry.frames!==beforeRetry.frames+1)
+          throw Error('AN04: reintento no conservó ID ni incrementó una sola lectura: '+
+            JSON.stringify({beforeRetry,afterRetry}));
+        // Restaurar la API nativa del navegador usada durante el ensayo.
+        await cdp.send('Runtime.evaluate',{
+          expression:'(() => {CanvasRenderingContext2D.prototype.getImageData='
+            +'window.__visionQaOriginalGetImageData;'
+            +'window.__visionQaFaultArmed=false;return true;})()',
+          returnByValue:true
+        });
+        console.log('AN03/AN04 Chromium: fallo de lectura y reintento ONNX del MISMO frame verificados');
         const runTag=await cdp.send('Runtime.evaluate',{
           expression:'document.querySelector(".browser-yolo-run")?.textContent?.trim()||""',
           returnByValue:true

@@ -168,3 +168,19 @@ directamente de las funciones de validación del origen y del regulador
 de cadencia. Esta comprobación *no sustituye* `npm run check`, el
 paquete completo de Vitest ni Chromium. El commit queda preparado sin
 actualizar `main` y sin activar ningún despliegue.
+
+## Incremento 8: aceptación funcional de recuperación del motor
+
+El QA de Chromium incorpora un **fallo controlado y temporal**
+en la lectura de píxeles para YOLO, después de que el modelo EPP
+haya procesado un fotograma real de la simulación. Esta instrumentación
+solo existe en el ensayo automatizado: no altera el runtime de producción.
+El ensayo exige que aparezcan el error y el botón de reintento,
+reanaliza el **mismo fotograma**, mantiene su ID y comprueba que
+se añade exactamente una observación nueva. Valida la transición
+a `DETENIDO` y el estado coherente del monitor tras recuperar.
+También restaura explícitamente la función nativa de Chromium.
+
+El código de esta validación está preparado, pero **solo se considerará
+superada** cuando se ejecute en el runner real junto con TypeScript,
+Vitest, Python y la compilación. No se activó ningún nuevo despliegue.
