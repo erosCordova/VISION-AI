@@ -69,3 +69,20 @@ Se eliminan desplazamientos basados en seno/coseno para peatones y montacargas. 
 Se incorpora `SimulationAnalytics.tsx`: tres KPI legibles, tendencia temporal de actividad sintética, minimapa cenital con rumbo de cada actor y bitácora de cambios de estado. La métrica **índice de actividad 0–100** se deriva de agentes desplazándose, conteos y alertas; no representa confianza de YOLO ni precisión de un detector. Los eventos de la bitácora se obtienen de cambios reales del estado sintético, no de textos de ejemplo con marcas horarias inventadas.
 
 La navegación sigue determinada por tiempo y es reproducible al pausar o mover el control temporal. El sistema conserva GPU local WebGL2, Vercel Hobby y API ligera en Render Free. Se amplían pruebas de orientación, continuidad temporal, no repetición corta y QA responsive para el minimapa/gráfico/KPIs. Las capacidades visuales deben revisarse con navegador acelerado para dar por cerrada la fase 6.
+
+## Human Edition — personajes realistas y animación por esqueleto
+
+La versión de mayor calidad utiliza `three@0.180.0`, `GLTFLoader` y `SkeletonUtils.clone` para representar personajes humanos auténticos en formato GLB. No son personajes generados con esferas/bloques: cada archivo tiene una malla humana con rig, texturas/materiales y clips propios de caminar, esperar o correr según lo que contenga el modelo. Se estandariza su altura y se adapta la dirección de la escena a su trayectoria sintética.
+
+Se mantiene el entorno industrial que ya existía, convirtiendo sus triángulos a geometría compatible con Three.js y aplicando iluminación hemisférica y direccional, sombras y mapeado de tonos ACES. Las escenas de seguridad añaden EPP ilustrativo como capa de visualización. Cada personaje se carga solamente si el escenario lo necesita y se reutiliza al cambiar de escena. Si falla la descarga, aparece una figura humana articulada de respaldo y un aviso; la escena no se bloquea.
+
+La interfaz muestra «Humanos animados» (por defecto) y «Modo ligero» (renderizador WebGL2 anterior), para preservar fluidez en computadoras con GPU modesta. Los controles de cámara, línea de tiempo, velocidad, capas, simulación y capturas PNG se mantienen.
+
+### Origen y licencias de los modelos
+
+- **Gobkit**, catálogo de modelos gratuitos CC0 1.0: https://gobkit.com/api/free y https://gobkit.com/freebies
+- Humanos usados: ExtinguisherOperator, HazmatTech, ItEngineer, StockClerk, BaggageHandler, Cashier, OfficeLady, GrandmaShopper, StoreManager y FoodCourier, con URLs verbatim en `src/modules/live/human-assets.ts`.
+- Los ficheros GLB se cargan directamente desde Gobkit a través de HTTPS; no se almacenan en el repositorio. Su disponibilidad y CORS dependen del proveedor. No se generan ni consumen APIs de pago.
+- Three.js tiene licencia MIT. Ningún archivo de fuente ni animación con licencia no verificada se introduce en el proyecto.
+
+**Limitación:** el resultado es un *gemelo digital sintético* con humanos mejor representados, no video real, aprendizaje de red neuronal ni inferencia YOLO. La velocidad de renderizado se mide por separado y las cifras sintéticas se distinguen de los resultados de detector.

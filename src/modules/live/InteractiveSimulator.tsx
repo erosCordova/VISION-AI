@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { IndustrialScene3D } from './IndustrialScene3D';
+import { HumanizedScene3D } from './HumanizedScene3D';
 import { SimulationAnalytics } from './SimulationAnalytics';
 import type { IndustrialSceneHandle,LayerName } from './IndustrialScene3D';
 import { simulationSnapshot } from './simulation-engine';
@@ -36,6 +37,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
  const [layers,setLayers]=useState<Record<LayerName,boolean>>(blankLayers);
  const [showScore,setShowScore]=useState(true);
  const [view,setView]=useState<CameraView>('isometric');
+ const [graphics,setGraphics]=useState<'human'|'light'>('human');
  const [renderFps,setRenderFps]=useState(0);
  const [captureError,setCaptureError]=useState('');
  const frameRef=useRef({previous:0});
@@ -89,8 +91,8 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
    <div className="simulator-topline">
     <div>
      <span className="simulator-overline">VISION-AI / LABORATORIO INDUSTRIAL</span>
-     <h2>Simulación industrial 3D <span className="simulator-pro-label">PRO</span></h2>
-     <p>Un gemelo digital experimental con rutas autónomas, supervisión de zonas y analítica contextual.</p>
+     <h2>Simulación industrial 3D <span className="simulator-pro-label">HUMAN EDITION</span></h2>
+     <p>Personajes humanos animados, rutas autónomas, instalaciones industriales y supervisión visual.</p>
     </div>
     <span className="simulator-mode"><span className="simulator-signal"/> ESCENA SINTÉTICA · NO YOLO</span>
    </div>
@@ -116,10 +118,26 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
        <strong>{secondsText(elapsed)}</strong>
       </div>
      </div>
+     <div className="simulator-render-preset" role="group" aria-label="Calidad visual del simulador">
+       <span>CALIDAD DE PERSONAJES</span>
+       <div>
+        <button type="button" aria-pressed={graphics==='human'} onClick={()=>setGraphics('human')}>
+          Humanos animados
+        </button>
+        <button type="button" aria-pressed={graphics==='light'} onClick={()=>setGraphics('light')}>
+          Modo ligero
+        </button>
+       </div>
+     </div>
      <div className="simulator-canvas-wrap">
-      <IndustrialScene3D ref={sceneRef} view={view} snapshot={snapshot}
-        elapsed={elapsed} paused={paused} layers={layers}
-        threshold={threshold} showScore={showScore} onFps={setRenderFps}/>
+      {graphics==='human'?
+        <HumanizedScene3D ref={sceneRef} view={view} snapshot={snapshot}
+          elapsed={elapsed} paused={paused} layers={layers}
+          threshold={threshold} showScore={showScore} onFps={setRenderFps}/>:
+        <IndustrialScene3D ref={sceneRef} view={view} snapshot={snapshot}
+          elapsed={elapsed} paused={paused} layers={layers}
+          threshold={threshold} showScore={showScore} onFps={setRenderFps}/>
+      }
       <span className="simulator-canvas-badge">INSTALACIÓN 3D · {config.tab.toUpperCase()}</span>
      </div>
      <div className="simulator-camera-toolbar" aria-label="Control de cámara tridimensional">
@@ -154,7 +172,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
       </div>
       {captureError&&<p className="simulator-action-error" role="alert">{captureError}</p>}
      </div>
-     <div className="simulator-bottomline"><span><i/> Renderizado tridimensional en el navegador</span>
+     <div className="simulator-bottomline"><span><i/> Renderizado tridimensional y animación de personajes en navegador</span>
       <span>Animación y puntuaciones sintéticas, sin ejecutar YOLO.</span></div>
     </div>
     <aside className="simulator-controls" aria-label="Controles avanzados de simulación">

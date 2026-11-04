@@ -81,3 +81,9 @@ Se conserva la aplicación Vercel Hobby y la API de estado en Render Free, sin c
 Se implementa un planificador de trayectorias interconectadas, con decisiones pseudoaleatorias reproducibles, velocidad por tramo, inspecciones, pausas, repulsión de proximidad y rumbo propio para cada entidad. El renderizador gira los modelos 3D y anima marcha y brazos en función del movimiento; el montacargas cambia dirección visualmente. Los cuatro escenarios tienen comportamientos diferenciados y sus alertas se derivan de posiciones sintéticas.
 
 Panel analítico renovado con tarjetas KPI, curva de actividad operacional, minimapa de actores y bitácora derivada del estado, con etiquetado sintético visible y sin confusión con inferencia YOLO. Se agregan pruebas puras de trayectoria y métricas y QA responsive del panel. No se ha modificado Render Free ni añadido ningún coste de GPU, y el avance sigue en 31.25 % hasta el cierre de fase 6.
+
+## Décimo incremento Fase 6 — personajes humanos riggeados (Human Edition)
+
+Se incorpora una vista avanzada con Three.js (renderizado PBR y sombras suaves), modelos humanos GLB CC0 asignados según escenario, clips de caminar/esperar y accesorios EPP visuales. Se conserva la vista WebGL2 de geometría anterior como «Modo ligero». Los modelos se descargan bajo demanda desde la biblioteca pública de Gobkit; si no hay red o el proveedor falla, se visualiza un humano articulado de respaldo con aviso visible. La publicación permanece en Vercel Hobby y Render Free sin inferencia YOLO ni servicios de GPU de pago.
+
+Las trayectorias y eventos siguen siendo los definidos por el simulador sintético; utilizar modelos humanos no significa tener detección real. Se mantiene la Fase 6 abierta y el avance administrativo en 31.25 % hasta validar FPS, carga de GLB, cámara y accesibilidad en dispositivos físicos.

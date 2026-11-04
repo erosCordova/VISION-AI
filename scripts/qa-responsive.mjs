@@ -123,6 +123,8 @@ try {
           + 'hasSimulatorStage: !!document.querySelector(".simulator-3d-stage canvas"), '
           + 'hasSimulatorControls: !!document.querySelector(".simulator-controls input[type=range]"), '
           + 'hasCameraPresets: document.querySelectorAll(".simulator-view-group button").length === 3, '
+          + 'hasHumanMode: !!document.querySelector(".simulator-render-preset button[aria-pressed=true]"), '
+          + 'hasHumanCanvas: !!document.querySelector(".simulator-human-stage canvas"), '
           + 'hasSyntheticDisclosure: !!document.querySelector(".simulator-footnote"), '
           + 'hasSyntheticLabel: !!document.querySelector(".simulator-mode"), '
           + 'hasScenarioTabs: document.querySelectorAll(".simulator-scenarios button").length === 4, '
@@ -137,7 +139,7 @@ try {
       if (view.viewport !== width || view.pageWidth > width + 1
           || view.elementLeft < -1 || view.elementLeft + view.elementWidth > width + 1
           || !view.hasFocusableMain || !view.hasSkip || !view.hasText
-          || (name === 'analisis' && (!view.hasSimulationModes || !view.hasSimulatorStage || !view.hasSimulatorControls || !view.hasCameraPresets || !view.hasSyntheticDisclosure || !view.hasSyntheticLabel || !view.hasScenarioTabs || !view.hasAnalytics || !view.hasActivityChart || !view.hasMiniMap || !view.hasKPIs))) {
+          || (name === 'analisis' && (!view.hasSimulationModes || !view.hasSimulatorStage || !view.hasSimulatorControls || !view.hasCameraPresets || !view.hasHumanMode || !view.hasHumanCanvas || !view.hasSyntheticDisclosure || !view.hasSyntheticLabel || !view.hasScenarioTabs || !view.hasAnalytics || !view.hasActivityChart || !view.hasMiniMap || !view.hasKPIs))) {
         throw Error('QA falló (' + width + ' px, ' + name + '): ' + JSON.stringify(view));
       }
       const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });

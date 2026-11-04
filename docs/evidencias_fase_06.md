@@ -94,3 +94,11 @@ Solicitud: hacer profesional la visualización, superar las trayectorias repetit
 Se reemplazan barras y gráfico simples por consola de supervisión con KPI compactos, actividad sintética temporal, minimapa real de la maqueta y bitácora de transiciones calculadas. Se mantienen explícitamente las etiquetas de simulación y la separación con los modos YOLO.
 
 Pruebas: nuevas suites del planificador y del panel. QA Chromium extiende la verificación a mapa, gráfica y tarjetas a 360, 768 y 1440 px. La compilación y publicación deben comprobarse con sus run IDs respectivos; pruebas automáticas no acreditan fidelidad visual ni procesamiento YOLO real.
+
+## Décimo incremento — personajes GLB humanos con animaciones reales
+
+Evolución de simulador: elección entre motor ligero y «Humanos animados» como modo inicial. La vista avanzada reutiliza la instalación y los objetos previos, ilumina la geometría con materiales PBR/ACES y sombras suaves, carga modelos humanos GLB con esqueleto y clips Idle/Walk y los adapta a altura uniforme. Se emplea SkeletonUtils.clone para mantener correctamente el esqueleto de cada personaje con acciones independientes y se reproducen clips según su estado de movimiento. Los empleados de Seguridad se distinguen por EPP visual; los personajes de Retail, Logística y Manufactura tienen variantes específicas.
+
+Los modelos están publicados bajo licencia CC0 por Gobkit. La aplicación los carga bajo demanda desde URLs documentadas; si no pueden cargarse, usa geometría humana articulada local y muestra el estado. No almacena ni envía datos personales ni video en esta modalidad.
+
+La escena sigue expresamente etiquetada como sintética: los recuadros y eventos no proceden de detección YOLO. Pruebas agregadas para mapa de modelos y selección de clips; QA Chromium ampliado para ambas modalidades. CI confirma compilación y responsive, pero la carga remota de GLB y suavidad en cada GPU física requieren comprobación adicional.

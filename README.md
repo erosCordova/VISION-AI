@@ -63,3 +63,9 @@ Ver [manual técnico del laboratorio 3D](docs/simulacion_interactiva_3d.md).
 ## Simulador 3D Pro (movimiento no cíclico)
 
 El modo de simulación usa rutas multidirigidas, paradas de inspección, comportamiento por escenario y orientaciones 3D. Incluye dashboard con KPI sintéticos, un gráfico de actividad y minimapa actualizados a partir de los estados de la escena. No representa YOLO real. Consulta [documentación de simulación 3D](docs/simulacion_interactiva_3d.md).
+
+## Human Edition — simulación 3D con humanos animados
+
+La modalidad inicial «Simulador 3D» ahora ofrece la opción **Humanos animados**: personajes humanos GLB gratuitos con animaciones de esqueleto, entorno iluminado con Three.js, variaciones de empleados y clientes, movimiento multirruta, captura PNG y los indicadores del tablero. Para equipos modestos se conserva «Modo ligero» con la vista WebGL2 anterior.
+
+Assets externos: Gobkit CC0 (https://gobkit.com/api/free). Se descargan bajo demanda; puede verse un humano alternativo si la red o el proveedor no responden. Este modo no usa YOLO. Los modelos EPP, el movimiento y las alertas son simulaciones visuales; no constituyen seguridad certificada ni pruebas de detección real. [Detalles técnicos y licencias](docs/simulacion_interactiva_3d.md).
