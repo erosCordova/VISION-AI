@@ -2,6 +2,10 @@ import {useEffect,useMemo,useState} from 'react';
 import type {SimulationSessionRepository} from '../../core/ports/simulation-session-repository';
 import {validateReproducibility} from '../live/simulation-session-model';
 import type {SimulationSession} from '../../core/domain/simulation-session';
+import type {ReviewClosure} from '../../core/domain/review-closure';
+import {buildHistoryCsv,buildHistoryAuditReport,downloadLocalReport,
+ filterHistoryRecords,historyReportMetrics,linkedReviews} from './session-reports';
+import type {HistoryPeriod,HistoryReportKind,HistoryReviewState} from './session-reports';
 
 const SCENARIOS=[
  {id:'safety',label:'Seguridad industrial'},
@@ -18,11 +22,14 @@ const formatElapsed=(ms:number)=>Math.floor(ms/60000).toString().padStart(2,'0')
 export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;sessionRepository:SimulationSessionRepository}){
  const [records,setRecords]=useState<readonly SimulationSession[]>([]);
  const [corruptIds,setCorruptIds]=useState<readonly string[]>([]);
+ const [closures,setClosures]=useState<readonly ReviewClosure[]>([]);
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState('');
  const [query,setQuery]=useState('');
  const [scenario,setScenario]=useState('');
  const [mode,setMode]=useState('');
+ const [period,setPeriod]=useState<HistoryPeriod>('all');
+ const [reviewStatus,setReviewStatus]=useState<HistoryReviewState>('all');
  const [page,setPage]=useState(1);
  const [selected,setSelected]=useState<string|null>(null);
  const [pendingDelete,setPendingDelete]=useState<string|null>(null);
@@ -31,14 +38,15 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
   let alive=true;
   const load=async()=>{
    try{
-    const inspection=await sessionRepository.inspect();
+    const [inspection,reviews]=await Promise.all([
+     sessionRepository.inspect(),sessionRepository.listReviewClosures()]);
     const valid:SimulationSession[]=[];
     const corrupt=[...inspection.corruptIds];
     for(const record of inspection.records){
      try{validateReproducibility(record);valid.push(record);}
      catch{corrupt.push(record.id);}
     }
-    if(alive){setRecords(valid);setCorruptIds([...new Set(corrupt)]);setError('');}
+    if(alive){setRecords(valid);setClosures(reviews);setCorruptIds([...new Set(corrupt)]);setError('');}
    }catch(e){
     if(alive)setError(e instanceof Error?e.message:String(e));
    }finally{if(alive)setLoading(false);}
@@ -46,17 +54,41 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
   void load();
   const refresh=()=>{void load();};
   window.addEventListener('vision-ai-sessions-updated',refresh);
-  return()=>{alive=false;window.removeEventListener('vision-ai-sessions-updated',refresh);};
+  window.addEventListener('vision-ai-reviews-updated',refresh);
+  return()=>{alive=false;
+   window.removeEventListener('vision-ai-sessions-updated',refresh);
+   window.removeEventListener('vision-ai-reviews-updated',refresh);
+  };
  },[sessionRepository]);
- const filtered=useMemo(()=>records.filter(r=>{
-  const search=query.trim().toLowerCase();
-  return (!search||(r.id+' '+r.scenarioName+' '+r.mode).toLowerCase().includes(search))&&
-   (!scenario||r.scenarioId===scenario)&&(!mode||r.mode===mode);
- }),[records,query,scenario,mode]);
+ const filtered=useMemo(()=>filterHistoryRecords(records,closures,{
+  search:query,scenario,mode,period,review:reviewStatus
+ }),[records,closures,query,scenario,mode,period,reviewStatus]);
+ const metrics=useMemo(()=>historyReportMetrics(filtered,closures),[filtered,closures]);
+ const hasFilters=Boolean(query||scenario||mode||period!=='all'||reviewStatus!=='all');
  const pages=Math.max(1,Math.ceil(filtered.length/perPage));
  const currentPage=Math.min(page,pages);
  const rows=filtered.slice((currentPage-1)*perPage,currentPage*perPage);
  const details=records.find(item=>item.id===selected)??null;
+ const detailReviews=useMemo(()=>details?linkedReviews([details],closures):[],[details,closures]);
+ const timestamp=new Date().toISOString().slice(0,10);
+ function exportCsv(kind:HistoryReportKind){
+  if(!filtered.length)return;
+  try{
+   downloadLocalReport(buildHistoryCsv(kind,filtered,closures),
+    'vision-ai-'+kind+'-'+timestamp+'.csv');
+   setNotice('CSV '+kind+' generado desde '+filtered.length+' sesiones filtradas.');
+   setError('');
+  }catch(e){setError(e instanceof Error?e.message:String(e));}
+ }
+ function exportAudit(){
+  if(!filtered.length)return;
+  try{
+   downloadLocalReport(buildHistoryAuditReport(filtered,closures),
+    'vision-ai-auditoria-'+timestamp+'.json','application/json;charset=utf-8');
+   setNotice('Auditoría JSON generada solo con sesiones filtradas.');
+   setError('');
+  }catch(e){setError(e instanceof Error?e.message:String(e));}
+ }
  async function remove(id:string){
   try{
    await sessionRepository.remove(id);
@@ -70,7 +102,8 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
    setError(e instanceof Error?e.message:String(e));
   }
  }
- function clearFilters(){setQuery('');setScenario('');setMode('');setPage(1);}
+ function clearFilters(){setQuery('');setScenario('');setMode('');
+  setPeriod('all');setReviewStatus('all');setPage(1);}
  return <section className="panel history-panel" aria-label="Historial persistente de simulaciones">
   <div className="panel-heading"><div><h2>Sesiones guardadas de las simulaciones</h2>
    <p>IndexedDB local · sin videos ni fotogramas almacenados</p></div>
@@ -93,10 +126,55 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
      <option value="yolo">YOLO real</option>
     </select>
    </label>
-   <button type="button" disabled={!query&&!scenario&&!mode} onClick={clearFilters}>Limpiar filtros</button>
+   <label>Periodo
+    <select aria-label="Periodo del historial" value={period}
+     onChange={e=>{setPeriod(e.target.value as HistoryPeriod);setPage(1);}}>
+     <option value="all">Todas las fechas</option>
+     <option value="day">Últimas 24 horas</option>
+     <option value="week">Últimos 7 días</option>
+    </select>
+   </label>
+   <label>Revisión humana
+    <select aria-label="Estado de revisión del historial" value={reviewStatus}
+     onChange={e=>{setReviewStatus(e.target.value as HistoryReviewState);setPage(1);}}>
+     <option value="all">Cualquier estado</option>
+     <option value="open">Pendiente de revisión</option>
+     <option value="closed">Revisado</option>
+    </select>
+   </label>
+   <button type="button" disabled={!hasFilters} onClick={clearFilters}>Limpiar filtros</button>
   </div>
   {error&&<p className="session-history-error" role="alert">{error}</p>}
   {notice&&<p className="session-history-notice" role="status">{notice}</p>}
+  <section className="history-report-summary" aria-label="Informe del historial filtrado">
+   <div className="history-report-heading"><div>
+    <span>FASE 12 · INFORME LOCAL</span><h3>Informe de sesiones y evidencias</h3>
+    <p>Registros válidos de IndexedDB · sin imágenes ni datasets</p>
+   </div><small>{filtered.length} de {records.length} sesiones visibles</small></div>
+   <div className="history-report-stats" aria-live="polite">
+    <div><span>Sesiones</span><strong>{loading?'—':metrics.total}</strong></div>
+    <div><span>Sesiones YOLO</span><strong>{loading?'—':metrics.yolo}</strong></div>
+    <div><span>Detecciones YOLO</span><strong>{loading?'—':metrics.detections}</strong></div>
+    <div><span>Por revisar</span><strong>{loading?'—':metrics.open}</strong></div>
+    <div><span>Revisadas</span><strong>{loading?'—':metrics.closed}</strong></div>
+    <div><span>Latencia media</span><strong>{metrics.meanInferenceMs===null?'—':metrics.meanInferenceMs.toFixed(1)+' ms'}</strong></div>
+   </div>
+   <div className="history-report-actions" aria-label="Exportaciones del historial">
+    <button type="button" disabled={loading||!filtered.length} onClick={()=>exportCsv('sessions')}>
+     Exportar sesiones CSV</button>
+    <button type="button" disabled={loading||!filtered.length} onClick={()=>exportCsv('detections')}>
+     Exportar detecciones CSV</button>
+    <button type="button" disabled={loading||!filtered.length} onClick={()=>exportCsv('reviews')}>
+     Exportar revisiones CSV</button>
+    <button type="button" disabled={loading||!filtered.length} onClick={exportAudit}>
+     Exportar auditoría JSON</button>
+    <button type="button" disabled={loading||!filtered.length} onClick={()=>window.print()}>
+     Imprimir informe</button>
+   </div>
+   <p className="history-report-caveat">Las exportaciones respetan los filtros.
+    Puede haber cero detecciones YOLO. La confianza del modelo no es precisión
+    y una revisión humana no confirma infracciones.</p>
+  </section>
   {corruptIds.length>0&&<section className="session-history-integrity" role="alert"
    aria-label="Registros dañados o incompatibles">
    <h3>{corruptIds.length} registro(s) en revisión</h3>
@@ -128,7 +206,7 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
     </tr>)}
     {!loading&&!rows.length&&<tr><td colSpan={5}>
      <div className="history-empty"><span aria-hidden="true">◷</span>
-      <h3>{filtered.length===0&&(query||scenario||mode)?'No hay coincidencias':
+      <h3>{filtered.length===0&&hasFilters?'No hay coincidencias':
        'Aún no has guardado sesiones'}</h3>
       <p>Abre un escenario 3D y utiliza «Guardar sesión». No es necesario cargar archivos.</p>
       <button type="button" onClick={onAnalyze}>Abrir simulaciones</button>
@@ -163,8 +241,27 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
       details.inference.detections.map(d=>d.label+' ('+Math.round(d.confidence*100)+'%)').join(' · '):
       'Ninguna detección sobre el umbral'}</dd>
      <dt>Indicios EPP</dt><dd>{details.inference.reviewLog.length} señales de revisión, no infracciones confirmadas</dd>
+     <dt>Revisión humana</dt><dd>{detailReviews.length?detailReviews.map(item=>
+      <div className="history-review-item" key={item.id}><strong>{item.label}</strong>
+       <span>{item.decisionLabel??'Pendiente'}</span>
+       {item.note&&<small>Nota local: {item.note}</small>}
+      </div>):'Sin indicios para revisar'}</dd>
     </>}
    </dl>
+   <div className="history-detail-export">
+    <button type="button" onClick={()=>{
+     try{downloadLocalReport(buildHistoryCsv('sessions',[details],closures),
+       'vision-ai-sesion-'+timestamp+'.csv');
+      setNotice('CSV individual generado.');setError('');
+     }catch(e){setError(e instanceof Error?e.message:String(e));}
+    }}>Exportar detalle CSV</button>
+    <button type="button" onClick={()=>{
+     try{downloadLocalReport(buildHistoryAuditReport([details],closures),
+       'vision-ai-detalle-'+timestamp+'.json','application/json;charset=utf-8');
+      setNotice('Auditoría individual generada.');setError('');
+     }catch(e){setError(e instanceof Error?e.message:String(e));}
+    }}>Exportar detalle JSON</button>
+   </div>
    <p>Esta sesión conserva metadatos y resultados, no la imagen exacta ni una grabación.
     La huella identifica el estado determinista del escenario, no certifica los píxeles de una inferencia YOLO.</p>
   </section>}
