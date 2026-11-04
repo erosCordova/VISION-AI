@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import type { Origin } from '../core/domain/model';
 import { HistoryPanel } from '../modules/history/HistoryPanel';
 import { SessionSettings } from '../modules/settings/SessionSettings';
+import {PrivacyCenter} from '../modules/settings/PrivacyCenter';
 import { ErrorBoundary } from '../shared/ui/ErrorBoundary';
 import { LiveAnalysisPage } from '../modules/live/LiveAnalysisPage';
 import type {SimulationSessionRepository} from '../core/ports/simulation-session-repository';
 import {validateReproducibility} from '../modules/live/simulation-session-model';
 import {SessionsDashboard} from '../modules/dashboard/SessionsDashboard';
 import {OperationsPanel} from '../modules/operations/OperationsPanel';
-const pages = ['Resumen', 'Análisis en vivo', 'Visión IA', 'Operaciones', 'Historial', 'Configuración', 'Administración'] as const;
+const pages = ['Resumen', 'Análisis en vivo', 'Visión IA', 'Operaciones', 'Historial', 'Privacidad', 'Configuración', 'Administración'] as const;
 type Page = typeof pages[number];
 const scenarios = [
   { id: 'safety', name: 'Seguridad industrial', icon: '◈', text: 'Personas y equipos de protección', rule: 'Revisión de casco y chaleco por persona', classes: 'Persona · Casco · Chaleco' },
@@ -40,7 +41,7 @@ export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin;
     <aside className={'sidebar ' + (menu ? 'open' : '')}>
       <a className="logo" href="#Resumen"><span className="logo-mark">◉</span>VISION<span>AI</span></a>
       <span className="nav-label">ESPACIO DE TRABAJO</span>
-      <nav aria-label="Navegación principal">{pages.filter(p => (p !== 'Administración' || role === 'administrador') && (p !== 'Configuración' || role === 'administrador')).map((p,i) => <a key={p} href={'#'+p} aria-current={page === p ? 'page' : undefined} onClick={() => setMenu(false)}><span aria-hidden="true">{['▦','◉','◎','◇','◷','⚙','⌘'][i]}</span>{p}{p === 'Análisis en vivo' && <i className="nav-dot" />}</a>)}</nav>
+      <nav aria-label="Navegación principal">{pages.filter(p => (p !== 'Administración' || role === 'administrador') && (p !== 'Configuración' || role === 'administrador')).map((p,i) => <a key={p} href={'#'+p} aria-current={page === p ? 'page' : undefined} onClick={() => setMenu(false)}><span aria-hidden="true">{['▦','◉','◎','◇','◷','◆','⚙','⌘'][i]}</span>{p}{p === 'Análisis en vivo' && <i className="nav-dot" />}</a>)}</nav>
       <div className="sidebar-bottom"><div className="engine-light" />Integración YOLO<p>Estado verificable en Análisis en vivo</p><div className="user"><b>EC</b><div>Eros Córdova<small>Perfil de prueba</small></div></div></div>
     </aside>
     <div className="workspace"><header className="topbar"><button className="menu-button" aria-label="Abrir navegación" aria-expanded={menu} onClick={() => setMenu(!menu)}>☰</button><span>Espacio de trabajo <span className="breadcrumb">/ {page}</span></span><label className="profile-control">Perfil de prueba<select aria-label="Perfil de prueba" value={role} onChange={e => setRole(e.target.value)}>{['operador','supervisor','administrador','auditor'].map(r => <option key={r} value={r}>{r[0].toUpperCase()+r.slice(1)}</option>)}</select></label><span className="mode-badge">SIMULACIONES 3D · YOLO EN NAVEGADOR</span></header>
@@ -50,6 +51,7 @@ export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin;
    onHistory={()=>navigate('Historial')} onOperations={()=>navigate('Operaciones')} /><section className="section-heading"><div><h2>Elige tu escenario</h2><p>Un flujo de trabajo adaptado a cada operación.</p></div><span>01 — 04</span></section><div className="scenario-grid">{scenarios.map((s,i) => <button className={'scenario-card scenario-'+i} key={s.id} onClick={() => { setScenarioId(s.id); navigate('Análisis en vivo'); }}><div className="card-top"><span className="scenario-icon">{s.icon}</span><span className="card-index">0{i+1} ↗</span></div><h3>{s.name}</h3><p>{s.text}</p><div className="card-footer">Abrir simulación <span>→</span></div></button>)}</div><section className="ready-banner"><div className="banner-icon">◉</div><div><h2>De la simulación a la evidencia</h2><p>Explora escenarios 3D, ejecuta YOLO sobre sus fotogramas y guarda los resultados en tu navegador.</p></div><button onClick={() => navigate('Análisis en vivo')}>Preparar sesión →</button></section></>}
       {page === 'Análisis en vivo' && <LiveAnalysisPage scenarios={scenarios} scenarioId={scenarioId} onScenarioChange={setScenarioId} sessionRepository={sessionRepository} role={role} apiBaseUrl={origin === 'real' ? apiBaseUrl : null} />}
       {page === 'Historial' && <HistoryPanel onAnalyze={() => navigate('Análisis en vivo')} sessionRepository={sessionRepository} />}
+      {page === 'Privacidad' && <PrivacyCenter repository={sessionRepository} />}
       {page === 'Visión IA' && <section className="panel settings"><h2>Detección sobre simulaciones</h2>
    <dl><dt>Tecnología</dt><dd>YOLOv8n general y YOLOv8s EPP</dd>
    <dt>Motor</dt><dd>ONNX Runtime Web / WebAssembly en el navegador</dd>
@@ -62,7 +64,7 @@ export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin;
       {(page === 'Administración' || page === 'Configuración') && role !== 'administrador' && <section className="panel empty-page"><h2>Vista restringida</h2><p>Esta vista está reservada al perfil administrador de prueba.</p><button onClick={() => navigate('Resumen')}>Volver al resumen</button></section>}
       {page === 'Administración' && role === 'administrador' && <section className="panel settings"><h2>Administración del espacio</h2><p>Perfil de prueba. No constituye autenticación de servidor.</p><dl><dt>Usuarios</dt><dd>Gestión pendiente de integración con identidad real.</dd><dt>Escenarios</dt><dd>Cuatro escenarios versionados y reproducibles; administración avanzada pendiente.</dd><dt>Auditoría</dt><dd>Sin registros productivos.</dd></dl></section>}
       {page === 'Configuración' && role === 'administrador' && <><SessionSettings /><section className="panel settings"><h2>Estado del entorno</h2><dl><dt>Origen configurado</dt><dd>{origin.toUpperCase()} · sin inferencia activa</dd><dt>Fuente disponible</dt><dd>Cuatro simulaciones industriales 3D, sin cámaras externas</dd><dt>Motor disponible</dt><dd>YOLO ONNX descargado bajo demanda en el navegador</dd><dt>Destino de fotogramas</dt><dd>Procesados localmente por WebAssembly; no enviados a Render</dd><dt>Almacenamiento</dt><dd>IndexedDB local para resúmenes guardados manualmente; sin videos ni imágenes</dd><dt>Identidad y permisos</dt><dd>Sin autenticación de servidor</dd><dt>Red</dt><dd>Vercel aloja el frontend y Render la API ligera; sin cámaras IP o RTSP</dd></dl></section></>}
-      </ErrorBoundary><footer className="workspace-footer"><span>VISION AI / Visión computacional aplicada</span><span>Fase 12 · Historial e informes auditables</span></footer></main>
+      </ErrorBoundary><footer className="workspace-footer"><span>VISION AI / Visión computacional aplicada</span><span>Fase 13 · Protección y privacidad local</span></footer></main>
     </div>
   </div>;
 }

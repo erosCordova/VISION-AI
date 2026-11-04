@@ -16,7 +16,7 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 | 10 | Segmentación de imágenes y capas visuales | Máscaras cromáticas de píxeles, capas, contornos y áreas | Aprobada como segmentación cromática experimental; no YOLO-seg |
 | 11 | Patrones, reglas y gestión de alertas | Reglas YOLO y revisión humana local | Aprobada con CI |
 | 12 | Historial, reportes y exportación | Tres CSV, JSON auditado y A4 | Aprobada con CI integral |
-| 13 | Seguridad, privacidad y gobierno de datos | Controles de acceso y gobierno de datos | Próxima fase |
+| 13 | Seguridad, privacidad y gobierno de datos | Retención manual, borrado atómico, privacidad y controles de navegador | En validación |
 | 14 | Pruebas integradas, rendimiento y accesibilidad | Pruebas integradas y candidato demo | Pendiente |
 | 15 | Integración de inteligencia artificial real | Optimización de modelos preentrenados y medición sobre simulaciones 3D, sin datasets externos | Pendiente |
 | 16 | Despliegue, operación y cierre técnico | Versión entregada, restauración y manuales | Pendiente |
