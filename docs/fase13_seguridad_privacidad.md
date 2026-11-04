@@ -44,3 +44,14 @@ el rol de demostración como identidad.
 
 **Aprobación pendiente:** TypeScript, Vitest, Python, Vite y Chromium
 con tests de IndexedDB en 360, 768 y 1440 píxeles.
+
+## Prueba Chromium integrada
+
+PR01–PR07 se comprueban sobre una base IndexedDB aislada del runner.
+Después de terminar todos los ensayos de YOLO ONNX, Chromium modifica
+únicamente la fecha de una sesión de prueba, confirma depuración de
+retención 90 días, verifica que la sesión antigua desapareció y que
+se conserva la revisión no relacionada. Finalmente confirma «BORRAR TODO»
+y comprueba cero sesiones y cero revisiones incluso tras recargar.
+Se verifican deshabilitación previa de acciones y mensajes honestos
+sobre los perfiles de prueba. Sin alteraciones a datos de producción.
