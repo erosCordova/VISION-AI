@@ -2,7 +2,7 @@
 
 Última actualización: 2026-11-04. Referencia: manual avanzado de 16 fases y decisión vigente de utilizar exclusivamente simulaciones 3D.
 
-**ESTADO VIGENTE: 13 de 16 fases aprobadas = 81,25 %. Fase 14 pendiente.** Los registros de incrementos anteriores que aparecen más abajo son históricos y no sustituyen este cierre.
+**ESTADO VIGENTE: 14 de 16 fases aprobadas = 87,5 %. Fase 15 pendiente.** Los registros de incrementos anteriores que aparecen más abajo son históricos y no sustituyen este cierre.
 
 | Fase | Alcance validado | Evidencia |
 | --- | --- | --- |
@@ -19,25 +19,37 @@
 | 11 | Motor de reglas y revisión humana de detecciones YOLO | [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41928837022) |
 | 12 | Historial filtrado, tres CSV, auditoría JSON y reporte A4 | [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41931298826) |
 | 13 | Retención manual, borrado transaccional IndexedDB, aviso de roles demo y cabeceras HTTP | [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41933824408) |
+| 14 | Optimización de WebGL, métricas CDP en 12 rutas y pruebas A11Y01–03 | [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41935480618) |
 
-**Avance administrativo vigente: 81,25 % (13 de 16 fases aprobadas).** No mide precisión del modelo, mAP ni exactitud de los objetos estilizados.
+**Avance administrativo vigente: 87,5 % (14 de 16 fases aprobadas).** No mide precisión del modelo, mAP ni exactitud de los objetos estilizados.
 
-## Verificación local
+## Verificación integral vigente
 
-57 pruebas TypeScript y 62 Python aprobadas: **119 en total**. Tipos estrictos, guard de arquitectura y compilación correctos; instalación reproducida con npm ci. El workflow remoto de CI está preparado y se debe consultar en GitHub Actions para su resultado específico.
+Los valores de pruebas y FPS se toman del último run aprobado de
+[GitHub Actions](https://github.com/erosCordova/VISION-AI/actions/runs/41935480618).
+Se ejecutan contratos TypeScript, Vitest, 66 pruebas Python, Vite
+y Chromium responsive 360/768/1440. El archivo
+`fase14-rendimiento-accesibilidad.json` guarda 12 muestras reales
+de tiempos observados, memoria heap JavaScript y FPS WebGL.
+Las mediciones de CI no equivalen a FPS garantizados de producción.
 
-## Pendientes
+## Alcance que continúa pendiente
 
-- Fase 6 en curso: interfaz navegable, cuatro escenarios, perfiles de prueba y controles de cámara. Falta QA integral y captura física en contexto seguro.
-- El repositorio actual es VOLÁTIL: no hay persistencia tras recargar ni cuota de navegador comprobada.
-- No hay motor demo integrado, motor de reglas visuales productivo, API real ni despliegue.
-- Los PNG son diagramas DEMO; no se han seleccionado datasets fotográficos ni modelos reales.
-- Los permisos de referencia no son autenticación de servidor.
-- Los 44 casos funcionales del producto siguen pendientes de integración; las mediciones completas se conservan según D08.
+- **Fase 15:** optimización de inferencia ONNX y evaluación técnica
+  sobre las cuatro simulaciones 3D, sin introducir datasets externos.
+- **Fase 16:** manuales finales, revisión de operación gratuita
+  Vercel/Render y cierre verificable con rollback.
+- La aplicación todavía no proporciona cuentas autenticadas ni permisos
+  reales de servidor; el perfil es de prueba.
+- Los modelos genéricos pueden omitir objetos 3D estilizados; la confianza
+  YOLO no equivale a exactitud ni certifica seguridad o calidad.
+- El rendimiento y accesibilidad en CI no sustituyen una medición en
+  hardware real ni una auditoría completa WCAG con lectores de pantalla.
 
 ## Próximo incremento
 
-Fase 6: interfaz empresarial, rutas, componentes, sistema visual y estados. Persistencia durable en Fase 7; inferencia real en Fase 15.
+**Fase 15: optimización y evaluación técnica de YOLO/ONNX usando
+exclusivamente fotogramas de las simulaciones 3D.**
 
 ## Estado de la ampliación en vivo
 
@@ -366,3 +378,19 @@ del navegador Chromium aislado; comprueba las cifras, las frases,
 la retención y la persistencia del borrado total después de recargar.
 Las revisiones huérfanas no deben sobrevivir al borrado de una sesión.
 **Siguiente fase 14: pruebas integradas, rendimiento y accesibilidad.**
+
+## Cierre Fase 14 — 4 de noviembre de 2026
+
+**14/16 = 87,5 % de avance administrativo.** Aprobación basada en
+https://github.com/erosCordova/VISION-AI/actions/runs/41935480618 .
+
+Se reducen asignaciones repetitivas de mallas/materiales WebGL;
+el ciclo del simulador no genera actualizaciones React ocultas y respeta
+movimiento reducido. Chromium registra 12 muestras de rendimiento real
+en cuatro páginas y tres resoluciones, y comprueba foco/teclado de
+cámara, control de movimiento y accesibilidad de Privacidad.
+
+Se conserva la regresión ONNX real sobre las cuatro escenas,
+IndexedDB, filtros/exportación, revisión humana y borrado atómico.
+No se generan datos ni se usan cámaras o datasets.
+Las mediciones de CI son de referencia, no benchmarks de hardware final.

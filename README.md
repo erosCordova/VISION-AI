@@ -4,7 +4,7 @@ Plataforma empresarial de visión computacional con cuatro escenarios exclusivam
 
 ## Estado verificado
 
-**Fases 1 a 13 aprobadas; avance administrativo: 81,25 % (13 de 16). Fase 14 pendiente.** React + Vite ofrecen cuatro simulaciones 3D con humanos animados. YOLO ONNX (COCO y EPP) procesa fotogramas de estas escenas en el navegador; no se admiten datasets, fotografías, videos ni cámaras como entradas. Existen persistencia local IndexedDB, indicadores verificables y revisión humana de indicios EPP. El frontend se publica en Vercel Hobby; Render Free funciona como API ligera, sin inferencia remota. No se declara precisión, mAP ni rendimiento sostenido sin mediciones.
+**Fases 1 a 14 aprobadas; avance administrativo: 87,5 % (14 de 16). Fase 15 pendiente.** React + Vite ofrecen cuatro simulaciones 3D con humanos animados. YOLO ONNX (COCO y EPP) procesa fotogramas de estas escenas en el navegador; no se admiten datasets, fotografías, videos ni cámaras como entradas. Existen persistencia local IndexedDB, indicadores verificables y revisión humana de indicios EPP. El frontend se publica en Vercel Hobby; Render Free funciona como API ligera, sin inferencia remota. No se declara precisión, mAP ni rendimiento sostenido sin mediciones.
 
 ## Ejecutar y validar
 
@@ -101,7 +101,7 @@ El detector EPP de Seguridad tiene **señales temporales de revisión**, visible
 
 ## Progreso de fases — estado vigente 4 de noviembre de 2026
 
-**13 de 16 fases aprobadas = 81,25 %.** Fases 1–13 aprobadas; fase 14 pendiente.
+**14 de 16 fases aprobadas = 87,5 %.** Fases 1–14 aprobadas; fase 15 pendiente.
 La fase 8 validó KPI KP01–KP03, revisión humana EPP y rendimiento con sesiones locales.
 Pruebas: https://github.com/erosCordova/VISION-AI/actions/runs/41882458652 .
 Las fases 9 y 10 validaron YOLO real sobre los cuatro escenarios 3D, sincronización, fallos y reintentos, y máscaras cromáticas por píxel sin alterar evidencias.
@@ -140,3 +140,16 @@ cámara/micrófono/geolocalización y evitan sniffing de MIME.
 No se borran automáticamente backups, descargas o caché ONNX.
 Ver [documentación](docs/fase13_seguridad_privacidad.md) y
 [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41933824408).
+
+## Fase 14 — Rendimiento y accesibilidad
+
+Se optimizó el ciclo WebGL para evitar reconstruir geometría y
+material en cada frame cuando el snapshot no cambia. En pausa se
+reduce el ritmo solicitado; el reloj React evita trabajar oculto;
+`prefers-reduced-motion` detiene la animación inicialmente.
+La cámara 3D tiene controles de teclado accesibles. La CI publica
+12 mediciones reales de Chromium (tiempo de navegación observado,
+heap JavaScript y FPS de escena) en un JSON adjunto al run,
+sin confundirlas con Core Web Vitals ni FPS garantizados.
+Ver [informe de Fase 14](docs/fase14_rendimiento_accesibilidad.md)
+y [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41935480618).

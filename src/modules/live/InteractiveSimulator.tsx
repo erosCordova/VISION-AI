@@ -11,6 +11,7 @@ import { simulationSnapshot } from './simulation-engine';
 import type { ScenarioKey } from './simulation-engine';
 import type { CameraView } from './scene-math';
 import {buildSimulationSession} from './simulation-session-model';
+import {shouldAdvanceSimulation} from './render-performance';
 import type {SimulationSessionRepository} from '../../core/ports/simulation-session-repository';
 
 const SCENES:{id:ScenarioKey;tab:string;name:string;description:string;icon:string}[]=[
@@ -71,10 +72,24 @@ export function InteractiveSimulator({scenarioId,onScenarioChange,sessionReposit
    const now=performance.now();
    const delta=Math.min(180,now-frameRef.current.previous);
    frameRef.current.previous=now;
+   if(!shouldAdvanceSimulation(document.hidden,delta))return;
    setElapsed(value=>value+delta*speed/1000);
   },75);
-  return ()=>window.clearInterval(timer);
+  const resetClock=()=>{frameRef.current.previous=performance.now();};
+  document.addEventListener('visibilitychange',resetClock);
+  return ()=>{
+   window.clearInterval(timer);
+   document.removeEventListener('visibilitychange',resetClock);
+  };
  },[paused,speed]);
+ useEffect(()=>{
+  // La preferencia del sistema detiene la animación; el usuario puede
+  // reanudar desde el botón de pausa/continuar cuando lo necesite.
+  const mq=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const honorPreference=()=>{if(mq.matches)setPaused(true);};
+  honorPreference();mq.addEventListener('change',honorPreference);
+  return ()=>mq.removeEventListener('change',honorPreference);
+ },[]);
  const snapshot=useMemo(()=>simulationSnapshot(scenarioId,elapsed),[scenarioId,elapsed]);
  const filterCount=snapshot.entities.filter(entity=>entity.score>=threshold).length;
  const yoloLatest=yoloTelemetry.observations.at(-1)??null;

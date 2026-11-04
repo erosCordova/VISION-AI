@@ -9,6 +9,7 @@ import { entityFootprint, presets, boundedOrbit, zoneFootprint } from './scene-m
 import type { CameraView, Orbit } from './scene-math';
 import { makeScene } from './industrial-renderer';
 import { humanAssetFor, motionClipName, humanoidScale } from './human-assets';
+import {meshNeedsRefresh,renderFrameBudgetMs} from './render-performance';
 
 /** Three.js y GLB humanos CC0; las posiciones/eventos son sintéticos y no proceden de YOLO. */
 interface Props {
@@ -121,13 +122,12 @@ function sceneGeometry(data:Float32Array,offset=0){
  geometry.setAttribute('color',new THREE.InterleavedBufferAttribute(stride,3,6));
  return geometry;
 }
-function stageMesh(snapshot:SimSnapshot,seconds:number,showZones:boolean,skip:number){
+function stageMesh(snapshot:SimSnapshot,seconds:number,showZones:boolean,skip:number,material:any){
  const geometries=makeScene({
   ...snapshot,
   entities:snapshot.entities.filter(e=>e.kind!=='person'&&e.kind!=='helmet'&&e.kind!=='vest')
  },seconds,showZones).output();
- const material=new THREE.MeshStandardMaterial({vertexColors:true,metalness:.13,roughness:.72,
-  side:THREE.DoubleSide});
+ // Reutiliza un material de GPU compartido para todos los fotogramas.
  const mesh=new THREE.Mesh(sceneGeometry(geometries,skip),material);
  mesh.castShadow=true;mesh.receiveShadow=true;return mesh;
 }
@@ -231,6 +231,9 @@ export const HumanizedScene3D=forwardRef<IndustrialSceneHandle,Props>(function H
    new THREE.MeshStandardMaterial({vertexColors:true,roughness:.76,metalness:.15,side:THREE.DoubleSide}));
   staticMesh.castShadow=true;staticMesh.receiveShadow=true;stage.add(staticMesh);
   const activeScene=new THREE.Group();stage.add(activeScene);
+  const movingMaterial=new THREE.MeshStandardMaterial({
+   vertexColors:true,metalness:.13,roughness:.72,side:THREE.DoubleSide
+  });
   const players=new Map<string,Actor>();
   let alive=true,raf=0,previous=0,meter=performance.now(),count=0;
   let loaded=0,failed=0;
@@ -260,18 +263,33 @@ export const HumanizedScene3D=forwardRef<IndustrialSceneHandle,Props>(function H
   };
   const observer=new ResizeObserver(resize);observer.observe(element);resize();
   let movingMesh:any=null;
+  let lastMovingSnapshot:SimSnapshot|null=null;
+  let lastMovingElapsed=Number.NaN;
+  let lastMovingZones:boolean|null=null;
+  let lastResizeCheck=0;
   const render=(now:number)=>{
    if(!alive)return;
    raf=requestAnimationFrame(render);
-   if(document.hidden||now-previous<33)return;
-   previous=now;resize();
+   if(document.hidden||now-previous<renderFrameBudgetMs(state.current.paused))return;
+   previous=now;
+   // ResizeObserver cubre los cambios normales; fallback para DPR de otra pantalla.
+   if(now-lastResizeCheck>=1000){resize();lastResizeCheck=now;}
    const current=state.current;
-   if(movingMesh){
-    activeScene.remove(movingMesh);
-    movingMesh.geometry.dispose();movingMesh.material.dispose();
+   // Cámara sigue viva; nuevas mallas solo cuando el estado realmente cambia.
+   // En pausa no se recrea geometría ni material.
+   if(!movingMesh||meshNeedsRefresh({
+    snapshot:lastMovingSnapshot,elapsed:lastMovingElapsed,zones:lastMovingZones
+   },{
+    snapshot:current.snapshot,elapsed:current.elapsed,zones:current.layers.zones
+   })){
+    if(movingMesh){activeScene.remove(movingMesh);movingMesh.geometry.dispose();}
+    movingMesh=stageMesh(current.snapshot,current.elapsed,current.layers.zones,
+     base.length,movingMaterial);
+    activeScene.add(movingMesh);
+    lastMovingSnapshot=current.snapshot;
+    lastMovingElapsed=current.elapsed;
+    lastMovingZones=current.layers.zones;
    }
-   movingMesh=stageMesh(current.snapshot,current.elapsed,current.layers.zones,base.length);
-   activeScene.add(movingMesh);
    for(const e of current.snapshot.entities){
     if(e.kind!=='person')continue;
     const actor=players.get(e.id);if(!actor)continue;
@@ -329,7 +347,8 @@ export const HumanizedScene3D=forwardRef<IndustrialSceneHandle,Props>(function H
    alive=false;cancelAnimationFrame(raf);observer.disconnect();
    element.removeEventListener('wheel',wheel);
    players.forEach(actor=>actor.mixer?.stopAllAction());
-   if(movingMesh){movingMesh.geometry.dispose();movingMesh.material.dispose();}
+   if(movingMesh)movingMesh.geometry.dispose();
+   movingMaterial.dispose();
    staticMesh.geometry.dispose();staticMesh.material.dispose();
    // The loaded GLB templates remain cached so changing scenarios doesn't re-download models.
    renderer.dispose();
@@ -369,14 +388,14 @@ export const HumanizedScene3D=forwardRef<IndustrialSceneHandle,Props>(function H
     'Cargando personajes humanos '+assets.loaded+'/'+assets.total;
  return <div className="simulator-3d-stage simulator-human-stage" aria-label="Simulador tridimensional con humanos animados">
    <canvas ref={canvas} tabIndex={0} role="img"
-    aria-label="Escena industrial 3D con personajes animados. Arrastra para girar; usa la rueda para zoom."
+    aria-label="Escena industrial 3D con personajes animados. Flechas para girar, más y menos para zoom, R para restablecer; también puedes arrastrar o usar la rueda."
     onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onKeyDown={keyboard}/>
    <canvas ref={overlay} className="simulator-3d-hud" aria-hidden="true"/>
    <div className="simulator-3d-top" aria-hidden="true"><span className="simulator-3d-live">● HUMANOS 3D ANIMADOS</span>
      <span>MODELOS CC0 / {props.view.toUpperCase()}</span></div>
    <span className="simulator-human-status" role="status">{label}</span>
    <div className="simulator-3d-bottom" aria-hidden="true">
-     <span>SIMULACIÓN SINTÉTICA · NO YOLO</span><span>ARASTRAR PARA GIRAR · RUEDA PARA ZOOM</span>
+     <span>SIMULACIÓN SINTÉTICA · NO YOLO</span><span>ARASTRAR O FLECHAS PARA GIRAR · + / − ZOOM · R RESTABLECER</span>
    </div>
    {error&&<div className="simulator-3d-error" role="alert"><strong>El motor 3D no está disponible</strong><p>{error}</p></div>}
  </div>;
