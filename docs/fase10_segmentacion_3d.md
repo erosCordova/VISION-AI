@@ -54,3 +54,20 @@ porcentaje total unido del fotograma. Los porcentajes por región son
 relativos al rectángulo detectado, no a superficie física del objeto.
 Se presenta **0,0 %** cuando no hay diferencia RGB suficiente, sin
 sustituirlo por una etiqueta de objeto segmentado.
+
+## Incremento 2: limpieza de ruido y visualización de silueta
+
+Se añade filtro de componentes conectados con vecindad de 4 píxeles,
+calculado sobre la máscara binaria obtenida de la imagen y las regiones
+YOLO. El usuario puede eliminar regiones de menos de **4, 16 o 64
+píxeles**, o desactivar la limpieza. Después de filtrar se recalculan
+el área unida y las áreas por región para evitar discrepancias.
+
+El visor permite dos vistas: **superpuesta** sobre la imagen real 3D y
+**silueta** cromática sobre fondo oscuro. Las cajas y etiquetas siguen
+procediendo de YOLO. Cambiar estos controles no invoca ONNX y no altera
+el PNG de evidencia original. Se agregan pruebas de ruido aislado,
+conectividad 4, solapamiento, validación de parámetros y QA de controles.
+
+La máscara continúa siendo una estimación por contraste; no representa
+identidades de objetos ni mediciones de superficie física.

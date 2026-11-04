@@ -25,11 +25,14 @@ interface Props {
  readonly onTelemetry:(event:YoloTelemetryEvent)=>void;
 }
 /** El usuario controla descargas e inferencias. Muestra el fotograma EXACTO asociado a cada resultado. */
-function drawFrame(frame:YoloFrame,dest:HTMLCanvasElement,family:YoloFamily,mask:ChromaticMask|null=null){
+function drawFrame(frame:YoloFrame,dest:HTMLCanvasElement,family:YoloFamily,
+ mask:ChromaticMask|null=null,maskStyle:'overlay'|'silhouette'='overlay'){
  dest.width=frame.width;dest.height=frame.height;
  const ctx=dest.getContext('2d');
  if(!ctx)throw Error('No se pudo dibujar el fotograma analizado.');
- ctx.drawImage(frame.source,0,0,frame.width,frame.height);
+ if(mask&&maskStyle==='silhouette'){
+  ctx.fillStyle='#0a1420';ctx.fillRect(0,0,frame.width,frame.height);
+ }else ctx.drawImage(frame.source,0,0,frame.width,frame.height);
  if(mask){
   const overlay=document.createElement('canvas');
   overlay.width=frame.width;overlay.height=frame.height;
@@ -38,7 +41,10 @@ function drawFrame(frame:YoloFrame,dest:HTMLCanvasElement,family:YoloFamily,mask
   const buffer=layer.createImageData(frame.width,frame.height);
   for(let i=0;i<mask.binary.length;i++)if(mask.binary[i]){
    const j=i*4;
-   buffer.data[j]=255;buffer.data[j+1]=169;buffer.data[j+2]=75;buffer.data[j+3]=95;
+   buffer.data[j]=maskStyle==='silhouette'?138:255;
+   buffer.data[j+1]=maskStyle==='silhouette'?244:169;
+   buffer.data[j+2]=maskStyle==='silhouette'?207:75;
+   buffer.data[j+3]=maskStyle==='silhouette'?255:95;
   }
   layer.putImageData(buffer,0,0);ctx.drawImage(overlay,0,0);
  }
@@ -70,6 +76,8 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
  const [capturePace,setCapturePace]=useState<CapturePace>('balanced');
  const [showChromaticMask,setShowChromaticMask]=useState(false);
  const [maskContrast,setMaskContrast]=useState(70);
+ const [maskMinPixels,setMaskMinPixels]=useState(4);
+ const [maskStyle,setMaskStyle]=useState<'overlay'|'silhouette'>('overlay');
  const [maskStats,setMaskStats]=useState<ChromaticMask|null>(null);
  const [maskError,setMaskError]=useState('');
  const [classFilter,setClassFilter]=useState('all');
@@ -233,12 +241,12 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
     if(!ctx)throw Error('No se pudieron consultar los píxeles del fotograma.');
     const rgba=ctx.getImageData(0,0,frame.width,frame.height).data;
     mask=segmentByContrast(rgba,frame.width,frame.height,
-     visibleDetections.map(d=>d.box),maskContrast);
+     visibleDetections.map(d=>d.box),maskContrast,maskMinPixels);
    }
-   drawFrame({...frame,detections:visibleDetections},preview.current,family,mask);
+   drawFrame({...frame,detections:visibleDetections},preview.current,family,mask,maskStyle);
    setMaskStats(mask);setMaskError('');
   }catch(e){setMaskStats(null);setMaskError(explainError(e));}
- },[visibleDetections,family,showChromaticMask,maskContrast]);
+ },[visibleDetections,family,showChromaticMask,maskContrast,maskMinPixels,maskStyle]);
  async function retryFailedFrame(){
   const previous=failedCanvas.current;
   const previousSource=failedSource.current;
@@ -376,7 +384,21 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
      Superponer máscara cromática aproximada</label>
     {showChromaticMask&&<><label htmlFor="yolo-mask-contrast">Diferencia de color mínima: {maskContrast}</label>
      <input id="yolo-mask-contrast" type="range" min="20" max="160" step="10"
-      value={maskContrast} onChange={e=>setMaskContrast(Number(e.target.value))}/></>}
+      value={maskContrast} onChange={e=>setMaskContrast(Number(e.target.value))}/>
+     <label htmlFor="yolo-mask-cleanup">Quitar manchas menores que</label>
+     <select id="yolo-mask-cleanup" value={maskMinPixels}
+      onChange={e=>setMaskMinPixels(Number(e.target.value))}>
+      <option value={1}>Sin limpieza</option>
+      <option value={4}>4 píxeles</option>
+      <option value={16}>16 píxeles</option>
+      <option value={64}>64 píxeles</option>
+     </select>
+     <label htmlFor="yolo-mask-style">Visualización</label>
+     <select id="yolo-mask-style" value={maskStyle}
+      onChange={e=>setMaskStyle(e.target.value as 'overlay'|'silhouette')}>
+      <option value="overlay">Sobre imagen 3D</option>
+      <option value="silhouette">Silueta sobre fondo oscuro</option>
+     </select></>}
     {showChromaticMask&&sampleCount>0&&maskStats&&<p className="browser-yolo-mask-summary" role="status">
      Área cromática resaltada: <b>{maskStats.coveragePercent.toFixed(1)} %</b> del fotograma
      {' · '}<b>{maskStats.selectedPixels.toLocaleString('es-PE')}</b> píxeles
@@ -393,7 +415,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
       </div>)}
      </div>}
     {maskError&&<p className="browser-yolo-error" role="alert">{maskError}</p>
-    <small>La máscara se calcula por contraste RGB dentro de las cajas YOLO. Es una aproximación visual, no segmentación semántica ni una máscara del modelo YOLO.</small>
+    <small>La máscara usa contraste RGB de píxeles dentro de cajas YOLO; elimina manchas de ruido pequeñas si se solicita. No es segmentación semántica ni una máscara del modelo YOLO.</small>
    </div>
    <p className="browser-yolo-modelnote">La cadencia es el intervalo mínimo objetivo entre capturas; el tiempo real depende del equipo. Al ocultar la pestaña se suspenden nuevas capturas.
     Los filtros cambian solo las cajas visibles.

@@ -769,6 +769,30 @@ try {
         await cdp.send('Runtime.evaluate',{
           expression:'document.querySelector("#yolo-chromatic-mask")?.click()'
         });
+        // Las opciones de ruido y silueta transforman únicamente el render,
+        // no crean frames nuevos ni modifican la bitácora del monitor.
+        const beforeMaskControls=maskInfo.count;
+        const styleSet=await cdp.send('Runtime.evaluate',{
+          expression:'(() => { const style=document.querySelector("#yolo-mask-style");'
+           +'const clean=document.querySelector("#yolo-mask-cleanup");'
+           +'if(!style||!clean)return false;'
+           +'style.value="silhouette";style.dispatchEvent(new Event("change",{bubbles:true}));'
+           +'clean.value="16";clean.dispatchEvent(new Event("change",{bubbles:true}));'
+           +'return style.value==="silhouette"&&clean.value==="16";})()',
+          returnByValue:true
+        });
+        if(!styleSet.result?.value)throw Error('SG05: faltan controles de silueta y limpieza');
+        await sleep(350);
+        const filterUnchanged=await cdp.send('Runtime.evaluate',{
+          expression:'(() => ({count:Number(document.querySelector(".browser-yolo-count b")?.textContent||0),'
+           +'monitor:document.querySelector(".yolo-monitor-kpi.primary strong")?.textContent?.trim(),'
+           +'mask:document.querySelector(".browser-yolo-mask-summary")?.textContent?.trim()}))()',
+          returnByValue:true
+        });
+        if(filterUnchanged.result?.value?.count!==beforeMaskControls||
+          filterUnchanged.result?.value?.monitor!==afterRetry.monitor)
+          throw Error('SG05: cambio de vista alteró inferencias o monitor original');
+        console.log('SG05: limpieza y silueta no causan nuevas inferencias');
         console.log('SG01: máscara RGB calculada con evidencia YOLO real, sin ONNX adicional');
         const runTag=await cdp.send('Runtime.evaluate',{
           expression:'document.querySelector(".browser-yolo-run")?.textContent?.trim()||""',

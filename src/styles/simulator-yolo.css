@@ -212,3 +212,7 @@ color:#c3e2d9;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
 .browser-yolo-mask-bar>span{height:100%;display:block;border-radius:99px;
  background:linear-gradient(90deg,#ff995e,#ffd57e)}
 @media(max-width:460px){.browser-yolo-mask-region{grid-template-columns:minmax(55px,1fr) minmax(55px,1fr) 44px;gap:7px}}
+
+.browser-yolo-mask-options select{max-width:165px;min-width:120px;border:1px solid #6b8e83;
+ padding:7px 8px;border-radius:6px;color:#e8f9eb;background:#23404a;font-size:11px}
+@media(max-width:590px){.browser-yolo-mask-options select{flex:1;min-width:116px}}
