@@ -49,7 +49,7 @@ export function boxIoU(a:BoundingBox,b:BoundingBox):number{
  const bottom=Math.min(a.y+a.height,b.y+b.height);
  const intersection=Math.max(0,right-left)*Math.max(0,bottom-top);
  const union=a.width*a.height+b.width*b.height-intersection;
- return union>0?intersection/union:0;
+ return union>0?Math.min(1,Math.max(0,intersection/union)):0;
 }
 const safeDivide=(num:number,den:number):number|null=>den>0?num/den:null;
 const f1Score=(precision:number|null,recall:number|null):number|null=>
