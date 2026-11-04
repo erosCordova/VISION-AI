@@ -1,7 +1,8 @@
 import {useEffect,useMemo,useState} from 'react';
 import type {SimulationSessionRepository} from '../../core/ports/simulation-session-repository';
 import type {SimulationSession} from '../../core/domain/simulation-session';
-import type {ReviewClosure} from '../../core/domain/review-closure';
+import {REVIEW_DECISIONS} from '../../core/domain/review-closure';
+import type {ReviewClosure,ReviewDecision} from '../../core/domain/review-closure';
 import {validateReproducibility} from '../live/simulation-session-model';
 import {collectReviewItems} from '../dashboard/review-state';
 
@@ -22,6 +23,8 @@ export function OperationsPanel({repository,onHistory}:{
  const [status,setStatus]=useState<Status>('all');
  const [scenario,setScenario]=useState<Scenario>('all');
  const [busy,setBusy]=useState<string|null>(null);
+ const [decisionById,setDecisionById]=useState<Record<string,ReviewDecision>>({});
+ const [noteById,setNoteById]=useState<Record<string,string>>({});
  useEffect(()=>{
   let mounted=true;
   const refresh=async()=>{
@@ -46,10 +49,12 @@ export function OperationsPanel({repository,onHistory}:{
   if(busy!==null)return;
   setBusy(id);setError('');setNotice('');
   try{
-   const changed=await repository.closeReview(sessionId,eventId);
+   const choice=decisionById[id]??'inconclusive';
+   const note=(noteById[id]??'').trim();
+   const changed=await repository.closeReview(sessionId,eventId,choice,note);
    const updated=await repository.listReviewClosures();
    setClosures(updated);
-   setNotice(changed?'Indicio marcado como revisado. La evidencia original permanece intacta.':
+   setNotice(changed?'Decisión registrada. La evidencia original permanece intacta.':
     'Este indicio ya estaba revisado; no se ha contado de nuevo.');
    window.dispatchEvent(new Event('vision-ai-reviews-updated'));
   }catch(e){setError(e instanceof Error?e.message:String(e));}
@@ -58,7 +63,7 @@ export function OperationsPanel({repository,onHistory}:{
  return <section className="panel operations-review" aria-label="Centro de revisión de indicios YOLO">
   <div className="panel-heading"><div>
    <h2>Revisión de indicios YOLO</h2>
-   <p>Señales EPP que guardaste desde las simulaciones · estados locales de revisión</p>
+   <p>Indicios EPP guardados · decisiones humanas locales, sin sanciones automáticas</p>
   </div><span className="status">{loading?'Leyendo…':all.length+' indicios'}</span></div>
   <div className="operations-review-stats" aria-live="polite">
    <div><span>Sin revisar</span><strong>{loading?'—':pending}</strong></div>
@@ -103,21 +108,42 @@ export function OperationsPanel({repository,onHistory}:{
        <span>{item.supportingFrames} lecturas</span>
        <span>Confianza máxima {Math.round(item.confidence*100)} %</span>
       </div>
-      {item.closedAt&&<small>
-       Revisado el {new Date(item.closedAt).toLocaleString('es-PE',DATE_FORMAT)}
-      </small>}
+      {item.closedAt&&<div className="operations-review-decision">
+       <small>Revisado el {new Date(item.closedAt).toLocaleString('es-PE',DATE_FORMAT)}</small>
+       <strong>{item.decisionLabel}</strong>
+       {item.note&&<p>Nota local: {item.note}</p>}
+      </div>}
      </div>
      {item.status==='open'?
-      <button type="button" disabled={busy!==null}
-       onClick={()=>void close(item.sessionId,item.eventId,item.id)}>
-       {busy===item.id?'Guardando…':'Marcar como revisado'}</button>:
-      <span className="operations-review-done">Registro conservado</span>}
+      <div className="operations-review-decision-form">
+       <label>Resultado de la revisión humana
+        <select aria-label={'Resultado de revisión '+item.eventId}
+         value={decisionById[item.id]??'inconclusive'}
+         onChange={e=>setDecisionById(previous=>({...previous,
+          [item.id]:e.target.value as ReviewDecision}))}>
+         <option value="inconclusive">{REVIEW_DECISIONS.inconclusive}</option>
+         <option value="follow_up">{REVIEW_DECISIONS.follow_up}</option>
+         <option value="dismissed">{REVIEW_DECISIONS.dismissed}</option>
+        </select>
+       </label>
+       <label>Nota opcional (máximo 240 caracteres)
+        <textarea aria-label={'Nota de revisión '+item.eventId} maxLength={240}
+         value={noteById[item.id]??''} placeholder="Hechos observados, sin datos personales"
+         onChange={e=>setNoteById(previous=>({...previous,[item.id]:e.target.value}))}/>
+       </label>
+       <button type="button" disabled={busy!==null}
+        onClick={()=>void close(item.sessionId,item.eventId,item.id)}>
+        {busy===item.id?'Guardando…':'Marcar como revisado'}
+       </button>
+      </div>:
+      <span className="operations-review-done">Decisión conservada</span>}
     </article>)}
    </div>}
   <p className="operations-review-disclaimer">
-   Marcar como revisado solo registra una acción humana local; no confirma si existió
-   incumplimiento ni identifica a una persona. No modifica las detecciones originales.
-   Los estados se conservan en este navegador, no se sincronizan con Render.
+   Cada decisión es una acción humana local; no confirma incumplimientos ni
+   identifica personas. No escribas datos personales en las notas.
+   Las detecciones originales no se modifican. Los estados se guardan
+   en IndexedDB de este navegador, no se sincronizan con Render.
   </p>
  </section>;
 }

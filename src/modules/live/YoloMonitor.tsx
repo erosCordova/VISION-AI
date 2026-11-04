@@ -2,6 +2,7 @@ import {useEffect,useState} from 'react';
 import {detectedClasses,modelScope,observedCaptureFps,observedYoloFps,observationAgeSeconds,reviewSignals} from './yolo-telemetry';
 import type {YoloTelemetry} from './yolo-telemetry';
 import type {ScenarioKey} from './simulation-engine';
+import {evaluateOperationalRules,OPERATIONAL_RULE_VERSION} from './operational-rule-engine';
 
 interface Props {readonly telemetry:YoloTelemetry;readonly scenario:ScenarioKey;readonly paused:boolean}
 const number=(n:number)=>n.toLocaleString('es-PE',{maximumFractionDigits:1});
@@ -18,6 +19,12 @@ export function YoloMonitor({telemetry,scenario,paused}:Props){
  const captureFps=observedCaptureFps(telemetry.captureTimestamps);
  const last=telemetry.observations.at(-1)??null;
  const classes=detectedClasses(last?.detections??[]);
+ const rules=evaluateOperationalRules(scenario,telemetry);
+ const ruleLabel:Record<string,string>={
+  review:'Revisión humana necesaria',observed:'Observación informativa',
+  'no-evidence':'Sin fotogramas analizados','no-signal':'Sin indicios repetidos',
+  unavailable:'Sin modelo especializado'
+ };
  const fps=observedYoloFps(telemetry.observations);
  const review=reviewSignals(telemetry.model,last?.detections??[]);
  const activeVisible=telemetry.phase==='running'?telemetry.activeReview:[];
@@ -122,6 +129,22 @@ export function YoloMonitor({telemetry,scenario,paused}:Props){
      predicciones de la misma clase, no que correspondan a una persona concreta ni que
      exista una infracción. Se requiere revisión humana.</p>
    </section>}
+   <section className="yolo-monitor-rules" aria-label="Reglas operativas verificables">
+    <div className="yolo-monitor-sectionhead"><h4>Reglas sobre las detecciones</h4>
+     <small>Versión {OPERATIONAL_RULE_VERSION}</small></div>
+    {rules.map(rule=><div className={'yolo-rule-card is-'+rule.status} key={rule.id}>
+     <div><strong>{rule.title}</strong><span>{ruleLabel[rule.status]}</span></div>
+     <p>{rule.description}</p>
+     <small>{rule.status==='unavailable'?'La regla no puede ejecutarse con este detector.':
+      'Fotogramas recientes: '+rule.observedFrames+' · Evidencia repetida: '+
+      rule.supportingFrames+' de 3 posibles'}</small>
+    </div>)}
+    <p className="yolo-monitor-review-disclaimer">
+     Reglas calculadas exclusivamente a partir de predicciones YOLO. Una observación
+     no demuestra riesgo, ocupación reglamentaria, defecto o infracción.
+     Los resultados no se mezclan con eventos programados del simulador.
+    </p>
+   </section>
    <section className="yolo-monitor-classes">
     <div className="yolo-monitor-sectionhead"><h4>Clases reconocidas</h4>
      <span>Último fotograma</span></div>

@@ -224,3 +224,21 @@ color:#c3e2d9;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
 
 /* Fase 10 — vista de contornos derivada de máscara cromática medida. */
 .browser-yolo-mask-summary{white-space:normal;overflow-wrap:anywhere}
+
+/* Fase 11: estados de reglas explicables, sin confundir presencia con alertas. */
+.yolo-monitor-rules{display:grid;gap:9px;margin:15px 0;
+ border:1px solid #476973;border-radius:11px;padding:15px;background:#102d3b}
+.yolo-monitor-rules .yolo-monitor-sectionhead small{font-size:9px;color:#9dbfc1}
+.yolo-rule-card{padding:12px 13px;background:#193c46;border:1px solid #496b6e;
+ border-radius:9px;display:grid;gap:7px}
+.yolo-rule-card>div{display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+ justify-content:space-between}
+.yolo-rule-card strong{font-size:11px;color:#d7f6ed}
+.yolo-rule-card span{font-size:9px;font-weight:750;background:#31525d;
+ border-radius:99px;padding:5px 9px;color:#c6ebdf}
+.yolo-rule-card.is-review{border-color:#d49a75}
+.yolo-rule-card.is-review span{background:#6d3e37;color:#ffd6bd}
+.yolo-rule-card.is-observed span{background:#20575a;color:#bbf6e0}
+.yolo-rule-card p{margin:0;font-size:10px;line-height:1.7;color:#b9d6d1}
+.yolo-rule-card small{font-size:9px;color:#a1c8c5}
+@media(max-width:520px){.yolo-monitor-rules{padding:11px}.yolo-rule-card{padding:10px}}

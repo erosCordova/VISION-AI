@@ -2,7 +2,7 @@
 
 Última actualización: 2026-11-04. Referencia: manual avanzado de 16 fases y decisión vigente de utilizar exclusivamente simulaciones 3D.
 
-**ESTADO VIGENTE: 10 de 16 fases aprobadas = 62,5 %. Fase 11 pendiente.** Los registros de incrementos anteriores que aparecen más abajo son históricos y no sustituyen este cierre.
+**ESTADO VIGENTE: 11 de 16 fases aprobadas = 68,75 %. Fase 12 pendiente.** Los registros de incrementos anteriores que aparecen más abajo son históricos y no sustituyen este cierre.
 
 | Fase | Alcance validado | Evidencia |
 | --- | --- | --- |
@@ -17,7 +17,7 @@
 | 9 | Captura sincronizada y detección YOLO ONNX de cuatro escenarios 3D, estados, reintento, filtros y evidencia PNG | [CI de aceptación](https://github.com/erosCordova/VISION-AI/actions/runs/41926688909) |
 | 10 | Máscara cromática por píxeles ROI YOLO, limpieza, siluetas, contornos, áreas y PNG alfa | [CI de aceptación](https://github.com/erosCordova/VISION-AI/actions/runs/41926688909) |
 
-**Avance administrativo vigente: 62,5 % (10 de 16 fases aprobadas).** No mide precisión del modelo, mAP ni exactitud de los objetos estilizados.
+**Avance administrativo vigente: 68,75 % (11 de 16 fases aprobadas).** No mide precisión del modelo, mAP ni exactitud de los objetos estilizados.
 
 ## Verificación local
 
@@ -308,3 +308,15 @@ metros cuadrados, no acredita calidad ni cumplimiento de seguridad.
 **Siguiente fase: 11 — reglas, gestión de alertas y revisión humana.**
 La publicación con Vercel Hobby y Render Free mantiene únicamente
 un motor ONNX en el navegador; Render no procesa fotogramas.
+
+## Cierre verificado — Fase 11, 4 de noviembre de 2026
+
+**Fase 11 aprobada.** Regla operativa versionada para cuatro escenarios,
+revisiones EPP, decisiones humanas y notas opcionales en IndexedDB.
+No se declaran infracciones sin revisión, ni defectos o zonas inseguras
+con un detector que no reconoce estas clases. Las reglas no toman
+información preprogramada del simulador como detecciones.
+
+**Evidencia CI completa:** https://github.com/erosCordova/VISION-AI/actions/runs/41928837022
+(TypeScript, Vitest, Python, Vite y Chromium responsive con ONNX real).
+**Avance: 11/16 = 68,75 %. Próxima fase: 12 — historial e informes.**

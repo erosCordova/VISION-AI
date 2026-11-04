@@ -1,8 +1,8 @@
 import {validateSimulationSession} from '../../core/domain/simulation-session';
 import type {SimulationSession} from '../../core/domain/simulation-session';
 import type {SimulationSessionInspection,SimulationSessionRepository} from '../../core/ports/simulation-session-repository';
-import {validateReviewClosure} from '../../core/domain/review-closure';
-import type {ReviewClosure} from '../../core/domain/review-closure';
+import {validateReviewClosure,validateReviewDecision} from '../../core/domain/review-closure';
+import type {ReviewClosure,ReviewDecision} from '../../core/domain/review-closure';
 const DB_NAME='vision-ai-simulation-sessions';
 /** Migración de esquema físico: v1 -> v2 añade índice de escenario, sin alterar registros. */
 const DB_VERSION=3;
@@ -125,8 +125,12 @@ export async function listReviewClosures():Promise<ReviewClosure[]>{
  }finally{db.close();}
 }
 /** Cierre atómico e idempotente: valida sesión e indicio antes de escribir. */
-export async function closeReview(sessionId:string,eventId:string):Promise<boolean>{
+export async function closeReview(sessionId:string,eventId:string,
+ decision:ReviewDecision='reviewed',note=''):Promise<boolean>{
  if(!sessionId||!eventId)throw Error('Selecciona un indicio válido para revisar.');
+ if(typeof note!=='string')throw Error('Nota de revisión inválida.');
+ const cleanNote=note.trim();
+ validateReviewDecision(decision,cleanNote);
  const db=await database();
  try{
   const tx=db.transaction([STORE,REVIEW_STORE],'readwrite');
@@ -140,7 +144,8 @@ export async function closeReview(sessionId:string,eventId:string):Promise<boole
     throw Error('El indicio no pertenece a esta sesión.');
    const existing=await requestValue(reviews.get([sessionId,eventId]));
    if(existing){await done;return false;}
-   reviews.add({sessionId,eventId,closedAt:new Date().toISOString()} satisfies ReviewClosure);
+   reviews.add({sessionId,eventId,closedAt:new Date().toISOString(),decision,
+    ...(cleanNote?{note:cleanNote}:{})} satisfies ReviewClosure);
    await done;
    return true;
   }catch(e){

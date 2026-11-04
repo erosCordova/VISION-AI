@@ -14,8 +14,8 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 | 08 | Dashboard e indicadores verificables | KPI y gráficos verificados desde el repositorio | Aprobada |
 | 09 | Centro de análisis y detección de objetos | Captura 3D, YOLO, cajas y filtros sin pérdida de evidencia | Aprobada; CI integral con ONNX de cuatro escenarios |
 | 10 | Segmentación de imágenes y capas visuales | Máscaras cromáticas de píxeles, capas, contornos y áreas | Aprobada como segmentación cromática experimental; no YOLO-seg |
-| 11 | Patrones, reglas y gestión de alertas | Motor de reglas y ciclo de revisión de alertas | Pendiente |
-| 12 | Historial, reportes y exportación | Historial, detalle y CSV | Pendiente |
+| 11 | Patrones, reglas y gestión de alertas | Reglas YOLO y revisión humana local | Aprobada con CI |
+| 12 | Historial, reportes y exportación | Historial, detalle y CSV | Próxima fase |
 | 13 | Seguridad, privacidad y gobierno de datos | Controles de acceso y gobierno de datos | Pendiente |
 | 14 | Pruebas integradas, rendimiento y accesibilidad | Pruebas integradas y candidato demo | Pendiente |
 | 15 | Integración de inteligencia artificial real | Optimización de modelos preentrenados y medición sobre simulaciones 3D, sin datasets externos | Pendiente |

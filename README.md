@@ -4,7 +4,7 @@ Plataforma empresarial de visión computacional con cuatro escenarios exclusivam
 
 ## Estado verificado
 
-**Fases 1 a 10 aprobadas; avance administrativo: 62,5 % (10 de 16). Fase 11 pendiente.** React + Vite ofrecen cuatro simulaciones 3D con humanos animados. YOLO ONNX (COCO y EPP) procesa fotogramas de estas escenas en el navegador; no se admiten datasets, fotografías, videos ni cámaras como entradas. Existen persistencia local IndexedDB, indicadores verificables y revisión humana de indicios EPP. El frontend se publica en Vercel Hobby; Render Free funciona como API ligera, sin inferencia remota. No se declara precisión, mAP ni rendimiento sostenido sin mediciones.
+**Fases 1 a 11 aprobadas; avance administrativo: 68,75 % (11 de 16). Fase 12 pendiente.** React + Vite ofrecen cuatro simulaciones 3D con humanos animados. YOLO ONNX (COCO y EPP) procesa fotogramas de estas escenas en el navegador; no se admiten datasets, fotografías, videos ni cámaras como entradas. Existen persistencia local IndexedDB, indicadores verificables y revisión humana de indicios EPP. El frontend se publica en Vercel Hobby; Render Free funciona como API ligera, sin inferencia remota. No se declara precisión, mAP ni rendimiento sostenido sin mediciones.
 
 ## Ejecutar y validar
 
@@ -101,10 +101,19 @@ El detector EPP de Seguridad tiene **señales temporales de revisión**, visible
 
 ## Progreso de fases — estado vigente 4 de noviembre de 2026
 
-**10 de 16 fases aprobadas = 62,5 %.** Fases 1–10 aprobadas; fase 11 pendiente.
+**11 de 16 fases aprobadas = 68,75 %.** Fases 1–11 aprobadas; fase 12 pendiente.
 La fase 8 validó KPI KP01–KP03, revisión humana EPP y rendimiento con sesiones locales.
 Pruebas: https://github.com/erosCordova/VISION-AI/actions/runs/41882458652 .
 Las fases 9 y 10 validaron YOLO real sobre los cuatro escenarios 3D, sincronización, fallos y reintentos, y máscaras cromáticas por píxel sin alterar evidencias.
 Ejecución integral: https://github.com/erosCordova/VISION-AI/actions/runs/41926688909 .
 Consulta [estado](docs/estado.md), [indicadores Fase 8](docs/indicadores.md)
 [cierre Fase 9](docs/fase09_deteccion_3d.md) y [cierre Fase 10](docs/fase10_segmentacion_3d.md).
+
+## Fase 11 — Reglas y revisión YOLO
+
+El monitor aplica reglas explícitas sobre detecciones de los cuatro
+escenarios: EPP repetido para revisión humana; observaciones informativas
+de personas en Retail y Logística; defectos no verificables con COCO.
+Operaciones registra decisiones y notas opcionales en IndexedDB sin
+cambiar las detecciones. No hay sanciones automáticas ni seguimiento
+personal. Ver [fase 11](docs/fase11_reglas_alertas.md) y [CI aprobada](https://github.com/erosCordova/VISION-AI/actions/runs/41928837022).
