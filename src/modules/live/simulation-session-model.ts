@@ -18,7 +18,7 @@ export function snapshotFingerprint(s:SimSnapshot,elapsedMs:number):string{
  for(let i=0;i<text.length;i++){result=Math.imul(result^text.charCodeAt(i),16777619);}
  return (result>>>0).toString(16).padStart(8,'0');
 }
-export function buildSimulationSession(input:SessionInput,clock=new Date(),id=crypto.randomUUID()):SimulationSession{
+export function buildSimulationSession(input:SessionInput,clock=new Date(),id:string=crypto.randomUUID()):SimulationSession{
  if(!validScenario(input.scenarioId))throw Error('Escenario de simulación desconocido.');
  if(!Number.isFinite(input.elapsed)||input.elapsed<0||input.elapsed>3600)
   throw Error('Tiempo de simulación inválido.');
