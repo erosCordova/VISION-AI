@@ -445,7 +445,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
        <strong>{region.coveragePercent.toFixed(1)} %</strong>
       </div>)}
      </div>}
-    {maskError&&<p className="browser-yolo-error" role="alert">{maskError}</p>
+    {maskError&&<p className="browser-yolo-error" role="alert">{maskError}</p>}
     <small>La máscara usa contraste RGB de píxeles dentro de cajas YOLO; elimina manchas de ruido pequeñas si se solicita. No es segmentación semántica ni una máscara del modelo YOLO.</small>
    </div>
    <p className="browser-yolo-modelnote">La cadencia es el intervalo mínimo objetivo entre capturas; el tiempo real depende del equipo. Al ocultar la pestaña se suspenden nuevas capturas.
