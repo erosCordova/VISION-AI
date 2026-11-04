@@ -144,6 +144,31 @@ try {
       }
       const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
       fs.writeFileSync(path.join(artifacts, name + '-' + width + '.png'), Buffer.from(capture.data, 'base64'));
+      if (name === 'analisis') {
+        await cdp.send('Runtime.evaluate', {
+          expression: 'document.querySelector(".simulator-human-stage")?.scrollIntoView({block:"center"})'
+        });
+        await sleep(2200);
+        const diagnostic = await cdp.send('Runtime.evaluate', {
+          expression: '(() => { const stage=document.querySelector(".simulator-human-stage");'
+            + ' const c=stage?.querySelector("canvas");'
+            + ' const gl=c?.getContext("webgl2");'
+            + ' return { webgl:!!gl,'
+            + ' title:document.querySelector(".simulator-human-status")?.textContent||"",'
+            + ' exception:!!stage?.querySelector("[role=alert]") };})()',
+          returnByValue: true
+        });
+        const modelStatus = diagnostic.result?.value;
+        if (!modelStatus?.webgl || modelStatus?.exception) {
+          throw Error('Escena humana WebGL no disponible (' + width + '): ' + JSON.stringify(modelStatus));
+        }
+        const modelScreenshot = await cdp.send('Page.captureScreenshot', {
+          format: 'png', captureBeyondViewport: false
+        });
+        fs.writeFileSync(path.join(artifacts, 'escena3d-' + width + '.png'),
+          Buffer.from(modelScreenshot.data, 'base64'));
+        console.log('Escena 3D OK a ' + width + ' px: ' + JSON.stringify(modelStatus));
+      }
       console.log('QA OK: ' + name + ' a ' + width + ' px; sin desbordamiento horizontal');
       checked++;
     }

@@ -22,3 +22,17 @@
  .simulator-render-preset button{flex:1;min-width:0}
  .simulator-human-status{font-size:9px;bottom:35px;left:10px;right:10px}
 }
+/* Human Edition — priorizar la escena tridimensional sobre las cabeceras. */
+@media(min-width:1050px){
+ .simulator-v3 .simulator-topline{padding:14px 22px 12px}
+ .simulator-v3 .simulator-topline h2{font-size:23px;margin:3px 0 4px}
+ .simulator-v3 .simulator-topline p{font-size:11px}
+ .simulator-v3 .simulator-scenarios{padding:6px 12px}
+ .simulator-v3 .simulator-scenarios button{padding:7px 9px;min-height:39px}
+ .simulator-v3 .simulator-3d-summary>div{padding:10px 12px;gap:4px}
+ .simulator-v3 .simulator-visual{padding:11px 14px 16px}
+ .simulator-v3 .simulator-visual-head{margin:0 0 9px}
+ .simulator-v3 .simulator-visual-head h3{font-size:19px;margin:3px 0}
+ .simulator-v3 .simulator-render-preset{padding:5px 12px}
+ .simulator-v3 .simulator-render-preset button{min-height:30px;padding:6px 12px}
+}
