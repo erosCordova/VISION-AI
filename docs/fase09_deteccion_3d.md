@@ -184,3 +184,23 @@ También restaura explícitamente la función nativa de Chromium.
 El código de esta validación está preparado, pero **solo se considerará
 superada** cuando se ejecute en el runner real junto con TypeScript,
 Vitest, Python y la compilación. No se activó ningún nuevo despliegue.
+
+## Incremento 9: exportación auditable de evidencia, sin datasets
+
+Se añadió **Exportar evidencia YOLO (PNG)** al visor, solo cuando
+existe al menos un fotograma realmente analizado. El PNG se dibuja
+de nuevo sobre el mismo fotograma y contiene **todas las predicciones
+retenidas por YOLO después del postprocesamiento**, sin aplicar los
+filtros visuales de confianza ni clase. Los cambios de filtro no
+provocan una nueva inferencia. El nombre incluye escenario, ID de
+fotograma y fecha de captura, sin datos del usuario.
+
+El visor expone por separado conteos de predicciones retenidas y de
+detecciones actualmente visibles; muestra además la cámara y el
+segundo de escena de la evidencia completada. El archivo se genera
+localmente en el navegador, sin cámara externa, sin datasets, sin
+subida de imágenes ni almacenamiento de la imagen en Render.
+Se incorporaron pruebas de nombre/validación para los cuatro escenarios,
+y QA de codificación PNG con el canvas real después de recuperar
+una inferencia. La ejecución de Chromium sigue pendiente antes de
+la aceptación formal de fase 9.

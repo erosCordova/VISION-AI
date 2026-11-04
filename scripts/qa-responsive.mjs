@@ -728,6 +728,22 @@ try {
           returnByValue:true
         });
         console.log('AN03/AN04 Chromium: fallo de lectura y reintento ONNX del MISMO frame verificados');
+
+        // El PNG es evidencia independiente de la selección visual (85 %).
+        // No se fuerza una descarga en CI; se comprueba que la acción existe
+        // y que el canvas del modelo puede codificarse como PNG válido.
+        const evidenceReady=await cdp.send('Runtime.evaluate',{
+          expression:'(async()=>{'
+           +'const b=document.querySelector(".browser-yolo-export");'
+           +'const canvas=document.querySelector(".browser-yolo-preview-frame canvas");'
+           +'if(!b||!canvas||canvas.width<2)return false;'
+           +'const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));'
+           +'return blob?.type==="image/png"&&blob.size>100;'
+           +'})()',awaitPromise:true,returnByValue:true
+        });
+        if(!evidenceReady.result?.value)
+          throw Error('OB01: visor YOLO no produce PNG válido del fotograma analizado');
+        console.log('OB01: evidencia PNG reproducible desde el canvas analizado');
         const runTag=await cdp.send('Runtime.evaluate',{
           expression:'document.querySelector(".browser-yolo-run")?.textContent?.trim()||""',
           returnByValue:true

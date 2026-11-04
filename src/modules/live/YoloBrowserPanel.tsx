@@ -8,6 +8,7 @@ import type {ScenarioKey} from './simulation-engine';
 import {validYoloFrameSource} from './yolo-telemetry';
 import type {YoloTelemetryEvent,YoloFrameSource} from './yolo-telemetry';
 import {FrameAnalysisCycle,frameBoxPixels} from './frame-analysis-cycle';
+import {evidencePngName,saveEvidencePng} from './yolo-evidence';
 import {captureWaitMs,shouldPauseCapture} from './inference-scheduler';
 import type {CapturePace} from './inference-scheduler';
 import type {FrameAnalysisAttempt,FrameAnalysisOutcome} from './frame-analysis-cycle';
@@ -71,6 +72,8 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
  const [lastRun,setLastRun]=useState<FrameAnalysisOutcome|null>(null);
  const times=useRef<number[]>([]);
  const [error,setError]=useState('');
+ const [exportMessage,setExportMessage]=useState('');
+ const lastEvidenceSource=useRef<YoloFrameSource|null>(null);
  const start=useCallback(async()=>{
   if(startLocked.current||phase==='loading'||phase==='running'||phase==='retrying')return;
   startLocked.current=true;
@@ -80,7 +83,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
   onTelemetry({type:'status',phase:'loading',model:family});
   setMessage('Preparando el motor de inferencia…');
   times.current=[];setSampleCount(0);setObservedFps(null);
-  lastAnalyzed.current=null;
+  lastAnalyzed.current=null;lastEvidenceSource.current=null;setExportMessage('');
   setDetections([]);setInferenceMs(null);setLastFrameAt(null);
   if(preview.current){const ctx=preview.current.getContext('2d');ctx?.clearRect(0,0,preview.current.width,preview.current.height);}
   try{
@@ -112,7 +115,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
   generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;failedSource.current=null;setLastRun(null);
   setPhase('idle');setModel(null);setFamily(next);
   onTelemetry({type:'status',phase:'idle',model:next});
-  lastAnalyzed.current=null;
+  lastAnalyzed.current=null;lastEvidenceSource.current=null;setExportMessage('');
   setClassFilter('all');
   if(preview.current)preview.current.getContext('2d')?.clearRect(0,0,preview.current.width,preview.current.height);
   setError('');setDetections([]);setSampleCount(0);
@@ -151,6 +154,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
      if(!accepted)return;
      setLastRun(accepted);failedCanvas.current=null;failedSource.current=null;
      lastAnalyzed.current=result;
+     lastEvidenceSource.current=frameSource;
      setDetections(result.detections);
      setInferenceMs(result.inferenceMs);
      const capturedAtMs=job.capturedAtMs;
@@ -221,6 +225,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
    if(!accepted)return;
    setLastRun(accepted);failedCanvas.current=null;failedSource.current=null;
    lastAnalyzed.current=result;
+   lastEvidenceSource.current=previousSource;
    setDetections(result.detections);setInferenceMs(result.inferenceMs);
    const capturedAtMs=job.capturedAtMs;
    const completedAtMs=Date.now();
@@ -243,6 +248,24 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
    onTelemetry({type:'status',phase:'failed',model:family,error:explainError(e)});
    setMessage('El reintento no pudo analizar el fotograma guardado en memoria.');
   }
+ }
+ async function exportEvidence(){
+  const analyzed=lastAnalyzed.current;
+  const metadata=lastEvidenceSource.current;
+  const run=lastRun;
+  if(!analyzed||!metadata||!run||run.phase!=='completed'){
+   setExportMessage('No hay un fotograma YOLO completo para exportar.');
+   return;
+  }
+  try{
+   // Reconstruir la evidencia desde las detecciones retenidas originales:
+   // los controles de confianza y clase SOLO afectan la vista.
+   const output=document.createElement('canvas');
+   drawFrame(analyzed,output,run.run.model);
+   await saveEvidencePng(output,evidencePngName(metadata,run.run.frameId,
+    run.run.capturedAtMs));
+   setExportMessage('Evidencia PNG generada con las predicciones originales de YOLO.');
+  }catch(e){setExportMessage('No fue posible exportar: '+explainError(e));}
  }
  const personCount=visibleDetections.filter(d=>d.classId==='person').length;
  const ppe=family==='ppe'?ppeFindings(detections):null;
@@ -290,6 +313,10 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
       <button type="button" onClick={()=>void retryFailedFrame()}>
        Reintentar último fotograma
       </button>}
+    {sampleCount>0&&lastAnalyzed.current&&lastEvidenceSource.current&&
+      <button type="button" className="browser-yolo-export" onClick={()=>void exportEvidence()}>
+       ▣ Exportar evidencia YOLO (PNG)
+      </button>}
     <label htmlFor="yolo-confidence">Confianza visual mínima
       <strong>{Math.round(confidence*100)} %</strong>
     </label>
@@ -316,11 +343,15 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
     Las inferencias originales, desde {Math.round(MIN_RAW_YOLO_CONFIDENCE*100)} % de confianza, se conservan para el monitor y la sesión.
    </p>
    <p className="browser-yolo-status" role="status">{message}</p>
+   {exportMessage&&<p className="browser-yolo-export-status" role="status">{exportMessage}</p>}
    {lastRun&&<p className="browser-yolo-run" aria-label="Ejecución correlacionada del fotograma">
     {lastRun.phase==='completed'?'ANÁLISIS COMPLETADO':'ANÁLISIS FALLIDO'}
     {' · '}Frame #{lastRun.run.frameId}
     {' · '}Intento {lastRun.run.attempt}
     {' · '}Origen: simulación 3D
+    {lastEvidenceSource.current&&lastRun.phase==='completed'&&
+     <> · Cámara: {lastEvidenceSource.current.camera}
+      {' · '}Segundo de escena: {(lastEvidenceSource.current.elapsedMs/1000).toFixed(1)}</>}
     {lastRun.durationMs!==null&&' · '+Math.round(lastRun.durationMs)+' ms de ciclo'}
    </p>}
    {error&&<p className="browser-yolo-error" role="alert">{error}</p>}
@@ -356,6 +387,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
        {ppe.review.length===0&&<p>No se emitieron señales explícitas de incumplimiento.
         Esto NO certifica que las personas lleven casco o chaleco.</p>}
       </div>}
+     <p className="browser-yolo-count">Predicciones originales retenidas: <b>{sampleCount?detections.length:'—'}</b> · Visibles: <b>{sampleCount?visibleDetections.length:'—'}</b>.</p>
      <p className="browser-yolo-count">Fotogramas procesados: <b>{sampleCount}</b>
       {lastFrameAt&&<> · último: <b>{new Date(lastFrameAt).toLocaleTimeString('es-PE')}</b></>}</p>
      {sampleCount>0&&detections.length>0&&visibleDetections.length===0&&

@@ -180,3 +180,11 @@ color:#c3e2d9;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
 .browser-yolo-run{margin:8px 0 11px;padding:9px 12px;border-radius:7px;
  background:linear-gradient(120deg,#163e4b,#164a42);border:1px solid #4b9682;
  color:#a8f1d7;font-size:10px;font-weight:750;line-height:1.6;letter-spacing:.2px}
+
+/* Evidencia PNG: no altera la confidencia ni el color de los elementos principales. */
+.browser-yolo-actions button.browser-yolo-export{
+ background:#294a66;border:1px solid #6b9cc0;color:#e0f4ff;
+}
+.browser-yolo-actions button.browser-yolo-export:hover{background:#356487}
+.browser-yolo-export-status{font-size:11px;line-height:1.5;margin:0 0 12px;
+ color:#adddcf;border-left:3px solid #72d6bb;padding:6px 10px;background:#123b43}
