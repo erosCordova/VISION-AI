@@ -64,7 +64,7 @@ export function suppressOverlaps(preds:readonly Pred[],iou=.45,limit=35):Pred[]{
  */
 export function decodeYoloClasses(
  data:Float32Array|readonly number[],dims:readonly number[],letterbox:Letterbox,
- classes:readonly {id:string;label:string}[],threshold=.35
+ classes:readonly {id:string;label:string}[],threshold=.35,maxDetections=35
 ):DecodedYolo{
  if(!classes.length||classes.length>100)throw Error('El catálogo de clases está vacío o excede el límite');
  const channels=4+classes.length;
@@ -95,7 +95,7 @@ export function decodeYoloClasses(
   if(xmax<=x||ymax<=y)continue;
   raw.push({classIndex:best,score,x,y,width:xmax-x,height:ymax-y});
  }
- return {candidates:raw.length,detections:suppressOverlaps(raw,.45,35).map((p,i)=>({
+ return {candidates:raw.length,detections:suppressOverlaps(raw,.45,maxDetections).map((p,i)=>({
   id:'yolo-'+(i+1),classId:classes[p.classIndex].id,
   label:classes[p.classIndex].label,
   confidence:p.score,box:{x:p.x,y:p.y,width:p.width,height:p.height}

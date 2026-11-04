@@ -78,3 +78,8 @@ En «Análisis en vivo» → «Simulador 3D» se puede elegir entre **Simulació
 ### Detector EPP para Seguridad Industrial
 
 El simulador 3D permite elegir **YOLOv8s EPP (14 clases)** o **YOLOv8n COCO (80 clases)**. El especializado se descarga cuando se solicita (44.8 MB; SHA256 verificado), identifica personas, cascos, chalecos y ciertas señales explícitas de EPP ausente. También se puede elegir una imagen real local sin subirla a servidor. Las observaciones EPP solo sirven para revisión; resultados vacíos no demuestran cumplimiento. Datos, límites y licencia AGPL-3.0: [manual del piloto](docs/yolo_simulador_3d.md).
+
+
+### Laboratorio de evaluación EPP (sin demos)
+
+En Seguridad → YOLO real → EPP industrial, la sección «Laboratorio de precisión» procesa **imágenes JPG/PNG/WebP, etiquetas YOLO TXT y data.yaml** desde tu ordenador, sin enviar archivos a Render. Calcula precisión, recall, F1 y mAP@50 respecto a etiquetas verificables, incluye vista de errores y exportación CSV/JSON. El resultado permanece vacío hasta cargar un dataset real; si no hay GT, no se inventan métricas. No es un informe oficial COCO mAP@50-95 ni certificación de cumplimiento industrial. Consulta [guía de evaluación y formato](docs/evaluacion_epp.md).

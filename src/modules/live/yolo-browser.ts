@@ -149,7 +149,7 @@ export function toYoloTensor(canvas:HTMLCanvasElement,
 }
 export async function analyzeYoloFrame(
  model:LoadedYolo,captured:HTMLCanvasElement,
- threshold:number):Promise<YoloFrame>{
+ threshold:number,maxDetections=35):Promise<YoloFrame>{
  const target=model.family==='ppe'?PPE_MODEL.input:YOLO_INPUT;
  const {data,letterbox}=toYoloTensor(captured,target);
  const input=new model.ort.Tensor('float32',data,[1,3,target.height,target.width]);
@@ -162,7 +162,7 @@ export async function analyzeYoloFrame(
    if(!value||value.type!=='float32'||!value.data)
     throw Error('El motor devolvió una salida incompatible con YOLOv8n.');
    const decoded=model.family==='ppe'
-    ?decodeYoloClasses(value.data,value.dims,letterbox,PPE_CLASSES,threshold)
+    ?decodeYoloClasses(value.data,value.dims,letterbox,PPE_CLASSES,threshold,maxDetections)
     :decodeYolov8(value.data,value.dims,letterbox,threshold);
    return {source:captured,width:captured.width,height:captured.height,
     detections:decoded.detections,candidates:decoded.candidates,

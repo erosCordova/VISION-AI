@@ -3,6 +3,7 @@ import type {Detection} from '../../core/domain/model';
 import {analyzeYoloFrame,captureRenderedFrame,loadYoloBrowser} from './yolo-browser';
 import type {YoloFrame,YoloFamily} from './yolo-browser';
 import {ppeColor,ppeFindings} from './ppe-model';
+import {PpeEvaluationPanel} from './PpeEvaluationPanel';
 import type {ScenarioKey} from './simulation-engine';
 type Model=Awaited<ReturnType<typeof loadYoloBrowser>>;
 type Phase='idle'|'loading'|'running'|'stopped'|'failed';
@@ -287,5 +288,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
      </p>
     </div>
    </div>
+   {family==='ppe'&&scenarioId==='safety'&&
+     <PpeEvaluationPanel disabled={phase==='running'||phase==='loading'}/>}
  </section>;
 }

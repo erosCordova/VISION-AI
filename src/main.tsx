@@ -8,6 +8,7 @@ import './styles/simulator-3d.css';
 import './styles/simulator-v3.css';
 import './styles/simulator-humans.css';
 import './styles/simulator-yolo.css';
+import './styles/ppe-evaluation.css';
 const root = document.getElementById('root');
 if (!root) throw new Error('No se encontró el punto de entrada de VISION AI.');
 try {

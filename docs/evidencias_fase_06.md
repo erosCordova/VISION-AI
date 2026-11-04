@@ -113,3 +113,10 @@ Se añade un segundo origen de anotación independiente: las cajas de YOLO proce
 Se seleccionó un detector YOLOv8s de 14 clases (modelo Constructelligence v0.3, archivo ONNX 44.8 MB, SHA256 fijado). Se parametrizó la preparación de imágenes para 640×640 y la decodificación de tensores de 4+C canales. Seguridad ofrece selección EPP/COCO, pruebas con imágenes JPG/PNG/WebP locales, salida rotulada como fuente real, indicios EPP observados y señales positivas para revisión. La ausencia de una detección no se transforma en infracción inventada.
 
 Las pruebas unitarias validan 14 clases, coordenadas, NMS, salidas vacías, etiquetas precisas, rechazo de tensores incompatibles y manejo explícito de ausencia de EPP. QA en Chromium verifica acceso al selector de modelo y ejecución real del ONNX. La evaluación de precisión del modelo en el dominio de nuestro simulador debe documentarse por separado.
+
+
+## Decimotercer incremento — métricas EPP sin datos fabricados
+
+Nuevo módulo \`ppe-evaluation.ts\` con correspondencia codiciosa por clase e imagen a IoU 0,50, curva P/R interpolada en 101 niveles, P/R/F1 micro y AP50/mAP50 exclusivamente en clases presentes. \`ppe-dataset.ts\` verifica etiquetas YOLO y data.yaml con clases reales; permite rechazar archivos sin pareja, índices incompatibles, coordenadas inválidas y datasets fuera de tamaño. \`PpeEvaluationPanel.tsx\` ejecuta el ONNX EPP sobre cada imagen subida, permite cancelación, comparación con GT, ajuste del umbral sin reejecutar inferencia y exportación.
+
+La batería unit prueba casos perfectos, duplicados, faltantes, falsos positivos, clases sin GT, permutación de etiquetas y errores de formato. QA responsive comprueba que sin un dataset no aparecen métricas, y un fixture blanco sin etiquetas debe reportar mAP no definido tras inferencia real. **Las pruebas de fixture no son evidencia de precisión industrial**. Falta incorporar fotografías con GT independiente para calcular resultados representativos del detector.
