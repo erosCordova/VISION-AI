@@ -397,7 +397,7 @@ try {
         await eventually(async()=>{
           const x=await cdp.send('Runtime.evaluate',{
             expression:'(() => ({cards:document.querySelectorAll(".history-report-stats strong").length,'
-             +'records:document.querySelectorAll(".history-panel tbody tr").length,'
+             +'records:document.querySelectorAll(".history-panel > .table-scroll tbody tr").length,'
              +'buttons:document.querySelectorAll(".history-report-actions button").length}))()',
             returnByValue:true
           });
