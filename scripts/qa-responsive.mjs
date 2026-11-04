@@ -132,7 +132,8 @@ try {
           + 'hasAnalytics: !!document.querySelector(".sim-analytics"), '
           + 'hasActivityChart: !!document.querySelector(".sim-analytics-activity svg"), '
           + 'hasMiniMap: !!document.querySelector(".sim-analytics-map svg"), '
-          + 'hasKPIs: document.querySelectorAll(".sim-analytics-kpis .sim-kpi").length === 3 }; '
+          + 'hasKPIs: document.querySelectorAll(".sim-analytics-kpis .sim-kpi").length === 3, '
+          + 'hasNoMonitorBeforeYolo: !document.querySelector(".yolo-monitor") }; '
           + '})()';
         const response = await cdp.send('Runtime.evaluate', { expression, returnByValue: true });
         return response.result?.value ?? null;
@@ -140,7 +141,7 @@ try {
       if (view.viewport !== width || view.pageWidth > width + 1
           || view.elementLeft < -1 || view.elementLeft + view.elementWidth > width + 1
           || !view.hasFocusableMain || !view.hasSkip || !view.hasText
-          || (name === 'analisis' && (!view.hasSimulationOnly || !view.noExternalSources || !view.hasYoloModeSwitch || !view.hasSimulatorStage || !view.hasSimulatorControls || !view.hasCameraPresets || !view.hasHumanMode || !view.hasHumanCanvas || !view.hasSyntheticDisclosure || !view.hasSyntheticLabel || !view.hasScenarioTabs || !view.hasAnalytics || !view.hasActivityChart || !view.hasMiniMap || !view.hasKPIs))) {
+          || (name === 'analisis' && (!view.hasSimulationOnly || !view.noExternalSources || !view.hasYoloModeSwitch || !view.hasSimulatorStage || !view.hasSimulatorControls || !view.hasCameraPresets || !view.hasHumanMode || !view.hasHumanCanvas || !view.hasSyntheticDisclosure || !view.hasSyntheticLabel || !view.hasScenarioTabs || !view.hasAnalytics || !view.hasActivityChart || !view.hasMiniMap || !view.hasKPIs || !view.hasNoMonitorBeforeYolo))) {
         throw Error('QA falló (' + width + ' px, ' + name + '): ' + JSON.stringify(view));
       }
       const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
@@ -222,6 +223,19 @@ try {
         }, 'panel YOLO real');
         if (!yoloUi.start || !yoloUi.source || yoloUi.syntheticStatus)
           throw Error('El motor YOLO no está correctamente separado: '+JSON.stringify(yoloUi));
+        const monitorBefore=await cdp.send('Runtime.evaluate',{
+          expression:'(() => ({'
+           + ' monitor:!!document.querySelector(".yolo-monitor"),'
+           + ' simulated:!!document.querySelector(".sim-analytics"),'
+           + ' initial:document.querySelector(".yolo-monitor-kpi.primary strong")?.textContent?.trim(),'
+           + ' cards:document.querySelectorAll(".yolo-monitor-kpi").length'
+           + ' }))()',
+          returnByValue:true
+        });
+        const monitorInitial=monitorBefore.result?.value;
+        if(!monitorInitial?.monitor||monitorInitial.simulated||
+          monitorInitial.initial!=='—'||monitorInitial.cards!==4)
+          throw Error('Monitor YOLO muestra datos sintéticos o cifras previas: '+JSON.stringify(monitorInitial));
         const safetyModelCheck=await cdp.send('Runtime.evaluate',{
           expression:'(() => ({ selected:Array.from(document.querySelectorAll(".browser-yolo-picker button"))'
             + '.find(b=>b.textContent.includes("EPP industrial"))?.getAttribute("aria-pressed"),'
@@ -275,6 +289,22 @@ try {
         }
         if (!firstInference) throw Error('No hubo inferencia ONNX tras esperar: '+JSON.stringify(lastStatus));
         console.log('YOLO EPP REAL OK en Chromium: '+JSON.stringify(firstInference));
+        await sleep(350);
+        const resultMonitor=await cdp.send('Runtime.evaluate',{
+          expression:'(() => ({'
+           + ' detector:document.querySelector(".browser-yolo-kpis strong")?.textContent?.trim(),'
+           + ' monitor:document.querySelector(".yolo-monitor-kpi.primary strong")?.textContent?.trim(),'
+           + ' model:document.querySelector(".yolo-monitor-source")?.textContent?.trim(),'
+           + ' synthetic:!!document.querySelector(".sim-analytics"),'
+           + ' readings:document.querySelectorAll(".yolo-monitor-trend rect").length'
+           + ' }))()',
+          returnByValue:true
+        });
+        const numbers=resultMonitor.result?.value;
+        if(!numbers||numbers.detector!==numbers.monitor||numbers.synthetic||numbers.readings<1||
+          !numbers.model?.includes('EPP'))
+          throw Error('El monitor YOLO no coincide con la inferencia ejecutada: '+JSON.stringify(numbers));
+        console.log('MONITOR YOLO REAL OK: detecciones del frame vinculadas al panel operativo');
         const inferenceShot = await cdp.send('Page.captureScreenshot', {
           format: 'png', captureBeyondViewport: false
         });

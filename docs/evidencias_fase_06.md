@@ -125,3 +125,8 @@ La batería unit prueba casos perfectos, duplicados, faltantes, falsos positivos
 ## Decimocuarto incremento — exclusividad de los cuatro escenarios 3D
 
 Se retiraron del acceso de usuarios las pestañas de «Video con YOLO» y «Cámara con YOLO», junto a la subida de imágenes reales, la selección de datasets y el laboratorio de evaluación de precisión. La pantalla de Análisis en vivo accede directamente al simulador 3D; YOLO solo puede leer su canvas de renderizado sin overlays sintéticos. El modelo COCO funciona como detector general en los cuatro escenarios y el EPP queda disponible en Seguridad, sin importación ni entrenamiento de datos por el usuario. QA comprueba ausencia de cargas, selección de detector y ejecución de inferencia ONNX en Chromium.
+
+
+## Decimoquinto incremento — monitor operativo basado en inferencia real
+
+El componente `YoloMonitor.tsx` obtiene su estado de observaciones producidas por el panel `YoloBrowserPanel.tsx` tras cada llamada `analyzeYoloFrame`. Las clases, cajas, confidencias, tiempos y conteos proceden del detector ONNX. `yolo-telemetry.ts` limita el historial a 30 lecturas, ignora duplicados, fechas retrocedidas y modelos incompatibles; no conserva fotogramas ni recursos GPU. La interfaz alterna explícitamente el panel sintético original con el monitor YOLO; ninguna cifra pasa de uno al otro. Los resultados vacíos son permitidos y nunca se convierten en alertas simuladas. Las pruebas cubren transición de estado, reinicio, FPS, clases, señales EPP y límites de reconocimiento por escenario. QA Chromium confirma que los contadores del monitor coinciden con los resultados de una inferencia real y que, antes de iniciar, se muestran guiones en lugar de cifras supuestas.

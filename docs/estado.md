@@ -108,3 +108,10 @@ Se implementa un laboratorio de evaluación con carga de imágenes reales locale
 ## Decimocuarto incremento de Fase 6 — alcance corregido: solo simulaciones
 
 Se deja exclusivamente «Simulador 3D» en el análisis en vivo. Se desactivan las entradas de cámara y video y se elimina la carga de fotografías, el importador de datasets y el laboratorio de evaluación EPP. YOLO (COCO/EPP según escenario) recibe **solo fotogramas de las simulaciones 3D**, con recuadros generados por inferencia ONNX. Las reglas programadas y la analítica sintética siguen rotuladas por separado. No se piden datasets ni se publican métricas de precisión no comprobadas. El backend sigue en Render Free, el frontend en Vercel Hobby. Se mantienen las cuatro simulaciones y la Fase 6 abierta al 31,25 % administrativo.
+
+
+## Decimoquinto incremento Fase 6 — monitor YOLO asociado a cada inferencia
+
+Se añadió un monitor independiente para modo «YOLO real». Las cifras de objetos, personas, latencia de inferencia, FPS de inferencia, clases detectadas, evolución temporal y señales positivas de EPP proceden **únicamente de tensores reales analizados por ONNX**. El sistema no reutiliza eventos, conteos de actores, confidencias ni posiciones geométricas del simulador para estos indicadores. Al activar YOLO se oculta la analítica sintética; al volver a Simulación visual se presenta el panel de reglas programadas. Cada cambio de escenario, modo gráfico o detector reinicia el monitor, con protección frente a fotogramas duplicados, tardíos o provenientes de otro modelo.
+
+Los FPS mostrados en el monitor son inferencias por segundo, no renderizado GPU; los porcentajes de confianza no representan precisión validada. Para Seguridad, las clases explícitas de posibles ausencias de EPP son indicios para revisión y no certifican incumplimientos. Vercel Hobby frontend y Render Free backend no se modifican. La Fase 6 se mantiene abierta; avance administrativo 31,25 %.

@@ -87,3 +87,8 @@ VISION-AI se desarrolla **únicamente con cuatro escenarios 3D generados en el n
 Se distinguen dos vistas de un mismo escenario: **Simulación visual** (reglas y anotaciones programadas) y **YOLO real** (inferencia sobre los píxeles renderizados, sin leer etiquetas ni coordenadas del simulador). La descarga de pesos preentrenados ONNX es automática tras pulsar Iniciar YOLO; no se solicita cargar ni entrenar datasets. El usuario puede pausar, reanudar, ajustar velocidad, cámara y confianza. Los resultados reales dependen de los objetos que el detector consiga reconocer.
 
 Esta decisión sustituye las opciones anteriores de cargas locales y laboratorio de evaluación. **No se comunica precisión ni mAP no medido.** Vercel aloja el frontend, Render Free permanece exclusivamente como backend ligero, sin inferencia de visión remota.
+
+
+### Monitor YOLO ligado a las simulaciones
+
+Al iniciar **YOLO real** en cualquiera de los cuatro escenarios 3D, la barra lateral sustituye la analítica sintética por **Monitor YOLO**, con número de detecciones del último fotograma, personas, latencia, FPS inferidos, histórico de lecturas, clases observadas y revisión positiva de EPP cuando corresponda. Antes de inferir aparecen valores sin determinar; el monitor no toma contadores ni alertas del escenario geométrico. Para volver a ver KPI y movimientos programados, cambiar a **Simulación visual**. La aplicación sigue sin pedir datasets, videos ni fotografías, y no afirma precisión sin mediciones verificadas.

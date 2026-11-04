@@ -89,3 +89,10 @@ La carga de 44.8 MB y la ejecución CPU/WASM pueden ser más lentas en un ordena
 Se ha retirado la opción de «Imagen real local», la importación de archivos y el laboratorio de evaluación EPP por solicitud del usuario. **El único origen de YOLO es el fotograma generado por WebGL2/Three.js en alguno de los cuatro escenarios.** Las variantes de renderizado no modifican la procedencia de las detecciones.
 
 No confundir el requisito «sin datasets para el usuario» con que el modelo neuronal no necesite conocimientos preentrenados: los pesos de detección proceden de entrenamiento externo y se verifican con SHA256 antes de la inferencia. El usuario nunca deberá cargar ni entrenar datasets.
+
+
+## Monitor en vivo de predicciones (sin datos de escena sintéticos)
+
+Al entrar en «YOLO real», el panel lateral «Monitor YOLO» sustituye al dashboard de analítica sintética. Recibe eventos de estado y una observación de cada inferencia terminada (modelo, ID secuencial de fotograma, timestamp, latencia y detecciones). Muestra recuentos del último frame, personas reconocidas, latencia y FPS medidos, histograma de hasta 30 lecturas, clases detectadas y señales explícitas de posible ausencia de EPP para revisión. Una predicción con valor de confianza alto no equivale a una medición de precisión. Si el modelo no reconoce objetos, el resultado es cero; antes de la primera inferencia la cifra no se conoce y se presenta como «—». El panel deja indicado cuándo está detenido o no hay lecturas recientes, y no anuncia cumplimiento de seguridad por falta de predicciones.
+
+Al volver a «Simulación visual», reaparece el dashboard geométrico con el rótulo «DATOS SINTÉTICOS». Para preservar consistencia, cambiar escenario, calidad gráfica o modelo descarta las lecturas previas; las capturas de fotograma sin overlays sintéticos siguen siendo la única entrada de YOLO. La tasa de inferencia no debe confundirse con la tasa de dibujo de Three.js/WebGL2 ni con exactitud, mAP o calidad certificada.

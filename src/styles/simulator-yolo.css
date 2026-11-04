@@ -98,3 +98,59 @@ color:#c3e2d9;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
 .browser-yolo-source-locked span{font-weight:800;color:#e2faf1;font-size:12px}
 .browser-yolo-source-locked small{font-size:10px;color:#abd1c4;line-height:1.5}
 @media(max-width:690px){.simulation-only-notice{align-items:flex-start;flex-direction:column}}
+
+/* Supervisor YOLO: sólo datos de inferencias, sin sumar etiquetas de simulación. */
+.yolo-monitor{display:grid;gap:12px;min-width:0;color:#d5efe5}
+.yolo-monitor-header{display:flex;align-items:center;justify-content:space-between;
+ gap:8px;flex-wrap:wrap;border-bottom:1px solid #365968;padding-bottom:11px}
+.yolo-monitor-header h3{font:800 17px/1.2 "Manrope",sans-serif;color:#f0fff9;
+ margin:0;width:100%}
+.yolo-monitor-eyebrow{font-size:9px;font-weight:800;letter-spacing:1.3px;color:#87dcc4}
+.yolo-monitor-status{font-size:9px;font-weight:800;letter-spacing:.6px;color:#e3c299;
+ background:#40372e;border:1px solid #806950;border-radius:5px;padding:7px 9px}
+.yolo-monitor-status.is-active{color:#9ef3d0;background:#1c5147;border-color:#54a98d}
+.yolo-monitor-source{margin:0;font-size:10px;line-height:1.65;color:#abd2c7}
+.yolo-monitor-source strong{color:#dcf6e9}
+.yolo-monitor-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.yolo-monitor-kpi{padding:12px;min-height:97px;display:flex;flex-direction:column;gap:6px;
+ background:linear-gradient(145deg,#1d4150,#132f3f);border:1px solid #366275;border-radius:9px}
+.yolo-monitor-kpi.primary{background:linear-gradient(140deg,#1c604e,#14463f);border-color:#57a98d}
+.yolo-monitor-kpi span{font-size:10px;line-height:1.35;color:#bbd9d0}
+.yolo-monitor-kpi strong{font:800 23px "Manrope",sans-serif;color:#96f5d0;font-variant-numeric:tabular-nums}
+.yolo-monitor-kpi small{font-size:9px;line-height:1.4;color:#8fbdb4}
+.yolo-monitor-trend,.yolo-monitor-classes,.yolo-monitor-ppe{
+ padding:13px;border-radius:9px;background:linear-gradient(150deg,#153847,#102c39);
+ border:1px solid #365b67;min-width:0}
+.yolo-monitor-sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.yolo-monitor-sectionhead h4{font:800 12px "Manrope",sans-serif;color:#e8fff6;margin:0}
+.yolo-monitor-sectionhead span{font-size:9px;color:#94beb8}
+.yolo-monitor-sectionhead strong{font:800 24px "Manrope",sans-serif;color:#78f0c4}
+.yolo-monitor-sectionhead strong.is-review{color:#ffb39d}
+.yolo-monitor-trend svg{display:block;width:100%;height:110px;margin-top:10px}
+.yolo-monitor-empty{color:#8fb5b9;font-size:10px;line-height:1.6;margin:13px 0 0}
+.yolo-monitor-class{display:grid;grid-template-columns:minmax(0,1fr) 20px auto;
+ gap:6px;border-top:1px solid #335764;padding:10px 0;align-items:center}
+.yolo-monitor-class:first-of-type{margin-top:7px}
+.yolo-monitor-class span{font-size:11px;color:#cce5da;min-width:0;overflow-wrap:anywhere}
+.yolo-monitor-class strong{font-size:12px;color:#8ff6d2;text-align:center}
+.yolo-monitor-class small{font-size:9px;color:#99bec0}
+.yolo-monitor-ppe p{color:#d1c6a8;font-size:10px;line-height:1.65;margin:9px 0 0}
+.yolo-monitor-caveat,.yolo-monitor-note,.yolo-monitor-stale,.yolo-monitor-error{
+ font-size:10px;line-height:1.7;padding:11px 12px;margin:0;border-radius:7px}
+.yolo-monitor-caveat{color:#f0d4ab;background:#3c372e;border:1px solid #77654b}
+.yolo-monitor-note{color:#9ebfc2;background:#15323e;border:1px solid #385967}
+.yolo-monitor-stale{color:#f9c992;border:1px solid #8a644b;background:#42362d}
+.yolo-monitor-error{color:#ffd6c5;border:1px solid #b26f5e;background:#452b30}
+.simulator-yolo-guidance p{color:#a5d3cb!important}
+@media(max-width:1040px){
+ .yolo-monitor{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+ .yolo-monitor-header,.yolo-monitor-source,.yolo-monitor-kpis,.yolo-monitor-caveat,
+ .yolo-monitor-note,.yolo-monitor-stale,.yolo-monitor-error{grid-column:1/-1}
+ .yolo-monitor-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:680px){
+ .yolo-monitor{grid-template-columns:1fr}
+ .yolo-monitor-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .yolo-monitor-header,.yolo-monitor-source,.yolo-monitor-kpis,.yolo-monitor-caveat,
+ .yolo-monitor-note,.yolo-monitor-stale,.yolo-monitor-error{grid-column:auto}
+}

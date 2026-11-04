@@ -4,6 +4,7 @@ import {analyzeYoloFrame,captureRenderedFrame,loadYoloBrowser} from './yolo-brow
 import type {YoloFrame,YoloFamily} from './yolo-browser';
 import {ppeColor,ppeFindings} from './ppe-model';
 import type {ScenarioKey} from './simulation-engine';
+import type {YoloTelemetryEvent} from './yolo-telemetry';
 type Model=Awaited<ReturnType<typeof loadYoloBrowser>>;
 type Phase='idle'|'loading'|'running'|'stopped'|'failed';
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
  readonly scenarioName:string;
  readonly scenarioId:ScenarioKey;
  readonly paused:boolean;
+ readonly onTelemetry:(event:YoloTelemetryEvent)=>void;
 }
 /** El usuario controla descargas e inferencias. Muestra el fotograma EXACTO asociado a cada resultado. */
 function drawFrame(frame:YoloFrame,dest:HTMLCanvasElement,family:YoloFamily){
@@ -40,7 +42,7 @@ const explainError=(error:unknown)=>{
  const info=error instanceof Error?error.message:String(error);
  return info.length>230?info.slice(0,230)+'…':info;
 };
-export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Props){
+export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused,onTelemetry}:Props){
  const [phase,setPhase]=useState<Phase>('idle');
  const [message,setMessage]=useState('El modelo solo se descarga cuando presionas Iniciar YOLO.');
  const [confidence,setConfidence]=useState(.35);
@@ -53,12 +55,15 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
  const [lastFrameAt,setLastFrameAt]=useState<number|null>(null);
  const preview=useRef<HTMLCanvasElement>(null);
  const generation=useRef(0);
+ const frameNumber=useRef(0);
  const times=useRef<number[]>([]);
  const [error,setError]=useState('');
  const start=useCallback(async()=>{
   if(phase==='loading'||phase==='running')return;
   const token=++generation.current;
   setPhase('loading');setError('');
+  onTelemetry({type:'status',phase:'loading',model:family});
+  frameNumber.current=0;
   setMessage('Preparando el motor de inferencia…');
   times.current=[];setSampleCount(0);setObservedFps(null);
   setDetections([]);setInferenceMs(null);setLastFrameAt(null);
@@ -71,22 +76,26 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
    setModel(session);setMessage('Modelo '+(family==='ppe'?'EPP industrial':'COCO')+
     ' cargado. Analizando píxeles sin leer el estado del simulador…');
    setPhase('running');
+   onTelemetry({type:'status',phase:'running',model:family});
   }catch(e){
    if(generation.current!==token)return;
    setPhase('failed');
+   onTelemetry({type:'status',phase:'failed',model:family,error:explainError(e)});
    setError(explainError(e));
    setMessage('No fue posible inicializar el modelo YOLO.');
   }
- },[phase,model,family]);
+ },[phase,model,family,onTelemetry]);
  const stop=useCallback(()=>{
   generation.current++;
   setPhase('stopped');
+  onTelemetry({type:'status',phase:'stopped',model:family});
   setMessage('Inferencia detenida. No se están procesando más fotogramas.');
- },[]);
+ },[onTelemetry,family]);
  function selectFamily(next:YoloFamily){
   if(next===family)return;
   generation.current++;
   setPhase('idle');setModel(null);setFamily(next);
+  onTelemetry({type:'status',phase:'idle',model:next});
   setError('');setDetections([]);setSampleCount(0);
   setObservedFps(null);setInferenceMs(null);setLastFrameAt(null);
   setMessage('Seleccionado '+(next==='ppe'?'YOLOv8s EPP (44,8 MB)':'YOLOv8n COCO (13 MB)')+
@@ -111,7 +120,11 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
      if(preview.current)drawFrame(result,preview.current,model.family);
      setDetections(result.detections);
      setInferenceMs(result.inferenceMs);
-     setLastFrameAt(Date.now());
+     const capturedAtMs=Date.now();
+     setLastFrameAt(capturedAtMs);
+     onTelemetry({type:'frame',observation:{frameNumber:++frameNumber.current,
+       capturedAtMs,inferenceMs:result.inferenceMs,detections:result.detections,
+       model:model.family}});
      const now=performance.now();
      times.current=[...times.current.filter(t=>t>now-10_000),now].slice(-20);
      const stamps=times.current;
@@ -124,6 +137,7 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
     }catch(e){
      if(cancelled||generation.current!==token)return;
      setPhase('failed');setError(explainError(e));
+     onTelemetry({type:'status',phase:'failed',model:family,error:explainError(e)});
      setMessage('El motor no pudo interpretar el fotograma.');
      return;
     }
@@ -133,8 +147,11 @@ export function YoloBrowserPanel({getSource,scenarioName,scenarioId,paused}:Prop
   };
   void loop();
   return ()=>{cancelled=true;};
- },[phase,model,getSource,confidence,paused,family]);
- useEffect(()=>()=>{generation.current++;},[]);
+ },[phase,model,getSource,confidence,paused,family,onTelemetry]);
+ useEffect(()=>{onTelemetry({type:'status',phase:'idle',model:family});
+  return ()=>{generation.current++;};
+  // One status reset per mounted detector instance; state changes send events explicitly.
+ },[onTelemetry]);
  const personCount=detections.filter(d=>d.classId==='person').length;
  const ppe=family==='ppe'?ppeFindings(detections):null;
  return <section className="browser-yolo-panel" aria-label="YOLO real en el navegador">

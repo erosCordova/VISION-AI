@@ -3,6 +3,9 @@ import { IndustrialScene3D } from './IndustrialScene3D';
 import { HumanizedScene3D } from './HumanizedScene3D';
 import { SimulationAnalytics } from './SimulationAnalytics';
 import { YoloBrowserPanel } from './YoloBrowserPanel';
+import { YoloMonitor } from './YoloMonitor';
+import { INITIAL_YOLO_TELEMETRY,updateYoloTelemetry } from './yolo-telemetry';
+import type {YoloTelemetry,YoloTelemetryEvent} from './yolo-telemetry';
 import type { IndustrialSceneHandle,LayerName } from './IndustrialScene3D';
 import { simulationSnapshot } from './simulation-engine';
 import type { ScenarioKey } from './simulation-engine';
@@ -42,6 +45,10 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
  const [graphics,setGraphics]=useState<'human'|'light'>('human');
  const [analysisMode,setAnalysisMode]=useState<'synthetic'|'yolo'>('synthetic');
  const [renderFps,setRenderFps]=useState(0);
+ const [yoloTelemetry,setYoloTelemetry]=useState<YoloTelemetry>(INITIAL_YOLO_TELEMETRY);
+ const onYoloTelemetry=useCallback((event:YoloTelemetryEvent)=>{
+  setYoloTelemetry(previous=>updateYoloTelemetry(previous,event));
+ },[]);
  const [captureError,setCaptureError]=useState('');
  const frameRef=useRef({previous:0});
  const sceneRef=useRef<IndustrialSceneHandle>(null);
@@ -61,11 +68,13 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
  },[paused,speed]);
  const snapshot=useMemo(()=>simulationSnapshot(scenarioId,elapsed),[scenarioId,elapsed]);
  const filterCount=snapshot.entities.filter(entity=>entity.score>=threshold).length;
+ const yoloLatest=yoloTelemetry.observations.at(-1)??null;
  const effectiveLayers=useMemo(()=>analysisMode==='yolo'?{
   ...layers,boxes:false,labels:false,masks:false,zones:false
  }:layers,[analysisMode,layers]);
  function changeScenario(id:ScenarioKey){
   onScenarioChange(id);setElapsed(0);setPaused(false);
+  setYoloTelemetry(INITIAL_YOLO_TELEMETRY);
   setView('isometric');sceneRef.current?.resetCamera();
   setCaptureError('');
  }
@@ -111,10 +120,18 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
      <div><span>ESCENARIO ACTIVO</span><strong>{config.name}</strong></div>
      <div><span>TIPO DE MOVIMIENTO</span><strong>Rutas múltiples</strong></div>
      <div><span>RENDERIZADO</span><strong>{renderFps||'—'} FPS <small>visuales</small></strong></div>
-     <div><span>{analysisMode==='yolo'?'RESULTADOS DEL MODELO':'OBJETOS SINTÉTICOS'}</span>
-      <strong>{analysisMode==='yolo'?'Ver panel YOLO':filterCount.toString().padStart(2,'0')}</strong></div>
-     <div><span>ESTADO</span><strong className={snapshot.alert?'sim-status-alert':'sim-status-normal'}>
-        {paused?'PAUSADA':snapshot.alert?'EVENTO ACTIVO':'OPERATIVA'}</strong></div>
+     <div><span>{analysisMode==='yolo'?'DETECCIONES YOLO':'OBJETOS SINTÉTICOS'}</span>
+      <strong>{analysisMode==='yolo'?(yoloLatest?yoloLatest.detections.length:'—'):filterCount.toString().padStart(2,'0')}</strong></div>
+     <div><span>{analysisMode==='yolo'?'MOTOR DE INFERENCIA':'ESTADO SIMULADO'}</span>
+      {analysisMode==='yolo'?
+       <strong className={yoloTelemetry.phase==='failed'?'sim-status-alert':'sim-status-normal'}>
+        {yoloTelemetry.phase==='running'?'EN CURSO':
+         yoloTelemetry.phase==='loading'?'CARGANDO':
+         yoloTelemetry.phase==='failed'?'ERROR':
+         yoloTelemetry.phase==='stopped'?'DETENIDO':'SIN INICIAR'}</strong>:
+       <strong className={snapshot.alert?'sim-status-alert':'sim-status-normal'}>
+        {paused?'PAUSADA':snapshot.alert?'EVENTO ACTIVO':'OPERATIVA'}</strong>}
+     </div>
    </div>
    <div className="simulator-content">
     <div className="simulator-visual">
@@ -129,10 +146,12 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
      <div className="simulator-render-preset" role="group" aria-label="Calidad visual del simulador">
        <span>CALIDAD DE PERSONAJES</span>
        <div>
-        <button type="button" aria-pressed={graphics==='human'} onClick={()=>setGraphics('human')}>
+        <button type="button" aria-pressed={graphics==='human'}
+         onClick={()=>{setGraphics('human');setYoloTelemetry(INITIAL_YOLO_TELEMETRY);}}>
           Humanos animados
         </button>
-        <button type="button" aria-pressed={graphics==='light'} onClick={()=>setGraphics('light')}>
+        <button type="button" aria-pressed={graphics==='light'}
+         onClick={()=>{setGraphics('light');setYoloTelemetry(INITIAL_YOLO_TELEMETRY);}}>
           Modo ligero
         </button>
        </div>
@@ -142,9 +161,9 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
         <span>{analysisMode==='yolo'?'YOLO analiza exclusivamente la escena 3D':'Datos geométricos programados'}</span></div>
        <div className="simulator-ai-switch">
         <button type="button" aria-pressed={analysisMode==='synthetic'}
-         onClick={()=>setAnalysisMode('synthetic')}>Simulación visual</button>
+         onClick={()=>{setAnalysisMode('synthetic');setYoloTelemetry(INITIAL_YOLO_TELEMETRY);}}>Simulación visual</button>
         <button type="button" aria-pressed={analysisMode==='yolo'}
-         onClick={()=>setAnalysisMode('yolo')}>◉ YOLO real (navegador)</button>
+         onClick={()=>{setAnalysisMode('yolo');setYoloTelemetry(INITIAL_YOLO_TELEMETRY);}}>◉ YOLO real (navegador)</button>
        </div>
      </div>
      <div className="simulator-canvas-wrap">
@@ -171,7 +190,8 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
        </div>
      </div>
      {analysisMode==='yolo'&&<YoloBrowserPanel key={scenarioId+'-'+graphics}
-       getSource={getRenderedSource} scenarioName={config.name} scenarioId={scenarioId} paused={paused}/>}
+       getSource={getRenderedSource} scenarioName={config.name} scenarioId={scenarioId}
+       paused={paused} onTelemetry={onYoloTelemetry}/>}
      {analysisMode==='synthetic'&&<div className={'simulator-event '+(snapshot.alert?'is-alert':'')} role="status">
        <span className="simulator-event-dot"/>
        <span>{snapshot.event}</span>
@@ -201,11 +221,14 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
      <div className="simulator-control-section">
        <span className="simulator-control-label">Estado del sistema</span>
        <strong>{paused?'Simulación pausada':'Rutas autónomas en ejecución'}</strong>
-       <p>La escena se calcula geométricamente en tu dispositivo; los objetos no son detecciones de IA real.</p>
-       <div className="simulator-health"><span>Motor WebGL2</span><b>ACTIVO</b></div>
-       <div className="simulator-health"><span>Escenario digital</span><b>{snapshot.entities.length} objetos</b></div>
-       <div className="simulator-health"><span>Backend YOLO</span><b>NO UTILIZADO</b></div>
+       <p>{analysisMode==='yolo'?
+         'YOLO analiza imágenes capturadas del entorno 3D. Los resultados del monitor son predicciones reales del modelo.':
+         'Los objetos, eventos y zonas se calculan con las reglas sintéticas de la simulación.'}</p>
+       <div className="simulator-health"><span>Motor gráfico</span><b>ACTIVO</b></div>
+       <div className="simulator-health"><span>Fuente</span><b>SIMULACIÓN 3D</b></div>
+       <div className="simulator-health"><span>Inferencia remota</span><b>NO UTILIZADA</b></div>
      </div>
+     {analysisMode==='synthetic'&&<>
      <div className="simulator-control-section">
        <div className="simulator-inline"><label htmlFor="sim-score">Umbral de etiquetas sintéticas</label>
         <b>{Math.round(threshold*100)}%</b></div>
@@ -225,6 +248,12 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
          onChange={event=>setShowScore(event.target.checked)}/></label>
       </div>
      </div>
+     </>}
+     {analysisMode==='yolo'&&<div className="simulator-control-section simulator-yolo-guidance">
+       <span className="simulator-control-label">Detecciones del modelo</span>
+       <p>Inicia YOLO y ajusta su umbral de confianza en el panel de inferencia.
+       Aquí se muestran exclusivamente las predicciones obtenidas, sin las etiquetas sintéticas.</p>
+     </div>}
      <div className="simulator-control-section">
       <div className="simulator-inline"><span className="simulator-control-label">Velocidad de movimiento</span><strong>{speed}×</strong></div>
       <div className="simulator-speed" role="group" aria-label="Velocidad de simulación">
@@ -232,7 +261,9 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
         onClick={()=>setSpeed(n)}>{n}×</button>)}
       </div>
      </div>
-     <SimulationAnalytics snapshot={snapshot} elapsed={elapsed} fps={renderFps}/>
+     {analysisMode==='yolo'?
+       <YoloMonitor telemetry={yoloTelemetry} scenario={scenarioId} paused={paused}/>:
+       <SimulationAnalytics snapshot={snapshot} elapsed={elapsed} fps={renderFps}/>}
     </aside>
    </div>
    <div className="simulator-footnote">
