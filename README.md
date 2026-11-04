@@ -30,7 +30,7 @@ El visor comprueba la identidad del fotograma, la versión y el hash SHA256 del 
 
 ## Arquitectura y despliegue
 
-Frontend React + TypeScript + Vite; contratos de dominio; backend piloto FastAPI/YOLO26n. El backend actual se ejecuta en loopback y no debe exponerse públicamente sin autenticación, límites, TLS y orígenes autorizados. **Render Free no es una plataforma acreditada para ejecutar PyTorch/YOLO en tiempo real**, y una página publicada en Vercel no puede depender de localhost del visitante. Se está evaluando inferencia ONNX en navegador frente a backend de inferencia con recursos suficientes.
+Frontend React + TypeScript + Vite; contratos de dominio; backend piloto FastAPI/YOLO26n. El backend actual se ejecuta en loopback y no debe exponerse públicamente sin autenticación, límites, TLS y orígenes autorizados. **Render Free se usa exclusivamente como API de estado sin inferencia YOLO**, y una página publicada en Vercel no puede depender de localhost del visitante. Se está evaluando inferencia ONNX en navegador frente a backend de inferencia con recursos suficientes.
 
 No hay persistencia durable ni modelos especializados validados. Los PNG del proyecto son fixtures esquemáticos, no detecciones de la IA.
 
@@ -41,3 +41,7 @@ Manual vigente: **versión 6.0**, 16 fases, con Fase 6 reservada a diseño y con
 ## Responsable
 
 Proyecto individual, Ingeniería de Software con IA — SENATI.
+
+## Publicación Vercel Hobby + Render Free
+
+Consulta [alcance y configuración de la publicación gratuita](docs/despliegue_gratuito.md). La interfaz pública puede reproducir video, pero Render Free no ejecuta el modelo YOLO: el estado del motor se comunica explícitamente.

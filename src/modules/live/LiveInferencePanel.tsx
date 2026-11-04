@@ -7,7 +7,7 @@ import { jpegSha256, matchesInferenceResponse } from './response-contract';
 import { scenarioInsight } from './scenario-summary';
 import type { ModelCoverage } from './scenario-summary';
 
-type ServerState = 'unconfigured' | 'checking' | 'online' | 'offline';
+type ServerState = 'unconfigured' | 'checking' | 'online' | 'limited' | 'offline';
 interface Props {
   videoRef: RefObject<HTMLVideoElement | null>;
   sourceStatus: CameraStatus;
@@ -44,7 +44,10 @@ export function LiveInferencePanel({ videoRef, sourceStatus, scenarioId, apiBase
         if (!data || typeof data !== 'object' || !('ok' in data) || data.ok !== true) {
           throw Error('Respuesta de salud no válida');
         }
-        if (!abort.signal.aborted) setServerState('online');
+        if (!abort.signal.aborted) {
+          const capability = 'inferenceAvailable' in data ? data.inferenceAvailable : false;
+          setServerState(capability === true ? 'online' : 'limited');
+        }
       })
       .catch(() => { if (!abort.signal.aborted) setServerState('offline'); })
       .finally(() => clearTimeout(timeout));
@@ -154,7 +157,8 @@ export function LiveInferencePanel({ videoRef, sourceStatus, scenarioId, apiBase
   const connectionLabel: Record<ServerState,string> = {
     unconfigured: 'Motor no configurado',
     checking: 'Comprobando conexión',
-    online: 'API conectada',
+    online: 'API y motor disponibles',
+    limited: 'API conectada · YOLO no disponible',
     offline: 'API fuera de línea'
   };
 
@@ -166,7 +170,7 @@ export function LiveInferencePanel({ videoRef, sourceStatus, scenarioId, apiBase
     </div>
     <p>La fuente se reproduce de manera continua. Se procesa un fotograma por solicitud, sin cola de imágenes atrasadas.</p>
     <div className="inference-connection" role="status">
-      <span className={serverState === 'online' ? 'connection-online' : 'connection-offline'}>{connectionLabel[serverState]}</span>
+      <span className={serverState === 'online' || serverState === 'limited' ? 'connection-online' : 'connection-offline'}>{connectionLabel[serverState]}</span>
       {apiBaseUrl && <span className="connection-address">{apiBaseUrl}</span>}
       {apiBaseUrl && serverState !== 'checking' &&
         <button onClick={() => setRetry(value => value + 1)}>Comprobar de nuevo</button>}
@@ -199,6 +203,9 @@ export function LiveInferencePanel({ videoRef, sourceStatus, scenarioId, apiBase
       {coverage.complete
         ? 'El checkpoint declara las clases esperadas. Las reglas y la precisión real aún requieren evaluación.'
         : 'Clases ausentes en el checkpoint: ' + coverage.missingClasses.join(', ') + '. ' + coverage.detail}
+    </p>}
+    {serverState === 'limited' && <p className="simulation-coverage warning" role="status">
+      Render gratuito responde correctamente, pero no tiene el motor YOLO activado. Puedes explorar los cuatro escenarios y reproducir videos; las detecciones reales requieren inferencia en el navegador o un servicio con recursos suficientes.
     </p>}
     {serverState === 'offline' && <p className="simulation-coverage warning">
       El servidor no responde. Comprueba su URL y su estado; la vista previa puede seguir funcionando sin inferencia.

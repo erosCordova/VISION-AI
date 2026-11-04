@@ -38,3 +38,7 @@ Para usar pesos propios de cada escenario, definir variables de entorno del proc
 Servidor atado a 127.0.0.1, CORS local, sin grabación ni almacenamiento. No publicar esta API directamente en internet: necesita autenticación, TLS, control de permisos y protección de consumo para despliegue remoto. Una única inferencia CPU concurrente; si el motor tarda, disminuye el FPS observado. La interfaz descarta resultados tardíos y detiene nuevas capturas al parar o cambiar de escena.
 
 **Licencia**: el paquete Ultralytics y pesos YOLO26 tienen licencia AGPL-3.0 o Enterprise. Revisar obligaciones antes de distribuir o prestar servicio. RF-DETR Nano/Small/Medium/Large (Apache 2.0) es alternativa futura sujeta a benchmarks en el hardware real.
+
+## Perfil Render Free
+
+El archivo `backend/requirements-render-free.txt` instala únicamente FastAPI y Uvicorn. Con `VISION_INFERENCE_ENABLED=0` la API responde salud, informa que YOLO está deshabilitado y rechaza inferencias con 503. Para el despliegue no instalar los pesos locales. Ver [guía de despliegue](../docs/despliegue_gratuito.md).

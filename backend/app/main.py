@@ -11,8 +11,6 @@ from pathlib import Path
 from threading import Lock
 from time import perf_counter
 
-import cv2
-import numpy as np
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -20,11 +18,18 @@ from .contracts import (
     MAX_FRAME_BYTES, SCENARIOS, FrameRequest, describe_coverage, normalize_box,
 )
 
-app = FastAPI(title="VISION-AI · Motor local YOLO", version="0.1.0")
+# En Render Free se publica solamente la API de estado: no iniciar PyTorch ni descargar pesos.
+# La inferencia se habilita únicamente con instalación y capacidad adecuadas.
+INFERENCE_ENABLED = os.getenv("VISION_INFERENCE_ENABLED", "1") == "1"
+extra_origins = [
+    item.strip() for item in os.getenv("VISION_ALLOWED_ORIGINS", "").split(",")
+    if item.strip().startswith("https://") and item.strip().count("/") == 2
+]
+app = FastAPI(title="VISION-AI · API de visión", version="0.2.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://127.0.0.1:5173", "http://localhost:5173",
-                   "http://127.0.0.1:4173", "http://localhost:4173"],
+                   "http://127.0.0.1:4173", "http://localhost:4173", *extra_origins],
     allow_methods=["GET", "POST"],
     allow_headers=["content-type"],
 )
@@ -71,9 +76,12 @@ def health() -> dict:
     return {
         "ok": True, "engine": "YOLO26 / Ultralytics",
         "configuredScenarios": list(SCENARIOS),
-        "mode": "local",
+        "mode": "inference" if INFERENCE_ENABLED else "render-free-status-only",
+        "inferenceAvailable": INFERENCE_ENABLED,
         "modelLoaded": bool(_loaded),
-        "note": "La conexión al servidor no implica que un modelo haya reconocido objetos.",
+        "note": ("Backend de inferencia habilitado: los pesos se cargan bajo demanda."
+                 if INFERENCE_ENABLED else
+                 "Render Free: API conectada, pero la inferencia YOLO está desactivada por sus límites de memoria."),
     }
 
 
@@ -87,6 +95,14 @@ async def infer(
     capturedAtMonotonicMs: float = Query(ge=0),
     confidence: float = Query(default=0.35, ge=0.01, le=1),
 ) -> dict:
+    if not INFERENCE_ENABLED:
+        raise HTTPException(
+            status_code=503,
+            detail="Render Free no ejecuta YOLO en tiempo real. Usa un motor de inferencia compatible o local.",
+        )
+    # Evitar cargar OpenCV y NumPy en la API gratuita de estado.
+    import cv2
+    import numpy as np
     meta = FrameRequest(scenario, session, generation, frameId, capturedAtMonotonicMs)
     try:
         meta.validate()

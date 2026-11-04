@@ -59,3 +59,7 @@ La fase 6 sigue sin cierre hasta comprobar cámara, permisos, accesibilidad y si
 - QA responsive ampliado para verificar selector de fuente, estado de inferencia y visor en 360, 768 y 1440 px. Sigue pendiente recorrido manual integral de accesibilidad y funcionamiento con pesos reales en hardware.
 
 El avance global continúa en 31.25 %, hasta aprobar formalmente la Fase 6. El manual vigente es versión 6.0.
+
+## Publicación en servicios gratuitos
+
+Se introduce un modo **API de estado sin inferencia** para Render Free. Esto permite publicar la interfaz en Vercel y una API liviana en Render sin sobreprometer reconocimiento YOLO. El frontend distingue explícitamente API conectada de motor disponible y no habilita análisis si no hay motor. Ver docs/despliegue_gratuito.md. Publicar no implica cerrar Fase 6 ni aumentar el avance global.
