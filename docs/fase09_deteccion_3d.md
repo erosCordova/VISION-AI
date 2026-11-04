@@ -224,3 +224,11 @@ persistencia de controles de máscara durante su validación. Se
 eliminan aserciones que podían dar falsos positivos o fallar por
 comparar tipos de datos distintos. Queda por **ejecutar** la batería
 completa antes de aprobar la fase.
+
+### Selector estable de fotogramas para QA
+
+Separados los contadores `browser-yolo-count-evidence` (detecciones
+originales/visibles) y `browser-yolo-count-frames` (fotogramas realmente
+procesados). La QA usa exclusivamente el segundo para verificar que
+filtros, reintentos y máscaras no desencadenen análisis adicionales;
+antes el selector de clase compartida podía confundir objetos con frames.

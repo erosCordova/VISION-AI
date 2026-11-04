@@ -599,7 +599,7 @@ try {
         for (let attempt = 0; attempt < 470; attempt++) {
           const response = await cdp.send('Runtime.evaluate', {
             expression: '(() => ({'
-              + ' frames:Number(document.querySelector(".browser-yolo-count b")?.textContent||0),'
+              + ' frames:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0),'
               + ' status:document.querySelector(".browser-yolo-status")?.textContent||"",'
               + ' error:document.querySelector(".browser-yolo-error")?.textContent||"",'
               + ' phase:document.querySelector(".browser-yolo-phase")?.textContent||""'
@@ -627,7 +627,7 @@ try {
         const pausedBaseline=await cdp.send('Runtime.evaluate',{
           expression:'(() => ({'
            +'paused:document.querySelector(".simulator-runtime")?.textContent?.includes("EN PAUSA"),'
-           +'frames:Number(document.querySelector(".browser-yolo-count b")?.textContent||0),'
+           +'frames:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0),'
            +'original:document.querySelector(".yolo-monitor-kpi.primary strong")?.textContent?.trim()'
            +'}))()',returnByValue:true
         });
@@ -648,7 +648,7 @@ try {
         await sleep(600);
         const afterFilters=await cdp.send('Runtime.evaluate',{
           expression:'(() => ({'
-           +'frames:Number(document.querySelector(".browser-yolo-count b")?.textContent||0),'
+           +'frames:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0),'
            +'monitor:document.querySelector(".yolo-monitor-kpi.primary strong")?.textContent?.trim(),'
            +'visual:Number(document.querySelector(".browser-yolo-kpis strong")?.textContent||0),'
            +'confidence:document.querySelector("#yolo-confidence")?.value,'
@@ -689,7 +689,7 @@ try {
               +'attempt:document.querySelector(".browser-yolo-run")?.textContent?.trim(),'
               +'retry:Array.from(document.querySelectorAll(".browser-yolo-actions button"))'
               +'.some(b=>b.textContent?.includes("Reintentar último fotograma")),'
-              +'frames:Number(document.querySelector(".browser-yolo-count b")?.textContent||0)'
+              +'frames:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0)'
               +'}))()',returnByValue:true
           });
           const s=result.result?.value;
@@ -712,7 +712,7 @@ try {
              +'phase:document.querySelector(".browser-yolo-phase")?.textContent?.trim(),'
              +'monitor:document.querySelector(".yolo-monitor-status")?.textContent?.trim(),'
              +'objects:document.querySelector(".yolo-monitor-kpi.primary strong")?.textContent?.trim(),'
-             +'frames:Number(document.querySelector(".browser-yolo-count b")?.textContent||0)'
+             +'frames:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0)'
              +'}))()',returnByValue:true
           });
           const s=result.result?.value;
@@ -759,7 +759,7 @@ try {
         const maskInfo=await eventually(async()=>{
           const state=await cdp.send('Runtime.evaluate',{
             expression:'(() => ({summary:document.querySelector(".browser-yolo-mask-summary")?.textContent?.trim(),'
-             +'count:Number(document.querySelector(".browser-yolo-count b")?.textContent||0),'
+             +'count:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0),'
              +'source:document.querySelector(".yolo-monitor-source")?.textContent?.trim(),'
              +'error:document.querySelector(".browser-yolo-mask-options .browser-yolo-error")?.textContent?.trim()'
              +'}))()',returnByValue:true
@@ -786,7 +786,7 @@ try {
         if(!styleSet.result?.value)throw Error('SG05: faltan controles de silueta y limpieza');
         await sleep(350);
         const filterUnchanged=await cdp.send('Runtime.evaluate',{
-          expression:'(() => ({count:Number(document.querySelector(".browser-yolo-count b")?.textContent||0),'
+          expression:'(() => ({count:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0),'
            +'monitor:document.querySelector(".yolo-monitor-kpi.primary strong")?.textContent?.trim(),'
            +'mask:document.querySelector(".browser-yolo-mask-summary")?.textContent?.trim()}))()',
           returnByValue:true
@@ -800,7 +800,7 @@ try {
         const exportMaskUi=await cdp.send('Runtime.evaluate',{
           expression:'(() => ({'
            +'button:!!document.querySelector(".browser-yolo-mask-export"),'
-           +'frame:Number(document.querySelector(".browser-yolo-count b")?.textContent||0),'
+           +'frame:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0),'
            +'mask:document.querySelector(".browser-yolo-mask-summary")?.textContent?.trim()'
            +'}))()',returnByValue:true
         });
@@ -815,7 +815,7 @@ try {
         const maskIsHidden=await cdp.send('Runtime.evaluate',{
           expression:'(() => ({active:document.querySelector("#yolo-chromatic-mask")?.checked,'
            +'controls:!!document.querySelector("#yolo-mask-style"),'
-           +'count:Number(document.querySelector(".browser-yolo-count b")?.textContent||0)}))()',
+           +'count:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0)}))()',
           returnByValue:true
         });
         if(maskIsHidden.result?.value?.active!==false||
@@ -886,7 +886,7 @@ try {
         await eventually(async()=>{
           const result=await cdp.send('Runtime.evaluate',{
             expression:'(() => ({phase:document.querySelector(".browser-yolo-phase")?.textContent?.trim(),'
-             +'frames:Number(document.querySelector(".browser-yolo-count b")?.textContent||0)}))()',
+             +'frames:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0)}))()',
             returnByValue:true
           });
           const s=result.result?.value;

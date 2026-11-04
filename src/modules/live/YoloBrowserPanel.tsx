@@ -492,8 +492,8 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
        {ppe.review.length===0&&<p>No se emitieron señales explícitas de incumplimiento.
         Esto NO certifica que las personas lleven casco o chaleco.</p>}
       </div>}
-     <p className="browser-yolo-count">Predicciones originales retenidas: <b>{sampleCount?detections.length:'—'}</b> · Visibles: <b>{sampleCount?visibleDetections.length:'—'}</b>.</p>
-     <p className="browser-yolo-count">Fotogramas procesados: <b>{sampleCount}</b>
+     <p className="browser-yolo-count browser-yolo-count-evidence">Predicciones originales retenidas: <b>{sampleCount?detections.length:'—'}</b> · Visibles: <b>{sampleCount?visibleDetections.length:'—'}</b>.</p>
+     <p className="browser-yolo-count browser-yolo-count-frames">Fotogramas procesados: <b>{sampleCount}</b>
       {lastFrameAt&&<> · último: <b>{new Date(lastFrameAt).toLocaleTimeString('es-PE')}</b></>}</p>
      {sampleCount>0&&detections.length>0&&visibleDetections.length===0&&
       <p className="browser-yolo-empty">Hay predicciones YOLO, pero ninguna cumple los filtros visuales actuales.</p>}
