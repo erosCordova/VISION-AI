@@ -147,11 +147,11 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
        <span>CALIDAD DE PERSONAJES</span>
        <div>
         <button type="button" aria-pressed={graphics==='human'}
-         onClick={()=>{setGraphics('human');setYoloTelemetry(INITIAL_YOLO_TELEMETRY);}}>
+         onClick={()=>{if(graphics!=='human'){setGraphics('human');setYoloTelemetry(INITIAL_YOLO_TELEMETRY);}}}>
           Humanos animados
         </button>
         <button type="button" aria-pressed={graphics==='light'}
-         onClick={()=>{setGraphics('light');setYoloTelemetry(INITIAL_YOLO_TELEMETRY);}}>
+         onClick={()=>{if(graphics!=='light'){setGraphics('light');setYoloTelemetry(INITIAL_YOLO_TELEMETRY);}}}>
           Modo ligero
         </button>
        </div>
@@ -161,9 +161,9 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
         <span>{analysisMode==='yolo'?'YOLO analiza exclusivamente la escena 3D':'Datos geométricos programados'}</span></div>
        <div className="simulator-ai-switch">
         <button type="button" aria-pressed={analysisMode==='synthetic'}
-         onClick={()=>{setAnalysisMode('synthetic');setYoloTelemetry(INITIAL_YOLO_TELEMETRY);}}>Simulación visual</button>
+         onClick={()=>{if(analysisMode!=='synthetic'){setAnalysisMode('synthetic');setYoloTelemetry(INITIAL_YOLO_TELEMETRY);}}}>Simulación visual</button>
         <button type="button" aria-pressed={analysisMode==='yolo'}
-         onClick={()=>{setAnalysisMode('yolo');setYoloTelemetry(INITIAL_YOLO_TELEMETRY);}}>◉ YOLO real (navegador)</button>
+         onClick={()=>{if(analysisMode!=='yolo'){setAnalysisMode('yolo');setYoloTelemetry(INITIAL_YOLO_TELEMETRY);}}}>◉ YOLO real (navegador)</button>
        </div>
      </div>
      <div className="simulator-canvas-wrap">

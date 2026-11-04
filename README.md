@@ -92,3 +92,8 @@ Esta decisión sustituye las opciones anteriores de cargas locales y laboratorio
 ### Monitor YOLO ligado a las simulaciones
 
 Al iniciar **YOLO real** en cualquiera de los cuatro escenarios 3D, la barra lateral sustituye la analítica sintética por **Monitor YOLO**, con número de detecciones del último fotograma, personas, latencia, FPS inferidos, histórico de lecturas, clases observadas y revisión positiva de EPP cuando corresponda. Antes de inferir aparecen valores sin determinar; el monitor no toma contadores ni alertas del escenario geométrico. Para volver a ver KPI y movimientos programados, cambiar a **Simulación visual**. La aplicación sigue sin pedir datasets, videos ni fotografías, y no afirma precisión sin mediciones verificadas.
+
+
+### Alertas de revisión basadas en YOLO (sin inventar infracciones)
+
+El detector EPP de Seguridad tiene **señales temporales de revisión**, visibles solo en modo YOLO: exige 2 de los últimos 3 fotogramas con predicciones explícitas de la misma clase de posible ausencia, confianza >=55 % y separación máxima de 30 segundos. Mantiene un historial local de indicios y deja de mostrar la señal activa cuando desaparece. Una lectura puntual o la ausencia de detecciones no se convierten en infracción o cumplimiento. No realiza seguimiento individual de personas ni usa datos geométricos del simulador para estos eventos. No se requieren datasets, imágenes ni videos del usuario.

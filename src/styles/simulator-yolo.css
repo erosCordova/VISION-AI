@@ -154,3 +154,24 @@ color:#c3e2d9;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
  .yolo-monitor-header,.yolo-monitor-source,.yolo-monitor-kpis,.yolo-monitor-caveat,
  .yolo-monitor-note,.yolo-monitor-stale,.yolo-monitor-error{grid-column:auto}
 }
+
+/* Evidencia temporal de EPP: indicios del modelo, no infracciones confirmadas. */
+.yolo-monitor-review{padding:13px;border:1px solid #59695d;border-radius:9px;
+ background:linear-gradient(150deg,#18393b,#132d36);display:grid;gap:10px;min-width:0}
+.yolo-monitor-review-explain,.yolo-monitor-review-disclaimer{font-size:10px;line-height:1.65;
+ color:#bbd4c7;margin:0}
+.yolo-monitor-review-disclaimer{border-top:1px solid #486060;padding-top:10px;color:#dec6a6}
+.yolo-monitor-review-active{display:grid;gap:7px}
+.yolo-monitor-review-active>div{padding:10px;border:1px solid #936d50;
+ background:#4a3930;border-radius:7px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.yolo-monitor-review-active span{font-size:11px;color:#ffe0b6;font-weight:750}
+.yolo-monitor-review-active small{font-size:10px;color:#f6ccab;line-height:1.35}
+.yolo-monitor-review-log{display:grid;gap:8px}
+.yolo-monitor-log-heading{font-weight:800;letter-spacing:.6px;font-size:9px;color:#90cbb7}
+.yolo-monitor-review-log>div{display:grid;grid-template-columns:68px minmax(0,1fr) auto;
+ gap:7px;align-items:center;border-bottom:1px solid #38555b;padding:8px 0}
+.yolo-monitor-review-log time{font-size:10px;color:#94e0c7;font-variant-numeric:tabular-nums}
+.yolo-monitor-review-log>div span{font-size:10px;color:#dee9dc;min-width:0;overflow-wrap:anywhere}
+.yolo-monitor-review-log small{font-size:9px;color:#9bbdb6}
+@media(max-width:680px){.yolo-monitor-review-log>div{grid-template-columns:60px 1fr;gap:4px}
+ .yolo-monitor-review-log>div small{grid-column:2}}

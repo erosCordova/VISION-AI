@@ -10,7 +10,25 @@ export interface YoloObservation {
  readonly detections:readonly Detection[];
  readonly model:YoloFamily;
 }
+export interface YoloReviewIncident {
+ readonly id:string;
+ readonly classId:string;
+ readonly label:string;
+ readonly observedAtMs:number;
+ readonly frameNumber:number;
+ readonly supportingFrames:number;
+ readonly maxConfidence:number;
+}
+/** Un indicio repetido corresponde a una clase, NO a una persona identificada. */
+export interface YoloReviewSignal {
+ readonly classId:string;
+ readonly label:string;
+ readonly supportingFrames:number;
+ readonly maxConfidence:number;
+}
 export interface YoloTelemetry {
+ readonly reviewLog:readonly YoloReviewIncident[];
+ readonly activeReview:readonly YoloReviewSignal[];
  readonly phase:MonitorPhase;
  readonly model:YoloFamily;
  readonly error:string|null;
@@ -20,20 +38,65 @@ export type YoloTelemetryEvent=
  | {readonly type:'status';readonly phase:MonitorPhase;readonly model:YoloFamily;readonly error?:string}
  | {readonly type:'frame';readonly observation:YoloObservation};
 export const INITIAL_YOLO_TELEMETRY:YoloTelemetry={
- phase:'idle',model:'coco',error:null,observations:[]
+ phase:'idle',model:'coco',error:null,observations:[],reviewLog:[],activeReview:[]
 };
+const REVIEW_IDS=new Set(['no-hardhat','no-safety vest','no-goggles','no-gloves']);
+const REVIEW_MIN_CONFIDENCE=.55;
+const REVIEW_WINDOW_MS=30_000;
+/**
+ * Filtra indicios de EPP: misma clase en >=2 de hasta 3 inferencias recientes
+ * (no necesariamente el mismo individuo), confianza >=55%, ventana de 30 s.
+ * Sin predicción positiva no hay evento. No usa el estado de simulación.
+ */
+export function stableReviewSignals(observations:readonly YoloObservation[]):readonly YoloReviewSignal[]{
+ const newest=observations.at(-1);
+ if(!newest||newest.model!=='ppe')return [];
+ const recent=observations.slice(-3).filter(o=>o.model==='ppe' &&
+  newest.capturedAtMs-o.capturedAtMs<=REVIEW_WINDOW_MS);
+ const score=new Map<string,{label:string;frames:number;maxConfidence:number}>();
+ for(const observation of recent){
+  const perFrame=new Map<string,{label:string;confidence:number}>();
+  for(const d of observation.detections){
+   if(!REVIEW_IDS.has(d.classId)||!Number.isFinite(d.confidence)||
+    d.confidence<REVIEW_MIN_CONFIDENCE)continue;
+   const prev=perFrame.get(d.classId);
+   if(!prev||d.confidence>prev.confidence)perFrame.set(d.classId,{label:d.label,confidence:d.confidence});
+  }
+  for(const [id,entry] of perFrame){
+   const found=score.get(id)??{label:entry.label,frames:0,maxConfidence:0};
+   found.frames++;found.maxConfidence=Math.max(found.maxConfidence,entry.confidence);
+   score.set(id,found);
+  }
+ }
+ return [...score].filter(([,v])=>v.frames>=2).map(([classId,v])=>({
+  classId,label:v.label,supportingFrames:v.frames,maxConfidence:v.maxConfidence
+ })).sort((a,b)=>b.supportingFrames-a.supportingFrames||b.maxConfidence-a.maxConfidence);
+}
 export function updateYoloTelemetry(previous:YoloTelemetry,event:YoloTelemetryEvent):YoloTelemetry {
  if(event.type==='status'){
   if(event.phase==='loading'||event.phase==='idle')
-   return {phase:event.phase,model:event.model,error:null,observations:[]};
+   return {phase:event.phase,model:event.model,error:null,observations:[],reviewLog:[],activeReview:[]};
   return {...previous,phase:event.phase,model:event.model,
+   activeReview:event.phase==='running'?previous.activeReview:[],
    error:event.phase==='failed'?(event.error||'Error de inferencia'):null};
  }
  if(previous.phase!=='running'||event.observation.model!==previous.model)return previous;
  const last=previous.observations.at(-1);
  if(last && (event.observation.frameNumber<=last.frameNumber ||
    event.observation.capturedAtMs<last.capturedAtMs))return previous;
- return {...previous,observations:[...previous.observations.slice(-29),event.observation]};
+ const observations=[...previous.observations.slice(-29),event.observation];
+ const activeReview=stableReviewSignals(observations);
+ const activePreviously=new Set(previous.activeReview.map(signal=>signal.classId));
+ const added=activeReview.filter(signal=>!activePreviously.has(signal.classId))
+  .map(signal=>({
+   id:signal.classId+'-'+event.observation.frameNumber,
+   classId:signal.classId,label:signal.label,
+   observedAtMs:event.observation.capturedAtMs,
+   frameNumber:event.observation.frameNumber,
+   supportingFrames:signal.supportingFrames,maxConfidence:signal.maxConfidence
+  }));
+ return {...previous,observations,activeReview,
+  reviewLog:[...previous.reviewLog,...added].slice(-12)};
 }
 export interface YoloClassCount {readonly id:string;readonly label:string;readonly count:number;readonly meanConfidence:number}
 export function detectedClasses(detections:readonly Detection[]):readonly YoloClassCount[]{
@@ -55,8 +118,7 @@ export function observedYoloFps(samples:readonly YoloObservation[]):number|null{
 }
 export function reviewSignals(model:YoloFamily,detections:readonly Detection[]):number{
  if(model!=='ppe')return 0;
- const review=new Set(['no-hardhat','no-safety vest','no-goggles','no-gloves']);
- return detections.filter(d=>review.has(d.classId)).length;
+ return detections.filter(d=>REVIEW_IDS.has(d.classId)).length;
 }
 export function modelScope(scenario:ScenarioKey,model:YoloFamily):string{
  if(scenario==='safety'&&model==='ppe')

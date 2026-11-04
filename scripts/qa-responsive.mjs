@@ -228,13 +228,17 @@ try {
            + ' monitor:!!document.querySelector(".yolo-monitor"),'
            + ' simulated:!!document.querySelector(".sim-analytics"),'
            + ' initial:document.querySelector(".yolo-monitor-kpi.primary strong")?.textContent?.trim(),'
-           + ' cards:document.querySelectorAll(".yolo-monitor-kpi").length'
+           + ' cards:document.querySelectorAll(".yolo-monitor-kpi").length,'
+           + ' review:!!document.querySelector(".yolo-monitor-review"),'
+           + ' reviewCount:document.querySelector(".yolo-monitor-review .yolo-monitor-sectionhead strong")?.textContent?.trim(),'
+           + ' reviewLog:!!document.querySelector(".yolo-monitor-review-log")'
            + ' }))()',
           returnByValue:true
         });
         const monitorInitial=monitorBefore.result?.value;
         if(!monitorInitial?.monitor||monitorInitial.simulated||
-          monitorInitial.initial!=='—'||monitorInitial.cards!==4)
+          monitorInitial.initial!=='—'||monitorInitial.cards!==4||
+          !monitorInitial.review||monitorInitial.reviewCount!=='—'||monitorInitial.reviewLog)
           throw Error('Monitor YOLO muestra datos sintéticos o cifras previas: '+JSON.stringify(monitorInitial));
         const safetyModelCheck=await cdp.send('Runtime.evaluate',{
           expression:'(() => ({ selected:Array.from(document.querySelectorAll(".browser-yolo-picker button"))'
@@ -305,6 +309,18 @@ try {
           !numbers.model?.includes('EPP'))
           throw Error('El monitor YOLO no coincide con la inferencia ejecutada: '+JSON.stringify(numbers));
         console.log('MONITOR YOLO REAL OK: detecciones del frame vinculadas al panel operativo');
+        const reviewState=await cdp.send('Runtime.evaluate',{
+          expression:'(() => ({'
+           + ' review:!!document.querySelector(".yolo-monitor-review"),'
+           + ' explanation:document.querySelector(".yolo-monitor-review-explain")?.textContent||"",'
+           + ' invalid:document.querySelector(".simulator-controls .sim-analytics")!==null'
+           + ' }))()',
+          returnByValue:true
+        });
+        if(!reviewState.result?.value?.review||
+          !reviewState.result.value.explanation.includes('2 de los últimos 3')||
+          reviewState.result.value.invalid)
+          throw Error('Revisión temporal de EPP no está bien separada de la simulación');
         const inferenceShot = await cdp.send('Page.captureScreenshot', {
           format: 'png', captureBeyondViewport: false
         });
