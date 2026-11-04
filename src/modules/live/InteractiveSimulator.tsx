@@ -10,6 +10,7 @@ import type { IndustrialSceneHandle,LayerName } from './IndustrialScene3D';
 import { simulationSnapshot } from './simulation-engine';
 import type { ScenarioKey } from './simulation-engine';
 import type { CameraView } from './scene-math';
+import {buildSimulationSession,saveSimulationSession} from '../../infrastructure/persistence/simulation-session-store';
 
 const SCENES:{id:ScenarioKey;tab:string;name:string;description:string;icon:string}[]=[
  {id:'safety',tab:'Seguridad',name:'Seguridad industrial',description:'Personal, cascos, chalecos y zonas restringidas.',icon:'◈'},
@@ -50,6 +51,8 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
   setYoloTelemetry(previous=>updateYoloTelemetry(previous,event));
  },[]);
  const [captureError,setCaptureError]=useState('');
+ const [saveMessage,setSaveMessage]=useState('');
+ const [saving,setSaving]=useState(false);
  const frameRef=useRef({previous:0});
  const sceneRef=useRef<IndustrialSceneHandle>(null);
  const getRenderedSource=useCallback(()=>sceneRef.current?.rawCanvas()??null,[]);
@@ -76,7 +79,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
   onScenarioChange(id);setElapsed(0);setPaused(false);
   setYoloTelemetry(INITIAL_YOLO_TELEMETRY);
   setView('isometric');sceneRef.current?.resetCamera();
-  setCaptureError('');
+  setCaptureError('');setSaveMessage('');
  }
  function toggle(layer:LayerName){
   setLayers(prev=>({...prev,[layer]:!prev[layer]}));
@@ -92,6 +95,19 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
    setCaptureError('');
    window.setTimeout(()=>URL.revokeObjectURL(href),1000);
   }catch(e){setCaptureError(e instanceof Error?e.message:'No se pudo guardar PNG.');}
+ }
+ async function persistCurrentSession(){
+  if(saving)return;
+  setSaving(true);setSaveMessage('');
+  try{
+   const record=buildSimulationSession({scenarioId,scenarioName:config.name,
+    elapsed,graphics,camera:view,mode:analysisMode,telemetry:yoloTelemetry});
+   await saveSimulationSession(record);
+   setSaveMessage('Sesión guardada en este navegador. Puedes verla en Historial.');
+   window.dispatchEvent(new Event('vision-ai-sessions-updated'));
+  }catch(error){
+   setSaveMessage('No se guardó: '+(error instanceof Error?error.message:String(error)));
+  }finally{setSaving(false);}
  }
  async function fullscreen(){
   const node=shellRef.current;
@@ -208,9 +224,15 @@ export function InteractiveSimulator({scenarioId,onScenarioChange}:{
        <div><button type="button" onClick={restart}>↺ Reiniciar</button>
         <button type="button" className="simulator-pause" onClick={()=>setPaused(value=>!value)}>
          {paused?'▶ Reanudar':'Ⅱ Pausar'}</button></div>
-       <div><button type="button" onClick={()=>void capture()}>▣ Capturar PNG</button></div>
+       <div className="simulator-persist-actions">
+        <button type="button" disabled={saving} onClick={()=>void persistCurrentSession()}>
+         {saving?'Guardando…':'◈ Guardar sesión'}</button>
+        <button type="button" onClick={()=>void capture()}>▣ Capturar PNG</button>
+        <button type="button" onClick={()=>{location.hash='Historial';}}>Ver historial</button>
+       </div>
       </div>
       {captureError&&<p className="simulator-action-error" role="alert">{captureError}</p>}
+      {saveMessage&&<p className="simulator-save-message" role="status">{saveMessage}</p>}
      </div>
      <div className="simulator-bottomline"><span><i/> Renderizado tridimensional y animación de personajes en navegador</span>
       <span>{analysisMode==='synthetic'?'Las cajas y alertas mostradas son sintéticas.':

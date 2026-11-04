@@ -135,3 +135,17 @@ El componente `YoloMonitor.tsx` obtiene su estado de observaciones producidas po
 ## Decimosexto incremento — reducción de falsas alertas por inferencia puntual
 
 `stableReviewSignals()` analiza únicamente observaciones ONNX recibidas por `updateYoloTelemetry()`. Para identificar una clase repetida de posible ausencia de EPP requiere predicciones explícitas con confianza >= 0,55 en 2 de los últimos 3 fotogramas, dentro de 30 s. Una clase duplicada en un solo frame no sirve como repetición. El motor no cruza clases, no asocia prendas a personas, ignora `no-mask`, no utiliza cuadros o eventos sintéticos y no anuncia cumplimiento por ausencia de detecciones. Se registra un nuevo indicio solo al pasar de estado inactivo a activo; no se generan eventos repetidos en cada frame. La lista activa se apaga tras varios frames negativos y al detener la inferencia. Se conservan hasta 12 episodios locales sin almacenar capturas. Pruebas añadidas para duplicación, persistencia, reincidencia, cambio de modelo, confianza baja, caducidad y ausencia de falsa detección.
+
+
+## Cierre propuesto de Fase 6 — validación de interfaz base
+
+Con el alcance actualizado de solo simulaciones 3D, se añadieron pruebas en Chromium para:
+UI01 (títulos y rutas directas de Resumen, Análisis en vivo, Visión IA,
+Operaciones, Historial, Configuración y Administración);
+UI02 (salto al contenido mediante Enter desde el teclado);
+UI03 (recorridos a 360, 768 y 1440 px sin desbordamiento horizontal);
+UI04 (emulación `prefers-reduced-motion: reduce` con controles accesibles).
+El sistema visual, los estados vacíos, los errores y controles de escena están documentados
+en `docs/diseno_ui.md`. Cierre condicionado a CI satisfactoria del commit de transición.
+Los requisitos previos de cámara física y cargas de video fueron sustituidos por la decisión
+expresa del usuario de trabajar solo con simulaciones.

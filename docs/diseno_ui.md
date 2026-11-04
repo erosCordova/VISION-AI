@@ -49,3 +49,17 @@ El usuario confirmó el funcionamiento de la cámara en su equipo el 2026-11-03.
 Historial incorpora búsqueda, selección de escenario, limpieza, tabla semántica y paginación deshabilitada sin registros. No se inventan filas. Configuración de administrador incorpora un formulario de propuesta temporal con límites de confianza, FPS y caducidad; no altera el motor ni persiste todavía. Sus campos muestran errores asociados y llevan el foco al primer error. Diálogo nativo con Escape, foco retenido por el navegador y restauración del foco al cerrar. Notificaciones con role=status. ErrorBoundary por ruta conserva la navegación si falla el contenido.
 
 Verificados en navegador de escritorio: rechazo de confianza 2, aceptación de 0.65, mensaje sin afirmar persistencia, apertura y cierre de diálogo con Escape y retorno del foco, filtros de historial y limpieza. Los tamaños específicos y lectura asistida completa continúan pendientes; el intento de zoom del navegador no cambió el viewport y no cuenta como QA móvil.
+
+
+## Cierre de la interfaz base con alcance exclusivo 3D
+
+Esta sección sustituye las referencias anteriores a cámara física de este documento.
+Los cuatro escenarios se usan desde Análisis en vivo, con selector de escena,
+dos modos separados (sintético/YOLO) y un visor WebGL que también admite
+calidad ligera. El frontend dispone de tablas, formularios, filtros, navegación por
+rol de demostración, diálogo, mensajes de estado, errores recuperables y
+panel de monitor YOLO. El usuario no debe importar datasets ni videos.
+UI01–UI04 se verifican con `scripts/qa-responsive.mjs`; las nuevas comprobaciones
+de teclado y movimiento reducido no sustituyen una auditoría integral de
+lector de pantalla y contraste. El cierre formal se registra en `docs/estado.md`
+solo si las verificaciones automatizadas finalizan correctamente.

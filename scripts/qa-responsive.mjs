@@ -184,7 +184,101 @@ try {
           console.log('Primer plano del personaje capturado correctamente');
         }
       }
+      if (name === 'resumen' && width === 1440) {
+        // UI02: la navegación por teclado permite saltar al contenido.
+        await cdp.send('Runtime.evaluate',{
+          expression:'document.querySelector("a.skip")?.focus()'
+        });
+        await cdp.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',
+          windowsVirtualKeyCode:13});
+        await cdp.send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',
+          windowsVirtualKeyCode:13});
+        const focused=await cdp.send('Runtime.evaluate',{
+          expression:'document.activeElement?.id === "contenido"',returnByValue:true
+        });
+        if(focused.result?.value!==true)
+          throw Error('UI02: enlace de salto no funciona al pulsar Enter con teclado.');
+        // UI04: accesibilidad con movimiento reducido sin perder el contenido.
+        await cdp.send('Emulation.setEmulatedMedia',{
+          features:[{name:'prefers-reduced-motion',value:'reduce'}]
+        });
+        const reduced=await cdp.send('Runtime.evaluate',{
+          expression:'({ enabled:matchMedia("(prefers-reduced-motion: reduce)").matches,'
+            + ' transition:getComputedStyle(document.querySelector(".scenario-card")).transitionDuration,'
+            + ' cards:document.querySelectorAll(".scenario-card").length })',
+          returnByValue:true
+        });
+        if(!reduced.result?.value?.enabled||reduced.result.value.cards!==4||
+          reduced.result.value.transition!=='0s')
+          throw Error('UI04: el modo de movimiento reducido no conserva los controles: '+
+            JSON.stringify(reduced.result?.value));
+        await cdp.send('Emulation.setEmulatedMedia',{features:[]});
+        console.log('UI02/UI04 OK: navegación por teclado y movimiento reducido');
+        // UI01: rutas directas, títulos y estados iniciales comprobados en el navegador.
+        for(const [hash,title] of [
+          ['#Resumen','Una visión clara de tu operación'],
+          ['#Visi%C3%B3n%20IA','Visión IA'],
+          ['#Operaciones','Operaciones'],
+          ['#Historial','Historial'],
+          ['#Configuraci%C3%B3n','Configuración'],
+          ['#Administraci%C3%B3n','Administración']
+        ]){
+          await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/'+hash});
+          await eventually(async()=>{
+            const r=await cdp.send('Runtime.evaluate',{
+              expression:'document.querySelector("main h1")?.textContent',
+              returnByValue:true
+            });
+            return r.result?.value===title;
+          },'UI01 '+title);
+        }
+        await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Resumen'});
+        console.log('UI01 OK: seis rutas comprobadas; Análisis en vivo se verifica en los recorridos');
+      }
       if (name === 'analisis' && width === 1440) {
+        // DA01: guardar una sesión 3D, navegar y recargar; debe persistir.
+        const saved=await cdp.send('Runtime.evaluate',{
+          expression:'(() => {const btn=Array.from(document.querySelectorAll(".simulator-persist-actions button"))'
+           + '.find(x=>x.textContent.includes("Guardar sesión"));btn?.click();return !!btn;})()',
+          returnByValue:true
+        });
+        if(!saved.result?.value)throw Error('DA01: falta control Guardar sesión');
+        await eventually(async()=>{
+          const r=await cdp.send('Runtime.evaluate',{
+            expression:'document.querySelector(".simulator-save-message")?.textContent||""',
+            returnByValue:true
+          });
+          return r.result?.value?.includes('Sesión guardada');
+        },'DA01 confirmación de guardado IndexedDB');
+        await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Historial'});
+        await eventually(async()=>{
+          const r=await cdp.send('Runtime.evaluate',{
+            expression:'({ rows:document.querySelectorAll(".history-panel tbody tr").length,'
+             + ' text:document.querySelector(".history-panel tbody")?.textContent||"" })',
+            returnByValue:true
+          });
+          return r.result?.value?.text.includes('Seguridad industrial');
+        },'DA01 historial después de navegar');
+        await cdp.send('Page.reload',{ignoreCache:true});
+        await eventually(async()=>{
+          const r=await cdp.send('Runtime.evaluate',{
+            expression:'document.querySelector(".history-panel tbody")?.textContent||""',
+            returnByValue:true
+          });
+          return r.result?.value?.includes('Seguridad industrial');
+        },'DA01 IndexedDB después de recarga completa');
+        console.log('DA01 OK: simulación guardada, consultada y recuperada tras recarga del navegador');
+        await cdp.send('Page.navigate',{
+          url:'http://127.0.0.1:4173/#An%C3%A1lisis%20en%20vivo'
+        });
+        await eventually(async()=>{
+          const r=await cdp.send('Runtime.evaluate',{
+            expression:'!!document.querySelector(".simulator-human-stage canvas")',
+            returnByValue:true
+          });
+          return r.result?.value===true;
+        },'regreso al simulador después de DA01');
+        await sleep(550);
         const clicked = await cdp.send('Runtime.evaluate', {
           expression: '(() => {'
             + 'window.__yoloQaErrors=[];'

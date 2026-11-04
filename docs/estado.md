@@ -122,3 +122,19 @@ Los FPS mostrados en el monitor son inferencias por segundo, no renderizado GPU;
 Se añadió una capa de evidencias **exclusivamente a partir de las predicciones de YOLO** para Seguridad Industrial: una señal de posible ausencia de EPP requiere al menos 2 fotogramas positivos entre las últimas 3 inferencias, dentro de una ventana de 30 segundos y con confianza mínima de 55%. Las clases admitidas son `no-hardhat`, `no-safety vest`, `no-goggles` y `no-gloves`; `no-mask` queda excluida. El panel registra hasta 12 episodios de indicios, sin atribuirles identidad individual ni calificar infracciones confirmadas. Si dejan de repetirse, desaparecen de la lista activa. El historial es local y se elimina al cambiar de sesión/modelo.
 
 Las señales no utilizan el estado geométrico, las alertas programadas ni datasets. Se corrigieron los selectores de modo y calidad para evitar limpiar telemetría cuando ya estaba seleccionada la misma opción. Fase 6 permanece abierta y el avance administrativo no cambia hasta que se completen las comprobaciones requeridas.
+
+
+## Transición real de fases — cierre de UX y comienzo de datos reproducibles
+
+Se reorganiza el trabajo conforme al **Manual avanzado v5.0**:
+- **Fase 6 = interfaz navegable** y validación UI01–UI04. Los incrementos
+  anteriores de YOLO no eran por sí solos un criterio para prolongar esta fase.
+- **Fase 7 = modelo de datos y escenarios reproducibles**: se ha creado
+  IndexedDB local con esquema 1, un identificador único por sesión,
+  hash geométrico reproducible, grabación de metadatos de escenarios y
+  detecciones ONNX guardadas sin fotogramas, historial, filtros y eliminación.
+  Ver `fase07_sesiones_simuladas.md`.
+- Cierre administrativo de la Fase 6 **pendiente de ejecución CI del commit**.
+  Al aprobar UI01–UI04, el total pasa de 5/16 a **6/16 = 37,5 %**.
+- La Fase 7 queda **en curso**, sin contabilizarse como aprobada hasta DA01–DA04
+  y recuperación/migración verificadas.

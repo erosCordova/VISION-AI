@@ -106,3 +106,33 @@ dt{color:#586c7a}
 .simulation-metrics strong{overflow-wrap:anywhere}
 @media(max-width:760px){.scenario-insight{grid-template-columns:1fr;gap:12px}.inference-connection button{margin-left:0}}
 @media(prefers-reduced-motion:reduce){.scenario-insight,.inference-controls *, .evidence-box {animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* Fase 7 — historial persistente de simulaciones. */
+.session-history-mode{display:inline-flex;white-space:nowrap;border-radius:5px;border:1px solid #aebfc5;
+ background:#eff4f5;color:#345a65;padding:5px 8px;font-size:10px}
+.session-history-mode.is-yolo{border-color:#8bcebc;background:#e3f8ef;color:#17624e}
+.session-history-actions{display:flex;gap:6px;flex-wrap:wrap}
+.session-history-actions button,.session-history-detail button,
+.session-history-confirm button{font-size:10px;padding:8px 10px}
+.session-history-detail{margin:22px 0 0;background:#f7faf9;border:1px solid #d3e7e0;border-radius:10px;padding:19px}
+.session-history-detail h3{font-size:16px;margin:0}
+.session-history-detail dl{display:grid;grid-template-columns:170px minmax(0,1fr);gap:0 14px;margin:15px 0}
+.session-history-detail dt,.session-history-detail dd{margin:0;padding:9px 0;border-bottom:1px solid #ddebe5;overflow-wrap:anywhere}
+.session-history-detail dt{font-size:11px;font-weight:700;color:#557169}
+.session-history-detail dd{font-size:11px;color:#263d38}
+.session-history-detail>p{font-size:11px;color:#647f76;line-height:1.65}
+.session-history-confirm{display:flex;align-items:center;flex-wrap:wrap;gap:10px;
+ background:#fff4ec;border:1px solid #edcbb0;padding:14px;border-radius:8px;margin:17px 0}
+.session-history-confirm p{margin:0;margin-right:auto;color:#824d30}
+.session-history-delete{background:#9e392d;color:white;border-color:#9e392d}
+.session-history-delete:hover{background:#87271b;color:white}
+.session-history-error{color:#9b2727;background:#ffeded;border:1px solid #e6b3b3;border-radius:7px;padding:12px}
+.session-history-notice{color:#1e654c;background:#e4f8ec;border:1px solid #a8d8bd;border-radius:7px;padding:10px}
+.simulator-persist-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.simulator-save-message{font-size:11px!important;background:#123b43!important;
+ color:#b2f5da!important;border:1px solid #3c937b;border-radius:7px;padding:11px;margin:10px 0}
+@media(max-width:690px){.session-history-detail dl{grid-template-columns:1fr}
+ .session-history-detail dt{border:0;padding-bottom:1px}
+ .session-history-detail dd{padding-top:3px}
+ .session-history-actions{flex-direction:column}
+ .simulator-persist-actions{justify-content:flex-start}}
