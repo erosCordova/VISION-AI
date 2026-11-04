@@ -3,6 +3,8 @@ import type {SimulationSession} from '../../core/domain/simulation-session';
 import type {SimulationSessionInspection,SimulationSessionRepository} from '../../core/ports/simulation-session-repository';
 import {validateReviewClosure,validateReviewDecision} from '../../core/domain/review-closure';
 import type {ReviewClosure,ReviewDecision} from '../../core/domain/review-closure';
+import {expiredSessionIds,isRetentionDays} from '../../core/domain/local-data-policy';
+import type {RetentionDays} from '../../core/domain/local-data-policy';
 const DB_NAME='vision-ai-simulation-sessions';
 /** Migración de esquema físico: v1 -> v2 añade índice de escenario, sin alterar registros. */
 const DB_VERSION=3;
@@ -171,11 +173,69 @@ export async function deleteSimulationSession(id:string):Promise<void>{
  }finally{db.close();}
 }
 
+/** Expiración MANUAL: borra sesiones antiguas válidas y revisiones vinculadas
+ * mediante una única transacción. Nunca interpreta fechas dañadas como caducadas.
+ */
+export async function purgeExpiredSimulationSessions(days:RetentionDays,now=new Date()):Promise<number>{
+ if(!isRetentionDays(days)||!Number.isFinite(now.getTime()))
+  throw Error('Periodo de retención inválido.');
+ const db=await database();
+ try{
+  const tx=db.transaction([STORE,REVIEW_STORE],'readwrite');
+  const done=transactionDone(tx);
+  try{
+   const sessions=tx.objectStore(STORE),reviews=tx.objectStore(REVIEW_STORE);
+   const values=await requestValue(sessions.getAll());
+   const eligible=values.filter(item=>{
+    try{validateSimulationSession(item);return true;}catch{return false;}
+   }) as SimulationSession[];
+   const ids=expiredSessionIds(eligible,days,now);
+   if(ids.length){
+    const marked=new Set(ids);
+    const closures=await requestValue(reviews.getAll()) as ReviewClosure[];
+    for(const id of ids)sessions.delete(id);
+    for(const closure of closures)if(marked.has(closure.sessionId))
+     reviews.delete([closure.sessionId,closure.eventId]);
+   }
+   await done;
+   return ids.length;
+  }catch(e){
+   try{tx.abort();}catch{/* transacción finalizada */}
+   await done.catch(()=>{});
+   throw e;
+  }
+ }finally{db.close();}
+}
+/** Derecho de eliminación local: sesiones y revisiones en UNA transacción.
+ * No se afirma eliminar cachés del navegador ni backups descargados.
+ */
+export async function eraseLocalSimulationHistory():Promise<{sessions:number;reviews:number}>{
+ const db=await database();
+ try{
+  const tx=db.transaction([STORE,REVIEW_STORE],'readwrite');
+  const done=transactionDone(tx);
+  try{
+   const sessionStore=tx.objectStore(STORE),reviewStore=tx.objectStore(REVIEW_STORE);
+   const count=await requestValue(sessionStore.count());
+   const closures=await requestValue(reviewStore.count());
+   sessionStore.clear();reviewStore.clear();
+   await done;
+   return {sessions:count,reviews:closures};
+  }catch(e){
+   try{tx.abort();}catch{/* transacción finalizada */}
+   await done.catch(()=>{});
+   throw e;
+  }
+ }finally{db.close();}
+}
+
 export const simulationSessionRepository:SimulationSessionRepository={
  inspect:inspectSimulationSessions,
  listReviewClosures,
  closeReview,
  save:saveSimulationSession,
  list:listSimulationSessions,
- remove:deleteSimulationSession
+ remove:deleteSimulationSession,
+ purgeExpired:purgeExpiredSimulationSessions,
+ eraseAll:eraseLocalSimulationHistory
 };
