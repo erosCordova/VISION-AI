@@ -190,7 +190,7 @@ function worker(b:SceneBuilder,o:SimEntity,time:number,hasHelmet:boolean,hasVest
   b.sphere(x,2.11,z-.02,.30,.13,.27,C.dark,10,3);
  }
 }
-function forklift(b:SceneBuilder,o:SimEntity,time:number){
+function forklift(b:SceneBuilder,o:SimEntity){
  const [x,,z]=entityFootprint(o);
  b.disc(x,.017,z,1.18,.73,C.dark);
  b.box(x,.7,z,1.7,.64,1.2,C.amber);
@@ -244,7 +244,7 @@ export function makeScene(snapshot:SimSnapshot,time:number,showZones:boolean):Sc
     worker(b,item,time,snapshot.scenarioId==='safety'&&item.id!=='w2',
       snapshot.scenarioId==='safety');
     break;
-   case 'forklift':forklift(b,item,time);break;
+   case 'forklift':forklift(b,item);break;
    case 'pallet':pallet(b,item);break;
    case 'box':caseBox(b,item);break;
    case 'product':product(b,item);break;
