@@ -215,7 +215,7 @@ try {
             expression: '({ visible:!!document.querySelector(".browser-yolo-panel"),'
               + ' start:!!document.querySelector(".browser-yolo-panel button.primary"),'
               + ' source:!!document.querySelector(".simulator-human-stage canvas"),'
-              + ' syntheticStatus:!!document.querySelector(".simulator-visual .simulator-event") })()',
+              + ' syntheticStatus:!!document.querySelector(".simulator-visual .simulator-event") })',
             returnByValue: true
           });
           return state.result?.value?.visible ? state.result.value : null;
@@ -232,6 +232,44 @@ try {
         fs.writeFileSync(path.join(artifacts, 'modo-yolo-1440.png'),
           Buffer.from(yoloScreen.data, 'base64'));
         console.log('UI YOLO OK: modo independiente, sin overlays sintéticos');
+        // Prueba real: ONNX + WASM debe ejecutar al menos un frame GPU.
+        // No exigimos detecciones: un modelo COCO puede devolver cero objetos 3D.
+        const startResponse = await cdp.send('Runtime.evaluate', {
+          expression: '(() => { const button=document.querySelector(".browser-yolo-panel button.primary");'
+            + 'button?.click();return !!button;})()',
+          returnByValue: true
+        });
+        if (!startResponse.result?.value) throw Error('Botón de inicio YOLO inaccesible');
+        let firstInference = null;
+        let lastStatus = null;
+        for (let attempt = 0; attempt < 470; attempt++) {
+          const response = await cdp.send('Runtime.evaluate', {
+            expression: '(() => ({'
+              + ' frames:Number(document.querySelector(".browser-yolo-count b")?.textContent||0),'
+              + ' status:document.querySelector(".browser-yolo-status")?.textContent||"",'
+              + ' error:document.querySelector(".browser-yolo-error")?.textContent||"",'
+              + ' phase:document.querySelector(".browser-yolo-phase")?.textContent||""'
+              + ' }))()',
+            returnByValue: true
+          });
+          lastStatus = response.result?.value;
+          if (lastStatus?.error) throw Error('ONNX smoke test falló: '+JSON.stringify(lastStatus));
+          if (lastStatus?.frames > 0) {
+            firstInference = lastStatus;break;
+          }
+          await sleep(200);
+        }
+        if (!firstInference) throw Error('No hubo inferencia ONNX tras esperar: '+JSON.stringify(lastStatus));
+        console.log('YOLO REAL OK en Chromium: '+JSON.stringify(firstInference));
+        const inferenceShot = await cdp.send('Page.captureScreenshot', {
+          format: 'png', captureBeyondViewport: false
+        });
+        fs.writeFileSync(path.join(artifacts, 'yolo-inferencia-real-1440.png'),
+          Buffer.from(inferenceShot.data,'base64'));
+        await cdp.send('Runtime.evaluate', {
+          expression: 'Array.from(document.querySelectorAll(".browser-yolo-panel button"))'
+            + '.find(b=>b.textContent.includes("Detener inferencia"))?.click()'
+        });
       }
       console.log('QA OK: ' + name + ' a ' + width + ' px; sin desbordamiento horizontal');
       checked++;

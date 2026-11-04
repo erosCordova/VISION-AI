@@ -7,6 +7,7 @@ interface OrtTensor {
  readonly dims: readonly number[];
  readonly data: Float32Array|readonly number[];
  readonly type: string;
+ readonly dispose?: ()=>void|Promise<void>;
 }
 interface OrtSession {
  readonly inputNames: readonly string[];
@@ -115,13 +116,22 @@ export async function analyzeYoloFrame(
  threshold:number):Promise<YoloFrame>{
  const {data,letterbox}=toYoloTensor(captured);
  const input=new model.ort.Tensor('float32',data,[1,3,YOLO_INPUT.height,YOLO_INPUT.width]);
- const before=performance.now();
- const output=await model.session.run({[model.session.inputNames[0]]:input});
- const inferenceMs=performance.now()-before;
- const value=output[model.session.outputNames[0]];
- if(!value||value.type!=='float32'||!value.data)
-  throw Error('El motor devolvió una salida incompatible con YOLOv8n.');
- const decoded=decodeYolov8(value.data,value.dims,letterbox,threshold);
- return {source:captured,width:captured.width,height:captured.height,
-  detections:decoded.detections,candidates:decoded.candidates,inferenceMs,createdAt:performance.now()};
+ try {
+  const before=performance.now();
+  const output=await model.session.run({[model.session.inputNames[0]]:input});
+  const inferenceMs=performance.now()-before;
+  try {
+   const value=output[model.session.outputNames[0]];
+   if(!value||value.type!=='float32'||!value.data)
+    throw Error('El motor devolvió una salida incompatible con YOLOv8n.');
+   const decoded=decodeYolov8(value.data,value.dims,letterbox,threshold);
+   return {source:captured,width:captured.width,height:captured.height,
+    detections:decoded.detections,candidates:decoded.candidates,
+    inferenceMs,createdAt:performance.now()};
+  } finally {
+   for(const tensor of Object.values(output))await tensor.dispose?.();
+  }
+ } finally {
+  await (input as {dispose?:()=>void|Promise<void>}).dispose?.();
+ }
 }
