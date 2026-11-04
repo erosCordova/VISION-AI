@@ -105,7 +105,7 @@ try {
     });
     for (const [name, hash, selector] of [
       ['resumen', '#Resumen', '.scenario-grid'],
-      ['analisis', '#An%C3%A1lisis%20en%20vivo', '.flow-panel'],
+      ['analisis', '#An%C3%A1lisis%20en%20vivo', '.simulator-shell'],
       ['historial', '#Historial', '.history-panel']
     ]) {
       await cdp.send('Page.navigate', { url: 'http://127.0.0.1:4173/' + hash });
@@ -120,8 +120,10 @@ try {
           + 'hasFocusableMain: !!document.querySelector("main[tabindex=\\\"-1\\\"]"), '
           + 'hasSkip: !!document.querySelector("a.skip"), hasText: !!element.textContent.trim(), '
           + 'hasSimulationModes: !!document.querySelector(".simulation-source-tabs button[aria-pressed=true]"), '
-          + 'hasInferenceStatus: !!document.querySelector(".inference-controls [role=status]"), '
-          + 'hasEvidenceViewer: !!document.querySelector(".evidence-panel") }; '
+          + 'hasSimulatorStage: !!document.querySelector(".simulator-svg"), '
+          + 'hasSimulatorControls: !!document.querySelector(".simulator-controls input[type=range]"), '
+          + 'hasSyntheticLabel: !!document.querySelector(".simulator-mode"), '
+          + 'hasScenarioTabs: document.querySelectorAll(".simulator-scenarios button").length === 4 }; '
           + '})()';
         const response = await cdp.send('Runtime.evaluate', { expression, returnByValue: true });
         return response.result?.value ?? null;
@@ -129,7 +131,7 @@ try {
       if (view.viewport !== width || view.pageWidth > width + 1
           || view.elementLeft < -1 || view.elementLeft + view.elementWidth > width + 1
           || !view.hasFocusableMain || !view.hasSkip || !view.hasText
-          || (name === 'analisis' && (!view.hasSimulationModes || !view.hasInferenceStatus || !view.hasEvidenceViewer))) {
+          || (name === 'analisis' && (!view.hasSimulationModes || !view.hasSimulatorStage || !view.hasSimulatorControls || !view.hasSyntheticLabel || !view.hasScenarioTabs))) {
         throw Error('QA falló (' + width + ' px, ' + name + '): ' + JSON.stringify(view));
       }
       const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });

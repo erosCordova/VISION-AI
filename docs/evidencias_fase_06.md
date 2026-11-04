@@ -68,3 +68,9 @@ Se añade validación de las respuestas contra el SHA256 del JPEG enviado, dimen
 El panel de escenario solo resume detecciones de clases disponibles: retail cuenta personas visibles; seguridad, almacén y calidad explican el alcance de lo reconocido y dejan sin evaluar EPP, zonas y defectos cuando falta evidencia suficiente.
 
 Pruebas unitarias para métricas, contrato de respuesta y lecturas por escenario; QA automatizado de interfaz extendido a estados y componentes de simulación. La Fase 6 continúa abierta hasta comprobación de accesibilidad integral, navegador físico, video real y pesos especiales. Los resultados CI deben verificarse en la ejecución correspondiente al commit.
+
+## Séptimo incremento — simulación visual de escenarios a partir de referencia
+
+El usuario precisó que «simulación en tiempo real» significa escena digital animada con múltiples objetos rastreados visualmente, zonas punteadas, cajas, información lateral, pausa y captura, semejante a una consola industrial. Se agregó el simulador 2D interactivo y autocontenido con SVG y un motor geométrico determinista: seguridad, manufactura, retail y logística. La interfaz incluye filtros de puntuación sintética y capas, alerta ilustrativa derivada de la posición conocida de los objetos y serie temporal, sin presentarlo como YOLO.
+
+Se mantiene otro modo para reproducir video y cámara con inferencia real, condicionado a disponibilidad del backend. Las comprobaciones de UI automatizadas cubren controles clave del simulador. **No es validación de inferencia real**; Fase 6 continúa en revisión.

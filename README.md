@@ -4,7 +4,7 @@ Plataforma empresarial de visión computacional con cuatro escenarios de anális
 
 ## Estado verificado
 
-**Fases 1 a 5 aprobadas; avance administrativo: 31.25 % (5 de 16). Fase 6 en curso.** El repositorio contiene React, Vite, controles de cámara, reproducción de videos en bucle, un visor de fotogramas analizados y un piloto opcional FastAPI + YOLO26n en CPU. El frontend y los contratos están cubiertos por CI; no se ha acreditado aún inferencia en el hardware final, precisión ni FPS sostenidos con un modelo real. No se ha declarado despliegue productivo.
+**Fases 1 a 5 aprobadas; avance administrativo: 31.25 % (5 de 16). Fase 6 en curso.** El repositorio contiene React, Vite, un simulador 2D interactivo de cuatro escenarios, controles de cámara, reproducción de videos en bucle, un visor de fotogramas analizados y un piloto opcional FastAPI + YOLO26n en CPU. El frontend y los contratos están cubiertos por CI; no se ha acreditado aún inferencia en el hardware final, precisión ni FPS sostenidos con un modelo real. No se ha declarado despliegue productivo.
 
 ## Ejecutar y validar
 
@@ -45,3 +45,7 @@ Proyecto individual, Ingeniería de Software con IA — SENATI.
 ## Publicación Vercel Hobby + Render Free
 
 Consulta [alcance y configuración de la publicación gratuita](docs/despliegue_gratuito.md). La interfaz pública puede reproducir video, pero Render Free no ejecuta el modelo YOLO: el estado del motor se comunica explícitamente.
+
+## Simulador visual interactivo
+
+En **Análisis en vivo → Simulador interactivo** aparecen los cuatro escenarios animados con zonas, objetos y anotaciones, controles de capas, velocidad, pausa y captura PNG. Es una escena sintética **sin detecciones YOLO**; el motor real se mantiene en las otras dos modalidades y no está disponible en Render Free. Ver [funcionamiento detallado](docs/simulacion_interactiva.md).

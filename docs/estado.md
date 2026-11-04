@@ -63,3 +63,7 @@ El avance global continúa en 31.25 %, hasta aprobar formalmente la Fase 6. El m
 ## Publicación en servicios gratuitos
 
 Se introduce un modo **API de estado sin inferencia** para Render Free. Esto permite publicar la interfaz en Vercel y una API liviana en Render sin sobreprometer reconocimiento YOLO. El frontend distingue explícitamente API conectada de motor disponible y no habilita análisis si no hay motor. Ver docs/despliegue_gratuito.md. Publicar no implica cerrar Fase 6 ni aumentar el avance global.
+
+## Incremento de Fase 6 — simulador visual interactivo
+
+Se implementa una escena digital SVG animada y autocontenida en «Análisis en vivo» (modalidad inicial), con cuatro escenarios, elementos móviles, zonas, cajas, anotaciones, capas, umbral sintético, velocidades, pausa y captura PNG. No descarga modelos ni utiliza inferencia YOLO; marca sus resultados como **datos sintéticos** y conserva por separado las modalidades de video/cámara reales. Ver [guía del simulador](simulacion_interactiva.md). CI responsive y pruebas unitarias deben verificarse antes de cerrar este incremento. Avance administrativo 31.25 %.

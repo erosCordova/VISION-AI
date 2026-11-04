@@ -23,3 +23,7 @@ No ejecutar `pip install -r backend/requirements-local.txt` en Render Free: incl
 El endpoint de inferencia está deshabilitado en Render Free para evitar exponer una API de procesamiento anónimo. No se envían fotogramas mientras el motor no esté disponible. No hay grabación de video ni autenticación de usuario productiva. La validación de UI en Vercel y salud de API no demuestra exactitud, latencia de modelo, segmentación, seguimiento ni alertas.
 
 Antes de acreditar cuatro escenarios operativos: cargar pesos especializados legalmente utilizables para cascos/chalecos, montacargas y defectos; validar personas para retail; medir resultados reales y documentar métricas por dispositivo. Se preserva el 31.25 % hasta el cierre completo de Fase 6.
+
+## Interfaz visual publicada
+
+La modalidad inicial de «Análisis en vivo» es un simulador digital 2D que funciona en Vercel Hobby sin backend, mostrando detecciones y eventos *sintéticos* de forma explícita. Render Free continúa para comprobar la conectividad de la API, pero no ejecuta PyTorch/YOLO. Se mantienen los modos separados de «Video con YOLO» y «Cámara con YOLO» a la espera de un motor real.
