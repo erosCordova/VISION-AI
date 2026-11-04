@@ -607,7 +607,7 @@ try {
           !captureStats.result.value.kpis.some(x=>x?.includes('FPS de capturas'))||
           !captureStats.result.value.kpis.some(x=>x?.includes('Antigüedad de lectura')))
           throw Error('Fase 8: faltan indicadores medidos del ciclo YOLO');
-        const reviewState=await cdp.send('Runtime.evaluate',{
+        const ppeReviewUi=await cdp.send('Runtime.evaluate',{
           expression:'(() => ({'
            + ' review:!!document.querySelector(".yolo-monitor-review"),'
            + ' explanation:document.querySelector(".yolo-monitor-review-explain")?.textContent||"",'
@@ -615,9 +615,9 @@ try {
            + ' }))()',
           returnByValue:true
         });
-        if(!reviewState.result?.value?.review||
-          !reviewState.result.value.explanation.includes('2 de los últimos 3')||
-          reviewState.result.value.invalid)
+        if(!ppeReviewUi.result?.value?.review||
+          !ppeReviewUi.result.value.explanation.includes('2 de los últimos 3')||
+          ppeReviewUi.result.value.invalid)
           throw Error('Revisión temporal de EPP no está bien separada de la simulación');
         const inferenceShot = await cdp.send('Page.captureScreenshot', {
           format: 'png', captureBeyondViewport: false
