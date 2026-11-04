@@ -67,7 +67,7 @@ function classify(
   sample.predictions.filter(p=>p.classId===classId && Number.isFinite(p.confidence) && p.confidence>=.05)
    .map(p=>({...p,imageIndex})))
   .sort((a,b)=>b.confidence-a.confidence);
- const used=groundTruth.map(objects=>new Set<number>());
+ const used=groundTruth.map(()=>new Set<number>());
  let tp=0,fp=0,chosenTp=0,chosenFp=0;
  const cumulativeTp:number[]=[];
  const cumulativeFp:number[]=[];
