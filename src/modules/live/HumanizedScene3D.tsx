@@ -33,7 +33,7 @@ function mat(hex:number,roughness=.68,metalness=.07){
  return new THREE.MeshStandardMaterial({color:hex,roughness,metalness});
 }
 const fabric=mat(0x278e9c,.92),pants=mat(0x344f5e,.9),skin=mat(0xd6a788,.94);
-const yellow=mat(0xf4bb46,.5), vestMat=mat(0xf4a542,.7),safety=mat(0xcfe7dd,.6);
+const yellow=mat(0xf4bb46,.5),safety=mat(0xcfe7dd,.6);
 function mesh(parent:any,geometry:any,material:any,x=0,y=0,z=0):any{
  const object=new THREE.Mesh(geometry,material);object.position.set(x,y,z);
  object.castShadow=true;object.receiveShadow=true;parent.add(object);return object;
