@@ -1134,9 +1134,12 @@ try {
       returnByValue:true
     });
     const p=r.result?.value;
-    return p?.values?.length===4&&p.values[0]>=1&&p.values[1]>=1&&
-      p.values[3]>=1&&p.retention==='90'?p:null;
-  },'PR01 resumen de privacidad desde IndexedDB');
+    return p?.values?.length===4&&p.values.every(Number.isFinite)&&
+      p.retention==='90'?p:null;
+  },'PR01 pantalla de privacidad inicializada');
+  if(initialPrivacy.values[0]<1||initialPrivacy.values[1]<1||
+     initialPrivacy.values[3]<1)
+    throw Error('PR01: discrepancia en almacenamiento: '+JSON.stringify(initialPrivacy));
   if(!initialPrivacy.status?.includes('no es autenticación'))
     throw Error('PR06: roles de demostración no identificados como tal');
   console.log('PR01/PR06: conteos IndexedDB y limitación explícita del perfil demo');
