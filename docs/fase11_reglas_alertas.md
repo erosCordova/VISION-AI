@@ -57,3 +57,12 @@ Las notas son locales y no se deben emplear para identificar personas.
 
 El QA de Chromium validará decisión, nota, recarga y ausencia de
 duplicación, además de la comparación antes/después de la evidencia.
+
+## Ensayos de aceptación en Chromium
+
+Se selecciona «Requiere seguimiento humano», se introduce una nota
+y se registra una sola decisión incluso ante doble clic. La QA lee
+la clave de revisión directamente de IndexedDB y verifica su
+persistencia antes y después de recargar; las detecciones originales
+permanecen separadas. El Monitor YOLO en Seguridad muestra la regla
+EPP explicable mientras ejecuta ONNX real. Se requiere CI para aprobar.

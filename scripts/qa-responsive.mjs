@@ -322,6 +322,18 @@ try {
           return state?.open==='1'&&state.closed==='0'&&state.total==='1'&&
             state.items===1&&state.cta?.includes('Marcar como revisado');
         },'KP02 indicio abierto, sin datos artificiales en la interfaz');
+        const formReady=await cdp.send('Runtime.evaluate',{
+          expression:'(() => {const select=document.querySelector(".operations-review-decision-form select");'
+           +'const area=document.querySelector(".operations-review-decision-form textarea");'
+           +'if(!select||!area)return false;'
+           +'const s=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,"value").set;'
+           +'s.call(select,"follow_up");select.dispatchEvent(new Event("change",{bubbles:true}));'
+           +'const a=Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,"value").set;'
+           +'a.call(area,"Inspección presencial");area.dispatchEvent(new Event("input",{bubbles:true}));'
+           +'return true;})()',returnByValue:true
+        });
+        if(!formReady.result?.value)throw Error('RG05: controles de decisión no disponibles');
+        await sleep(100);
         await cdp.send('Runtime.evaluate',{
           expression:'(() => {const b=document.querySelector(".operations-review-item button");'
            + 'b?.click();b?.click();return !!b;})()'
@@ -337,6 +349,21 @@ try {
         if(savedReview.result?.value?.rows!==1||savedReview.result.value.existing!==1||
           !savedReview.result.value.index)
           throw Error('KP02 cierre duplicado o mutación de la evidencia YOLO');
+        const resultDecision=await cdp.send('Runtime.evaluate',{
+          expression:'(async()=>{const db=await new Promise((ok,fail)=>{'
+           +'const r=indexedDB.open("vision-ai-simulation-sessions",3);'
+           +'r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error)});'
+           +'try{const tx=db.transaction("reviewClosures","readonly");'
+           +'const item=await new Promise((ok,fail)=>{const r=tx.objectStore("reviewClosures")'
+           +'.get(["qa-review-session","no-hardhat-2"]);'
+           +'r.onsuccess=()=>ok(r.result);r.onerror=()=>fail(r.error)});'
+           +'return {decision:item?.decision,note:item?.note};}finally{db.close()}})()',
+          awaitPromise:true,returnByValue:true
+        });
+        if(resultDecision.result?.value?.decision!=='follow_up'||
+           resultDecision.result?.value?.note!=='Inspección presencial')
+          throw Error('RG05: la resolución humana no persistió correctamente');
+        console.log('RG05: decisión y nota locales persistidas, doble clic idempotente');
         await cdp.send('Page.reload',{ignoreCache:true});
         await eventually(async()=>{
           const state=await reviewState();
@@ -657,6 +684,17 @@ try {
         }
         if (!firstInference) throw Error('No hubo inferencia ONNX tras esperar: '+JSON.stringify(lastStatus));
         console.log('YOLO EPP REAL OK en Chromium: '+JSON.stringify(firstInference));
+        const liveRule=await cdp.send('Runtime.evaluate',{
+          expression:'(() => ({container:!!document.querySelector(".yolo-monitor-rules"),'
+           +'description:document.querySelector(".yolo-rule-card")?.textContent?.trim(),'
+           +'source:document.querySelector(".yolo-monitor-source")?.textContent?.trim()}))()',
+          returnByValue:true
+        });
+        const rule=liveRule.result?.value;
+        if(!rule?.container||!rule.description?.includes('Ausencias EPP')||
+          !rule.description.includes('Revisión')||!rule.source?.includes('simulación 3D'))
+          throw Error('RG01: panel de reglas sin EPP o procedencia');
+        console.log('RG01: regla EPP explicable con origen YOLO real');
         // OB02/OB05: pausar la animación detiene nuevas capturas; filtrar no
         // altera la telemetría ni ejecuta el modelo una vez más.
         const pauseResult=await cdp.send('Runtime.evaluate',{
