@@ -744,6 +744,32 @@ try {
         if(!evidenceReady.result?.value)
           throw Error('OB01: visor YOLO no produce PNG válido del fotograma analizado');
         console.log('OB01: evidencia PNG reproducible desde el canvas analizado');
+
+        // Fase 10: la máscara se calcula sobre píxeles del mismo frame,
+        // sin volver a ejecutar ONNX ni convertir las cajas en máscaras falsas.
+        const maskToggle=await cdp.send('Runtime.evaluate',{
+          expression:'(() => {const input=document.querySelector("#yolo-chromatic-mask");'
+           +'input?.click();return input?.checked===true;})()',returnByValue:true
+        });
+        if(!maskToggle.result?.value)throw Error('SG01: máscara cromática no activable');
+        const maskInfo=await eventually(async()=>{
+          const state=await cdp.send('Runtime.evaluate',{
+            expression:'(() => ({summary:document.querySelector(".browser-yolo-mask-summary")?.textContent?.trim(),'
+             +'count:Number(document.querySelector(".browser-yolo-count b")?.textContent||0),'
+             +'source:document.querySelector(".yolo-monitor-source")?.textContent?.trim(),'
+             +'error:document.querySelector(".browser-yolo-mask-options .browser-yolo-error")?.textContent?.trim()'
+             +'}))()',returnByValue:true
+          });
+          const value=state.result?.value;
+          return value?.summary&&!value.error?value:null;
+        },'SG01 máscara sobre resultado ONNX');
+        if(maskInfo.count!==afterRetry.frames||!maskInfo.summary.includes('píxeles')||
+           !maskInfo.source.includes('simulación 3D'))
+          throw Error('SG01: máscara no corresponde al fotograma YOLO');
+        await cdp.send('Runtime.evaluate',{
+          expression:'document.querySelector("#yolo-chromatic-mask")?.click()'
+        });
+        console.log('SG01: máscara RGB calculada con evidencia YOLO real, sin ONNX adicional');
         const runTag=await cdp.send('Runtime.evaluate',{
           expression:'document.querySelector(".browser-yolo-run")?.textContent?.trim()||""',
           returnByValue:true

@@ -13,7 +13,7 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 | 07 | Modelo de datos y escenarios reproducibles | Sesiones 3D reproducibles, IndexedDB y migración aditiva | Aprobada |
 | 08 | Dashboard e indicadores verificables | KPI y gráficos verificados desde el repositorio | Aprobada |
 | 09 | Centro de análisis y detección de objetos | Captura 3D, YOLO, cajas y filtros sin pérdida de evidencia | En curso |
-| 10 | Segmentación de imágenes y capas visuales | Máscaras, capas y cálculo de área | Pendiente |
+| 10 | Segmentación de imágenes y capas visuales | Máscaras, capas y cálculo de área | Primer incremento preparado; sin aprobación |
 | 11 | Patrones, reglas y gestión de alertas | Motor de reglas y ciclo de revisión de alertas | Pendiente |
 | 12 | Historial, reportes y exportación | Historial, detalle y CSV | Pendiente |
 | 13 | Seguridad, privacidad y gobierno de datos | Controles de acceso y gobierno de datos | Pendiente |

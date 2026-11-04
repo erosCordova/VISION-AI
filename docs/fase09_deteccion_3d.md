@@ -204,3 +204,13 @@ Se incorporaron pruebas de nombre/validación para los cuatro escenarios,
 y QA de codificación PNG con el canvas real después de recuperar
 una inferencia. La ejecución de Chromium sigue pendiente antes de
 la aceptación formal de fase 9.
+
+## Puente a Fase 10 sin aprobación anticipada
+
+Una vez preparada la exportación íntegra de evidencias de las
+detecciones YOLO, se incorpora en un incremento independiente
+una capa de **segmentación cromática experimental**.
+No pertenece a la salida de YOLOv8-det ni sustituye la aceptación
+pendiente de OB01–OB05. El trabajo se documenta en
+[segmentación de escenarios 3D](fase10_segmentacion_3d.md).
+Se mantienen la validación de fase 9 y el avance oficial de 50 %.
