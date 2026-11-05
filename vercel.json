@@ -22,5 +22,10 @@
         }
       ]
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "test/tfl-public-cameras": false
+    }
+  }
 }

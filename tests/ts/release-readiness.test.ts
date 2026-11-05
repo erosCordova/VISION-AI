@@ -29,9 +29,9 @@ describe('Fase 16 — integridad de entrega y límites de producción',()=>{
   expect(docs).toContain('no restauran IndexedDB');
   expect(docs).toContain('workspace confirmado');
  });
- it('no promueve cámaras ni datasets en la guía vigente',()=>{
+ it('distingue cámaras públicas de la simulación en la guía vigente',()=>{
   const docs=get('docs/manual/Manual_Usuario_VISION_AI.md');
-  expect(docs).toContain('únicamente');
+  expect(docs).toContain('cámaras públicas TfL');
   expect(docs).toContain('Manufactura');
   expect(docs).toContain('Retail');
   expect(docs).toContain('Logística');

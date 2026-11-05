@@ -1,13 +1,14 @@
 # Manual de usuario — VISION-AI
 
-**Producto:** laboratorio de visión computacional con simulaciones 3D.
-**Interfaz:** español. **Fuente exclusiva:** cuatro escenas 3D generadas
-por la aplicación. **No se cargan datasets, cámaras, videos ni fotos.**
+**Producto:** laboratorio de visión computacional con cámaras públicas TfL y simulaciones 3D.
+**Interfaz:** español. **Fuentes:** fotografías reales públicas de tráfico
+(para logística, transporte y retail) o cuatro escenas 3D internas.
+**No utiliza la cámara del dispositivo y no requiere datasets.**
 
 ## 1. Para qué sirve
 
 Permite experimentar cómo un detector de objetos YOLO analiza imágenes
-obtenidas de una simulación empresarial. La escena 3D describe un
+obtenidas de cámaras públicas con licencia o de una simulación empresarial. La escena 3D describe un
 entorno ficticio; el detector ONNX procesa **sus píxeles**, no lee
 las posiciones internas de los objetos ni recibe etiquetas ocultas.
 Las cajas, clases y confidencias presentadas como YOLO son predicciones
@@ -28,7 +29,13 @@ Los resultados de sesión se guardan en **IndexedDB del navegador**
 
 1. Acceder a https://vision-ai-erosss.vercel.app .
 2. Entrar en **Análisis en vivo**.
-3. Seleccionar uno de los cuatro escenarios.
+3. La pestaña **Cámara pública TfL** muestra el catálogo de fotografías
+   de vías públicas; seleccionar una fuente y esperar al primer fotograma.
+4. Pulsar **Iniciar YOLO** para descargar ONNX/WASM y obtener detecciones
+   reales de vehículos y personas visibles en la imagen.
+5. Ajustar la confianza, actualizar la fotografía o descargar evidencia PNG.
+6. Para los escenarios industriales sintéticos, seleccionar **Simulaciones 3D**.
+   Allí se conservan los cuatro escenarios y el detector de EPP.
 4. Si los humanos 3D resultan pesados, cambiar a la visualización
    **ligera**, cuando el visor lo permita.
 5. Ajustar cámara (isométrica, frontal, superior o primer plano),
@@ -124,3 +131,20 @@ roles **de prueba**, no cuentas autenticadas.
   pagar un servicio externo para ejecutar las simulaciones.
 - **«¿Puedo subir imágenes?»** No. La fuente del análisis son
   únicamente las simulaciones 3D del proyecto.
+
+## Cámaras públicas: condiciones y límites
+
+La fuente procede de Transport for London (TfL) y se identifica
+visiblemente como **Powered by TfL Open Data**. La licencia gratuita
+incluye obligaciones de atribución, registro y límites de consulta:
+https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service
+
+La foto se vuelve a solicitar como mínimo cada tres minutos; **no
+equivale a 30 FPS ni permite medir movimiento continuo**. El estado de
+disponibilidad y la hora de consulta no son prueba de la hora exacta de
+captura por la cámara. Si el proveedor devuelve error no se muestran
+predicciones falsas ni se accede a ninguna cámara privada.
+
+Cámaras de calles **no permiten certificar EPP industrial ni defectos
+de fabricación**. Los resultados de YOLO COCO muestran únicamente
+clases reconocibles sobre los píxeles del fotograma de tráfico.

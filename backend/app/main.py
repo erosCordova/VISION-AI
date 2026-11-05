@@ -1,8 +1,8 @@
 """API pública ligera de VISION-AI.
 
 El análisis YOLO/ONNX utiliza exclusivamente fotogramas renderizados
-por las cuatro simulaciones 3D en el navegador. Render Free no recibe
-imágenes, no carga pesos y no ejecuta inferencia, aun si se configura
+por las cuatro simulaciones 3D en el navegador. Render Free obtiene
+imágenes públicas TfL, no carga pesos ni ejecuta inferencia, aun si se configura
 accidentalmente VISION_INFERENCE_ENABLED=1.
 """
 from __future__ import annotations
@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
+from .public_cameras import router as public_camera_router
 
 SCENARIOS = ("safety", "quality", "retail", "warehouse")
 
@@ -61,6 +62,9 @@ app.add_middleware(
 )
 
 
+app.include_router(public_camera_router)
+
+
 @app.middleware("http")
 async def response_security(request, call_next):
     response = await call_next(request)
@@ -79,9 +83,10 @@ def health(response: Response) -> dict:
         "mode": "render-free-status-only",
         "inferenceAvailable": False,
         "modelLoaded": False,
-        "source": "four-3d-simulations-only",
+        "source": "simulations-and-licensed-public-photos",
+        "publicCameras": "TfL JPEG · sin inferencia en servidor",
         "note": ("Render Free mantiene solo la API de estado. "
-                 "YOLO analiza los fotogramas 3D localmente en el navegador."),
+                 "YOLO analiza fotogramas localmente en el navegador."),
     }
 
 

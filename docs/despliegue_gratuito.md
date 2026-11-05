@@ -1,7 +1,8 @@
 # Despliegue gratuito y verificación de VISION-AI — Fase 16
 
-**Versión vigente:** cuatro simulaciones 3D, análisis YOLO ONNX/WASM
-en el navegador. **Sin cámaras, videos, imágenes subidas ni datasets**.
+**Versión vigente:** dos fuentes en Análisis en vivo: cámaras públicas
+TfL (fotografías JPEG periódicas) y cuatro simulaciones 3D; ambas con
+YOLO ONNX/WASM en navegador. Sin cámara personal ni datasets.
 El frontend React/Vite está en Vercel; Render sirve una API de
 estado sin ejecutar ningún modelo.
 
@@ -10,14 +11,20 @@ estado sin ejecutar ningún modelo.
 | Pieza | Proveedor | Tarea | Persistencia |
 | --- | --- | --- | --- |
 | Frontend | Vercel Hobby | Interfaz, simulación 3D, inferencia ONNX local, informes | No guarda sesiones en servidor |
-| API FastAPI | Render Free | `GET /api/v1/health`; `POST /api/v1/infer` → 503 | Ninguna |
+| API FastAPI | Render Free | `GET /api/v1/health`, catálogo/fotograma TfL; `POST /api/v1/infer` → 503 | Ninguna |
 | Sesiones | IndexedDB del usuario | Resultados y decisiones guardados explícitamente | Solo navegador y perfil actuales |
 | Pesos de IA | CDN/modelos externos, bajo demanda | ONNX verificados con SHA-256 | Caché del dispositivo |
 | Evidencias | Descarga local del usuario | PNG/CSV/JSON solicitados | Fuera de la aplicación |
 
 La API no procesa imágenes ni contiene dependencias PyTorch/OpenCV.
-El backend Render no es imprescindible para ejecutar la simulación o
-YOLO, porque el análisis se hace dentro del navegador. No confundir el
+Para **cámaras públicas**, configurar `VITE_VISION_API_BASE_URL`
+en Vercel apuntando a la URL Render real, y `VISION_ALLOWED_ORIGINS`
+en Render con los dominios frontend verificados. El servidor solo hace
+proxy de cuatro rutas JPEG TfL predefinidas, con caché en memoria de
+120 segundos; no acepta URLs arbitrarias. Se recomienda registrar el
+uso de los datos en TfL y cumplir su licencia y atribución.
+El backend Render no es imprescindible para ejecutar el **simulador** o
+YOLO sobre 3D, porque ese análisis se hace dentro del navegador. No confundir el
 estado `ok` del backend con disponibilidad del detector ni precisión.
 
 ## Frontend Vercel Hobby

@@ -10,6 +10,7 @@ import './styles/simulator-humans.css';
 import './styles/simulator-yolo.css';
 import './styles/experience.css';
 import './styles/studio.css';
+import './styles/public-cameras.css';
 const root = document.getElementById('root');
 if (!root) throw new Error('No se encontró el punto de entrada de VISION AI.');
 try {
