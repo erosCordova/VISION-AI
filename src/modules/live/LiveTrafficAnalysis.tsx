@@ -159,7 +159,12 @@ export function LiveTrafficAnalysis(){
      setVideoMessage('Comprobando que llegan nuevos fotogramas en directo…');
     }
    }
-   if(performance.now()-lastProgress>20_000){
+   const stalledFor=performance.now()-lastProgress;
+   if(stalledFor>6_000&&liveSince&&!retryTimeout){
+    setVideoPhase('buffering');setLiveConfirmed(false);
+    setVideoMessage('Video detenido temporalmente: esperando nuevos fotogramas…');
+   }
+   if(stalledFor>20_000){
     fail('No llegaron fotogramas nuevos durante 20 segundos.');
    }
   },1000);
@@ -242,11 +247,12 @@ export function LiveTrafficAnalysis(){
    setAnalyzing(false);runGeneration.current++;
    setYoloPhase('idle');
    setYoloMessage('Reconectando: YOLO se reanudará al recibir video nuevo.');
-  }else if(videoPhase==='live'&&!analyzing&&wantsRecognition.current&&modelRef.current){
+  }else if(videoPhase==='live'&&!analyzing&&wantsRecognition.current&&modelRef.current&&
+   videoRef.current&&!videoRef.current.paused&&videoRef.current.readyState>=2){
    setYoloPhase('running');setAnalyzing(true);
    setYoloMessage('YOLO reanudado sobre fotogramas actuales.');
   }
- },[videoPhase,analyzing]);
+ },[videoPhase,analyzing,yoloPhase]);
 
  useEffect(()=>{
   const frame=lastResultRef.current;
@@ -353,12 +359,12 @@ export function LiveTrafficAnalysis(){
     if(token===runGeneration.current)setYoloMessage(message);
    },'coco');
    if(token!==runGeneration.current)return;
+   modelRef.current=model;
    if(!videoRef.current||videoRef.current.paused||videoRef.current.readyState<2){
     setYoloPhase('idle');
-    setYoloMessage('El video dejó de reproducirse. Reconecta la cámara.');
+    setYoloMessage('Reconectando cámara: YOLO continuará al volver los fotogramas.');
     return;
    }
-   modelRef.current=model;
    setYoloPhase('running');setAnalyzing(true);
   }catch(error){
    if(token!==runGeneration.current)return;
@@ -406,7 +412,7 @@ export function LiveTrafficAnalysis(){
      {!streaming?
       <button type="button" className="primary" onClick={()=>setStreaming(true)}>▶ Iniciar video en directo</button>:
       <button type="button" onClick={stopStream}>■ Detener transmisión</button>}
-     {videoPhase==='error'&&<button type="button" className="primary" onClick={retryStream}>
+     {streaming&&videoPhase!=='live'&&<button type="button" className="primary" onClick={retryStream}>
       ↻ Reintentar cámara
      </button>}
      {videoPhase==='error'&&<button type="button" onClick={()=>{
