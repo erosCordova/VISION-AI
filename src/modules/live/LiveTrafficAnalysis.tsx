@@ -6,6 +6,8 @@ import {frameBoxPixels} from './frame-analysis-cycle';
 import {loadHlsFactory} from './live-hls-loader';
 import type {HlsPlayer,HlsErrorData,HlsLevelData} from './live-hls-loader';
 import {LIVE_TRAFFIC_SOURCES,isAuthorizedLiveTrafficUrl} from './live-traffic-sources';
+import {streamReconnectDelay,MAX_STREAM_RECONNECTS,chooseFatalHlsAction,
+ conciseVideoError} from './live-hls-recovery';
 
 type VideoPhase='idle'|'connecting'|'buffering'|'live'|'error';
 type YoloPhase='idle'|'loading'|'running'|'error';
@@ -68,6 +70,12 @@ export function LiveTrafficAnalysis(){
  const lastResultRef=useRef<YoloFrame|null>(null);
  const streamGeneration=useRef(0);
  const runGeneration=useRef(0);
+ const reconnectAttempts=useRef(0);
+ const wantsRecognition=useRef(false);
+ const nativeHlsRejected=useRef(false);
+ const thresholdRef=useRef(threshold);
+ thresholdRef.current=threshold;
+ const [connectionEpoch,setConnectionEpoch]=useState(0);
  const readyForInference=videoPhase==='live'&&liveConfirmed;
  const visibleDetections=detections.filter(item=>item.confidence>=threshold);
 
@@ -87,21 +95,51 @@ export function LiveTrafficAnalysis(){
   let lastTime=-1;
   let lastProgress=performance.now();
   let manifestIsLive=false;
+  let nativePlayback=false;
+  let sourceAttached=false;
+  let retryTimeout:number|null=null;
+  let recoveredMedia=false;
+  let restartedNetwork=false;
+  let liveSince=0;
+  const fail=(reason:string)=>{
+   if(closed||retryTimeout!==null)return;
+   const wait=streamReconnectDelay(reconnectAttempts.current);
+   setLiveConfirmed(false);
+   if(wait===null){
+    setVideoPhase('error');
+    setVideoError(reason+' Reintentos agotados. Selecciona otra cámara.');
+    setVideoMessage('Sin señal · usa Reintentar cámara u Otra cámara.');
+    return;
+   }
+   const attempt=++reconnectAttempts.current;
+   setVideoPhase('buffering');
+   setVideoError('');
+   setVideoMessage('Se interrumpió la señal: reconectando ('+attempt+'/'+
+    MAX_STREAM_RECONNECTS+') en '+(wait/1000).toFixed(1)+' s…');
+   retryTimeout=window.setTimeout(()=>{
+    retryTimeout=null;
+    if(!closed)setConnectionEpoch(n=>n+1);
+   },wait);
+  };
   setVideoPhase('connecting');setVideoError('');
   setVideoMessage('Conectando con el video HLS público de SDOT…');
   setLiveConfirmed(false);
-  video.pause();
-  video.removeAttribute('src');
-  video.load();
+  // No llamar load() sin URL: algunos navegadores lanzan MEDIA_ERR_SRC_NOT_SUPPORTED.
+  // La limpieza de la conexión anterior se realiza antes, en el return del effect.
   video.crossOrigin='anonymous';
   video.muted=true;
 
   const onPlaybackError=()=>{
-   if(closed)return;
-   setVideoPhase('error');
-   setVideoError('El video no se pudo reproducir. Prueba otra cámara SDOT.');
+   if(closed||!sourceAttached)return;
+   if(nativePlayback&&video.error?.code===4)nativeHlsRejected.current=true;
+   fail(conciseVideoError(video.error?.code));
+  };
+  const onNativeDuration=()=>{
+   if(!closed&&nativePlayback&&(video.duration===Infinity||!Number.isFinite(video.duration)))
+    manifestIsLive=true;
   };
   video.addEventListener('error',onPlaybackError);
+  video.addEventListener('durationchange',onNativeDuration);
 
   const watchdog=window.setInterval(()=>{
    if(closed||document.hidden)return;
@@ -109,29 +147,37 @@ export function LiveTrafficAnalysis(){
    if(video.readyState>=2&&current>lastTime+.08){
     lastTime=current;movement++;
     lastProgress=performance.now();
+    if(retryTimeout!==null)return;
     if(manifestIsLive&&movement>=2){
+     if(!liveSince)liveSince=performance.now();
+     if(performance.now()-liveSince>=30_000)reconnectAttempts.current=0;
      setVideoPhase('live');setLiveConfirmed(true);
+     setVideoError('');
      setVideoMessage('Transmisión HLS activa · video en movimiento');
     }else if(movement>=1){
      setVideoPhase('buffering');
      setVideoMessage('Comprobando que llegan nuevos fotogramas en directo…');
     }
    }
-   if(performance.now()-lastProgress>25_000){
-    setVideoPhase('error');setLiveConfirmed(false);
-    setVideoError('La cámara dejó de entregar fotogramas nuevos. Selecciona otra fuente o reintenta.');
+   const stalledFor=performance.now()-lastProgress;
+   if(stalledFor>6_000&&liveSince&&!retryTimeout){
+    setVideoPhase('buffering');setLiveConfirmed(false);
+    setVideoMessage('Video detenido temporalmente: esperando nuevos fotogramas…');
+   }
+   if(stalledFor>20_000){
+    fail('No llegaron fotogramas nuevos durante 20 segundos.');
    }
   },1000);
 
   const start=async()=>{
    try{
-    const native=Boolean(video.canPlayType('application/vnd.apple.mpegurl'));
+    const native=Boolean(video.canPlayType('application/vnd.apple.mpegurl'))&&!nativeHlsRejected.current;
     if(native){
+     nativePlayback=true;
+     // En Safari HLS es nativo; el estado DIRECTO requiere fotogramas avanzando.
+     manifestIsLive=true;
+     sourceAttached=true;
      video.src=camera.streamUrl;
-     video.addEventListener('durationchange',()=>{
-      if(!closed&&(video.duration===Infinity||!Number.isFinite(video.duration)))
-       manifestIsLive=true;
-     });
      await video.play();
     }else{
      const Hls=await loadHlsFactory();
@@ -152,14 +198,28 @@ export function LiveTrafficAnalysis(){
      });
      player.on(Hls.Events.MANIFEST_PARSED,()=>{
       if(closed)return;
-      void video.play().catch(onPlaybackError);
+      void video.play().catch(error=>{
+       if(closed)return;
+       const message=error instanceof Error?error.message:String(error);
+       fail('No se pudo iniciar la reproducción: '+message.slice(0,120));
+      });
      });
      player.on(Hls.Events.ERROR,(_event:string,data:HlsErrorData)=>{
       if(closed||!data.fatal)return;
-      setVideoPhase('error');setLiveConfirmed(false);
-      setVideoError('Error HLS: '+(data.details||data.type||'transmisión interrumpida')+
-       '. Selecciona otra cámara o reintenta.');
+      const action=chooseFatalHlsAction(data.type,recoveredMedia,restartedNetwork);
+      if(action==='recover-media'&&player?.recoverMediaError){
+       recoveredMedia=true;
+       setVideoMessage('Recuperando decodificación del video en directo…');
+       player.recoverMediaError();return;
+      }
+      if(action==='restart-network'&&player?.startLoad){
+       restartedNetwork=true;
+       setVideoMessage('Reanudando la descarga de segmentos de video…');
+       player.startLoad();return;
+      }
+      fail('Error HLS: '+(data.details||data.type||'transmisión interrumpida'));
      });
+     sourceAttached=true;
      player.attachMedia(video);
      player.loadSource(camera.streamUrl);
      setVideoPhase('buffering');
@@ -167,26 +227,32 @@ export function LiveTrafficAnalysis(){
     }
    }catch(error){
     if(closed)return;
-    setVideoPhase('error');setLiveConfirmed(false);
-    setVideoError(error instanceof Error?error.message:'No se pudo iniciar el stream.');
+    fail(error instanceof Error?error.message:'No se pudo iniciar la transmisión.');
    }
   };
   void start();
   return()=>{
    closed=true;streamGeneration.current++;
    window.clearInterval(watchdog);
+   if(retryTimeout!==null)window.clearTimeout(retryTimeout);
    video.removeEventListener('error',onPlaybackError);
+   video.removeEventListener('durationchange',onNativeDuration);
    video.pause();player?.destroy();
    video.removeAttribute('src');video.load();
   };
- },[streaming,cameraId,camera.streamUrl]);
+ },[streaming,cameraId,camera.streamUrl,connectionEpoch]);
 
  useEffect(()=>{
   if(videoPhase!=='live'&&analyzing){
    setAnalyzing(false);runGeneration.current++;
    setYoloPhase('idle');
+   setYoloMessage('Reconectando: YOLO se reanudará al recibir video nuevo.');
+  }else if(videoPhase==='live'&&!analyzing&&wantsRecognition.current&&modelRef.current&&
+   videoRef.current&&!videoRef.current.paused&&videoRef.current.readyState>=2){
+   setYoloPhase('running');setAnalyzing(true);
+   setYoloMessage('YOLO reanudado sobre fotogramas actuales.');
   }
- },[videoPhase,analyzing]);
+ },[videoPhase,analyzing,yoloPhase]);
 
  useEffect(()=>{
   const frame=lastResultRef.current;
@@ -228,7 +294,7 @@ export function LiveTrafficAnalysis(){
      const result=await analyzeYoloFrame(model,canvas,.20,35);
      if(closed||token!==runGeneration.current)return;
      lastResultRef.current=result;
-     if(evidenceRef.current)renderEvidence(result,evidenceRef.current,threshold);
+     if(evidenceRef.current)renderEvidence(result,evidenceRef.current,thresholdRef.current);
      setDetections(result.detections);
      setInferenceMs(Math.round(result.inferenceMs));
      setAnalyzed(n=>n+1);
@@ -243,6 +309,7 @@ export function LiveTrafficAnalysis(){
     }catch(error){
      if(closed||token!==runGeneration.current)return;
      const text=error instanceof Error?error.message:String(error);
+     wantsRecognition.current=false;
      setYoloPhase('error');setAnalyzing(false);
      setYoloError(/SecurityError|tainted|cross-origin/i.test(text)?
       'El servidor de video no permite leer sus píxeles (CORS). No se puede ejecutar YOLO con esta fuente.':
@@ -254,17 +321,25 @@ export function LiveTrafficAnalysis(){
   };
   void pump();
   return()=>{closed=true;runGeneration.current++;};
- },[analyzing,cameraId,threshold]);
+ },[analyzing,cameraId]);
 
  const stopStream=()=>{
   runGeneration.current++;
+  wantsRecognition.current=false;
+  reconnectAttempts.current=0;
   setAnalyzing(false);setYoloPhase('idle');
   setStreaming(false);setVideoPhase('idle');setLiveConfirmed(false);
   setVideoError('');setVideoMessage('Transmisión detenida.');
  };
+ const retryStream=()=>{
+  reconnectAttempts.current=0;
+  setVideoError('');setLiveConfirmed(false);setVideoPhase('connecting');
+  if(streaming)setConnectionEpoch(n=>n+1);
+  else setStreaming(true);
+ };
  const changeCamera=(next:string)=>{
   if(!LIVE_TRAFFIC_SOURCES.some(x=>x.id===next))return;
-  stopStream();setCameraId(next);
+  stopStream();nativeHlsRejected.current=false;setCameraId(next);
   setDetections([]);setAnalyzed(0);setFps(null);
   setInferenceMs(null);setSampleTime('');setYoloError('');
   lastResultRef.current=null;
@@ -275,6 +350,7 @@ export function LiveTrafficAnalysis(){
  };
  const startYolo=async()=>{
   if(!readyForInference||yoloPhase==='loading')return;
+  wantsRecognition.current=true;
   const token=++runGeneration.current;
   setYoloPhase('loading');setYoloError('');
   setYoloMessage('Cargando modelo YOLOv8n para analizar el video…');
@@ -283,20 +359,22 @@ export function LiveTrafficAnalysis(){
     if(token===runGeneration.current)setYoloMessage(message);
    },'coco');
    if(token!==runGeneration.current)return;
+   modelRef.current=model;
    if(!videoRef.current||videoRef.current.paused||videoRef.current.readyState<2){
     setYoloPhase('idle');
-    setYoloMessage('El video dejó de reproducirse. Reconecta la cámara.');
+    setYoloMessage('Reconectando cámara: YOLO continuará al volver los fotogramas.');
     return;
    }
-   modelRef.current=model;
    setYoloPhase('running');setAnalyzing(true);
   }catch(error){
    if(token!==runGeneration.current)return;
+   wantsRecognition.current=false;
    setYoloPhase('error');setYoloError(error instanceof Error?error.message:String(error));
   }
  };
  const stopYolo=()=>{
   runGeneration.current++;
+  wantsRecognition.current=false;
   setAnalyzing(false);setYoloPhase('idle');
   setYoloMessage('Análisis detenido. El video puede continuar reproduciéndose.');
  };
@@ -334,6 +412,15 @@ export function LiveTrafficAnalysis(){
      {!streaming?
       <button type="button" className="primary" onClick={()=>setStreaming(true)}>▶ Iniciar video en directo</button>:
       <button type="button" onClick={stopStream}>■ Detener transmisión</button>}
+     {streaming&&videoPhase!=='live'&&<button type="button" className="primary" onClick={retryStream}>
+      ↻ Reintentar cámara
+     </button>}
+     {videoPhase==='error'&&<button type="button" onClick={()=>{
+      const index=LIVE_TRAFFIC_SOURCES.findIndex(item=>item.id===cameraId);
+      const next=LIVE_TRAFFIC_SOURCES[(index+1)%LIVE_TRAFFIC_SOURCES.length];
+      changeCamera(next.id);
+      setStreaming(true);
+     }}>Otra cámara</button>}
      <span role="status">{videoMessage}</span>
     </div>
     {videoError&&<p className="live-traffic-error" role="alert">{videoError}</p>}
