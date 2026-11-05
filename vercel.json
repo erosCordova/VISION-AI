@@ -49,5 +49,10 @@
       "source": "/camaras-tfl/romford-transito.jpg",
       "destination": "https://s3-eu-west-1.amazonaws.com/jamcams.tfl.gov.uk/00001.02151.jpg"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "test/architecture-52-alignment": false
+    }
+  }
 }

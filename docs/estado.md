@@ -448,3 +448,14 @@ el cambio automático. Solo se guardan metadatos de análisis; no video.
 Esta ampliación requiere CI y verificación en navegador sobre señales
 reales antes de considerar validada su operación sostenida. No altera
 los porcentajes administrativos de las fases del plan original.
+
+## Adecuación técnica a la sección 5.2 (noviembre de 2026)
+
+Se reorganizaron carpetas de frontend, casos, repositorios y tests para
+separar análisis, detección, segmentación, patrones, alertas, escenarios,
+historial, dashboard y configuración. Se introdujeron rutas y layout
+independientes, validaciones de contratos y entradas de pruebas.
+Las rutas de usuario, sesiones ya guardadas y señal de cámaras se mantienen;
+la API en Render conserva su implementación Python actual.
+La aprobación de integración debe quedar supeditada a CI y la prueba
+responsive de GitHub Actions, no a la presencia de carpetas.

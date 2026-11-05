@@ -56,3 +56,8 @@ Los cuatro escenarios pasan a operar con cámara en vivo. La especificación vig
 
 - [Diseño UI e inventario de rutas](diseno_ui.md).
 - [Evidencia y pendientes](evidencias_fase_06.md).
+
+## Arquitectura vigente
+
+- [Arquitectura modular de la sección 5.2](arquitectura.md)
+- [Versión histórica de Fase 5](arquitectura_fase05.md)

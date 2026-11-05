@@ -1,10 +1,32 @@
 {
   "compilerOptions": {
-    "target": "ES2023", "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "module": "ESNext", "moduleResolution": "Bundler", "jsx": "react-jsx",
-    "strict": true, "noEmit": true, "isolatedModules": true, "verbatimModuleSyntax": true,
-    "noUnusedLocals": true, "noUnusedParameters": true, "noFallthroughCasesInSwitch": true,
-    "resolveJsonModule": true, "skipLibCheck": true, "types": ["vite/client", "node"]
+    "target": "ES2023",
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "types": [
+      "vite/client",
+      "node"
+    ]
   },
-  "include": ["src", "tests/ts", "vite.config.ts"]
+  "include": [
+    "src",
+    "tests/unit",
+    "tests/integration",
+    "vite.config.ts"
+  ]
 }

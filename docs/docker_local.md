@@ -92,3 +92,10 @@ El flujo está en `.github/workflows/docker-backend.yml`.
 **Docker es opcional para VISION-AI**, no reemplaza el frontend Vercel y no
 requiere modificar `vercel.json` ni configurar Render como servicio Docker.
 El uso local de Docker Desktop no genera cargos de Vercel o Render.
+
+## Entrada API de la arquitectura 5.2
+
+El código de FastAPI permanece en `backend/app` para conservar el servicio
+Python gratuito de Render. La entrada de servidor `server/api/app.py`
+expone la **misma instancia FastAPI** y se utiliza desde Docker, sin duplicar
+endpoints ni procesar videos en el servidor.

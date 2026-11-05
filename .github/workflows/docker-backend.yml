@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'backend/**'
+      - 'server/**'
       - 'tests/**'
       - 'tools/**'
       - 'docs/fixtures/**'
@@ -16,6 +17,7 @@ on:
     branches: [main]
     paths:
       - 'backend/**'
+      - 'server/**'
       - 'tests/**'
       - 'tools/**'
       - 'docs/fixtures/**'

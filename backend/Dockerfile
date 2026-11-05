@@ -12,6 +12,7 @@ COPY backend/requirements-render-free.txt /app/backend/requirements-render-free.
 RUN python -m pip install --no-cache-dir -r /app/backend/requirements-render-free.txt \
     && useradd --uid 10001 --no-create-home --shell /usr/sbin/nologin visionai
 COPY backend/app/ /app/backend/app/
+COPY server/ /app/server/
 USER 10001:10001
 
 # Solo esta etapa incluye fixtures y tests; nunca se envían a la imagen final.
@@ -26,4 +27,4 @@ FROM base AS runtime
 EXPOSE 8010
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
     CMD python -c "import json,urllib.request; r=json.load(urllib.request.urlopen('http://127.0.0.1:8010/api/v1/health',timeout=3)); assert r.get('ok') is True and r.get('inferenceAvailable') is False" || exit 1
-CMD ["uvicorn","backend.app.main:app","--host","0.0.0.0","--port","8010"]
+CMD ["uvicorn","server.api.app:app","--host","0.0.0.0","--port","8010"]

@@ -20,3 +20,9 @@ La referencia definitiva del porcentaje y criterios aprobados
 es [Estado del proyecto](../estado.md). No confundir documentación
 antigua de cámara, video o datasets con la decisión actual:
 **videos públicos en directo y simulaciones 3D**. El documento Word original es una referencia histórica; la funcionalidad vigente se describe en el manual de usuario.
+
+## Organización funcional del código
+
+Consultar [Arquitectura 5.2](../arquitectura.md) y el
+[Manual técnico](Manual_Tecnico_VISION_AI.md). La estructura de desarrollo
+se organiza por responsabilidades y no modifica los textos de la interfaz.
