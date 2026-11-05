@@ -1,7 +1,7 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {
  Search,ArrowUpRight,LayoutDashboard,ScanEye,Boxes,ClipboardCheck,
- History,ShieldCheck,Settings2,LockKeyhole,X,Command,
+ History,ShieldCheck,X,Command,
  Factory,Warehouse,ShoppingBag
 } from 'lucide-react';
 import type {LucideIcon} from 'lucide-react';

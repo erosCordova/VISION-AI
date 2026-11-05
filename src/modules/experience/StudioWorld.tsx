@@ -64,7 +64,6 @@ export function StudioWorld({active,paused,onReady}:Props){
   const cyan=material(0x56e7d2,.38,.25,0x56e7d2);
   const violet=material(0x91a3e9,.47,.31,0x6a7dca);
   const white=material(0xbed8df,.5,.28);
-  const black=material(0x122735,.8,.2);
   const crateColors=[metal,glass,orange,violet,bright];
   const create=(g:any,geo:any,mat:any,x:number,y:number,z:number,sx=1,sy=1,sz=1)=>{
    const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);
