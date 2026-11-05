@@ -78,7 +78,7 @@ export function LiveObservationsHistory({onAnalyze}:{readonly onAnalyze:()=>void
   {error&&<p className="live-traffic-error" role="alert">{error}</p>}
   {notice&&<p role="status" className="live-history-notice">{notice}</p>}
   {!loading&&records.length===0?<div className="live-history-empty">
-   <p>Aún no guardaste ningún análisis de cámaras.</p>
+   <p>Los resultados aparecerán aquí cuando guardes un análisis de una cámara en directo. No se generan registros de ejemplo.</p>
    <button type="button" onClick={onAnalyze}>Abrir cámaras en directo</button>
   </div>:<div className="live-history-table-wrap">
    <table className="live-history-table"><thead><tr><th>Fecha</th><th>Cámara</th>

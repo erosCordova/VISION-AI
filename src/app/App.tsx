@@ -5,6 +5,7 @@ import { SessionSettings } from '../modules/settings/pages/SessionSettings';
 import {PrivacyCenter} from '../modules/settings/pages/PrivacyCenter';
 import { ErrorBoundary } from '../shared/ui/ErrorBoundary';
 import { LiveAnalysisPage } from '../modules/analysis/pages/LiveAnalysisPage';
+import {VisionWorkspace} from '../modules/detections/pages/VisionWorkspace';
 import type {SimulationSessionRepository} from '../core/ports/simulation-session-repository';
 import {validateReproducibility} from '../modules/scenarios/services/simulation-session-model';
 import {SessionsDashboard} from '../modules/dashboard/pages/SessionsDashboard';
@@ -69,7 +70,7 @@ export function App({ apiBaseUrl, sessionRepository, liveObservationRepository }
     <div className="workspace"><AppHeader menu={menu} page={page} role={role}
       onToggleMenu={()=>setMenu(!menu)} onOpenCommand={()=>setCommandOpen(true)}
       onRoleChange={setRole}/>
-      <main id="contenido" tabIndex={-1}>{page !== 'Resumen'&&<div className="page-heading"><div><span className="eyebrow">VISIÓN COMPUTACIONAL</span><h1>{page}</h1><p>{page === 'Análisis en vivo' ? 'Cámaras públicas en directo y simulaciones con reconocimiento de objetos.' : page === 'Historial' ? 'Sesiones y evidencias de tus análisis.' : 'Estado del entorno y capacidades disponibles.'}</p></div></div>}
+      <main id="contenido" tabIndex={-1}>{page !== 'Resumen'&&<div className="page-heading"><div><span className="eyebrow">VISIÓN COMPUTACIONAL</span><h1>{page}</h1><p>{page === 'Análisis en vivo' ? 'Cámaras públicas en directo y simulaciones con reconocimiento de objetos.' : page === 'Visión IA' ? 'Laboratorio interactivo para reconocer objetos sobre escenas 3D o video público.' : page === 'Historial' ? 'Sesiones y evidencias de tus análisis.' : 'Estado del entorno y capacidades disponibles.'}</p></div></div>}
       <ErrorBoundary key={page + role}>
       {page === 'Resumen' && <>
        <StudioLanding onExplore={openScene}
@@ -95,37 +96,11 @@ export function App({ apiBaseUrl, sessionRepository, liveObservationRepository }
       {page === 'Análisis en vivo' && <LiveAnalysisPage scenarios={scenarios} scenarioId={scenarioId} onScenarioChange={setScenarioId} sessionRepository={sessionRepository} role={role} apiBaseUrl={apiBaseUrl} />}
       {page === 'Historial' && <HistoryPanel onAnalyze={() => navigate('Análisis en vivo')} sessionRepository={sessionRepository} />}
       {page === 'Privacidad' && <PrivacyCenter repository={sessionRepository} />}
-      {page === 'Visión IA' && <>
-       <section className="panel settings">
-        <h2>Reconocimiento de objetos</h2>
-        <p>VISION-AI analiza fotogramas de cámaras públicas y simulaciones 3D con modelos de detección reales.</p>
-        <dl><dt>Cámaras en directo</dt><dd>Personas, vehículos y otras clases generales reconocibles; la señal depende del proveedor.</dd>
-         <dt>Simulaciones 3D</dt><dd>Seguridad, manufactura, almacén y retail, con detecciones sobre sus fotogramas.</dd>
-         <dt>Resultados</dt><dd>Cajas sobre el fotograma analizado, clases, confianza y tiempo de procesamiento.</dd>
-         <dt>Guardado</dt><dd>Solo por decisión del usuario. Los videos públicos no se graban.</dd>
-         <dt>Limitaciones</dt><dd>No identifica rostros o matrículas ni certifica infracciones, defectos o medidas de seguridad.</dd>
-        </dl>
-       </section>
-       <section className="panel vision-guide" aria-label="Funciones de VISION-AI">
-        <div className="vision-guide-heading">
-         <span>EXPLORA LAS FUNCIONES</span><h2>Todo en un espacio de análisis</h2>
-         <p>Explora cámaras en directo, escenas 3D y resultados de reconocimiento en un solo lugar.</p>
-        </div>
-        <div className="vision-guide-flow">
-         <article><b>01</b><h3>Cámaras en directo</h3><p>Video en movimiento, cambio automático de cámara y reconocimiento de personas o vehículos.</p></article>
-         <article><b>02</b><h3>Simulaciones 3D</h3><p>Cuatro entornos para explorar detecciones visuales de seguridad, calidad, almacén y retail.</p></article>
-         <article><b>03</b><h3>Historial y resultados</h3><p>Guarda análisis cuando lo necesites. Consulta detecciones, estadísticas y exporta informes CSV.</p></article>
-        </div>
-        <div className="vision-guide-actions">
-         <a href="#Análisis en vivo">Abrir análisis</a>
-         <a href="#Historial">Ver historial</a>
-         <a href="https://github.com/erosCordova/VISION-AI/blob/main/docs/manual/Manual_Usuario_VISION_AI.md"
-          target="_blank" rel="noopener noreferrer">Manual de usuario completo</a>
-        </div>
-        <p className="vision-guide-note">Las cámaras públicas no están disponibles permanentemente.
-         Las detecciones son orientativas y los datos solo se guardan por decisión del usuario.</p>
-       </section>
-      </>}
+      {page === 'Visión IA' && <VisionWorkspace
+       scenarioId={scenarioId} onScenarioChange={setScenarioId}
+       sessionRepository={sessionRepository}
+       liveObservationRepository={liveObservationRepository}
+       onHistory={()=>navigate('Historial')}/>}
       {page === 'Operaciones' && <OperationsPanel repository={sessionRepository}
    onHistory={() => navigate('Historial')} />}
       {(page === 'Administración' || page === 'Configuración') && role !== 'administrador' && <section className="panel empty-page"><h2>Vista restringida</h2><p>Esta vista está reservada al perfil administrador de prueba.</p><button onClick={() => navigate('Resumen')}>Volver al resumen</button></section>}

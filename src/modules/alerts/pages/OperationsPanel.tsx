@@ -93,6 +93,7 @@ export function OperationsPanel({repository,onHistory}:{
    filtered.length===0?<div className="operations-review-empty">
     <h3>{all.length===0?'No hay indicios guardados':'No hay indicios con estos filtros'}</h3>
     <p>Las observaciones aparecen aquí cuando guardas un análisis con señales repetidas de falta de protección.</p>
+    {all.length===0&&<button type="button" onClick={()=>{location.hash='Visión IA';}}>Abrir reconocimiento de seguridad</button>}
    </div>:
    <div className="operations-review-list">
     {filtered.map(item=><article className="operations-review-item" key={item.id}>

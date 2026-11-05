@@ -86,13 +86,19 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
     Los videos públicos no se graban.</p>
   </header>
   <div className="privacy-metrics" aria-live="polite">
-   <div><span>Sesiones válidas</span><strong>{loading?'—':summary?.sessions??'—'}</strong></div>
+   <div><span>Sesiones 3D guardadas</span><strong>{loading?'—':summary?.sessions??'—'}</strong></div>
    <div><span>Revisiones humanas</span><strong>{loading?'—':summary?.reviews??'—'}</strong></div>
    <div><span>Registros incompatibles</span><strong>{loading?'—':summary?.corrupt??'—'}</strong></div>
-   <div><span>Fuera de retención</span><strong>{loading?'—':summary?.expired??'—'}</strong></div>
+   <div><span>Fuera de retención</span><strong>{loading?'—':totalExpired}</strong></div>
   </div>
   <p className="privacy-live-count"><strong>{loading?'—':liveRows.length}</strong>
    {' '}análisis guardados de cámaras en directo, incluidos en las opciones de borrado.</p>
+  {!loading&&!error&&totalLocal===0&&<div className="privacy-empty-state" role="note">
+   <div><strong>Aún no hay resultados guardados</strong>
+    <p>Esta sección se completa con los análisis que decidas conservar.
+     No se generan registros de ejemplo ni se graban los videos.</p></div>
+   <button type="button" onClick={()=>{location.hash='Visión IA';}}>Iniciar reconocimiento</button>
+  </div>}
   {error&&<p role="alert" className="session-history-error">{error}</p>}
   {notice&&<p role="status" className="session-history-notice">{notice}</p>}
   <section className="privacy-policy">

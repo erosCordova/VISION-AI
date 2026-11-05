@@ -1,0 +1,29 @@
+.vision-workspace{display:grid;gap:20px;min-width:0}
+.vision-workspace-intro{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:22px;padding:26px 29px;border:1px solid #235b63;border-radius:18px;color:#f5fffb;background:radial-gradient(circle at 92% -20%,rgba(91,226,186,.18),transparent 45%),linear-gradient(125deg,#0e2939,#164b50 78%,#185b55)}
+.vision-workspace-eyebrow{display:flex;align-items:center;gap:8px;color:#6de9ca;font-size:11px;font-weight:800;letter-spacing:1.5px}
+.vision-workspace-intro h2{font-size:clamp(23px,2.5vw,35px);letter-spacing:-1.15px;margin:12px 0 8px;color:#fff;max-width:720px}
+.vision-workspace-intro p{color:#b7d5d3;max-width:650px;margin:0;line-height:1.65;font-size:13px}
+.vision-workspace-history{display:inline-flex;align-items:center;gap:11px;border:1px solid rgba(115,228,211,.43);background:rgba(255,255,255,.07);color:#e2fff9;white-space:nowrap;border-radius:10px;padding:13px 15px}
+.vision-workspace-history:hover{background:#24585a;color:white}
+.vision-workspace-sources{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.vision-workspace-source{display:flex;align-items:center;gap:16px;text-align:left;padding:18px 20px;border:1px solid #cbdedc;border-radius:13px;background:#f7fbfa;min-height:94px;transition:border-color .16s,background .16s,transform .16s}
+.vision-workspace-source:hover{background:#edf8f6;transform:translateY(-1px)}
+.vision-workspace-source[aria-pressed="true"]{border-color:#137e79;background:#e5f7f1;box-shadow:inset 0 0 0 1px #137e79}
+.vision-workspace-source>svg{color:#12857c;flex:none}
+.vision-workspace-source span{display:grid;gap:7px}
+.vision-workspace-source strong{font-size:14px;color:#123d43}
+.vision-workspace-source small{font-size:11px;line-height:1.5;color:#516e72;font-weight:500}
+.vision-workspace-activity{display:flex;gap:13px;align-items:center;flex-wrap:wrap;background:#f2f8f6;border:1px solid #d6e8e3;border-radius:10px;padding:13px 16px;color:#365b59;font-size:12px}
+.vision-workspace-activity span{padding:0 12px 0 0;border-right:1px solid #c6dfd9}
+.vision-workspace-activity strong{font-size:16px;color:#116e68;margin-right:3px}
+.vision-workspace-activity button{margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:7px 10px;font-size:11px}
+.vision-workspace-notice{margin:0;padding:12px 16px;border-left:3px solid #28ad99;background:#edf7f3;color:#2c5c5b;border-radius:0 8px 8px 0;font-size:12px}
+.vision-workspace-notice.is-error{border-color:#d67b60;background:#fff1ed;color:#943e35}
+.vision-workspace-engine{min-width:0}
+.vision-workspace-engine>.simulator-shell,.vision-workspace-engine>.live-traffic-lab{margin:0}
+.privacy-empty-state{display:flex;flex-wrap:wrap;justify-content:space-between;gap:15px;align-items:center;border:1px solid #d0e5dc;border-radius:12px;background:#f2faf6;padding:18px 20px;margin:18px 0}
+.privacy-empty-state strong{color:#185c51}
+.privacy-empty-state p{margin:4px 0 0;max-width:650px}
+.privacy-empty-state button{background:#145e60;color:white;border-color:#145e60}
+.privacy-empty-state button:hover{background:#0f4c4c;color:white}
+@media(max-width:730px){.vision-workspace-sources{grid-template-columns:1fr}.vision-workspace-intro{padding:22px 18px}.vision-workspace-intro h2{font-size:24px}.vision-workspace-history{width:100%;justify-content:center}.vision-workspace-source{min-height:74px}.vision-workspace-activity span{border:0;flex-basis:42%}.vision-workspace-activity button{margin-left:0}}
