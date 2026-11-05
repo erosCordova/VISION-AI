@@ -1,8 +1,7 @@
 # Manual de usuario — VISION-AI
 
-**Producto:** laboratorio de visión computacional con cámaras públicas TfL y simulaciones 3D.
-**Interfaz:** español. **Fuentes:** fotografías reales públicas de tráfico
-(para logística, transporte y retail) o cuatro escenas 3D internas.
+**Producto:** laboratorio de visión computacional con transmisiones HLS en directo (SDOT) y simulaciones 3D.
+**Interfaz:** español. **Fuentes:** videos HLS públicos de tránsito para monitoreo vial o cuatro escenas 3D internas.
 **No utiliza la cámara del dispositivo y no requiere datasets.**
 
 ## 1. Para qué sirve
@@ -25,22 +24,28 @@ CDN o modo de navegación restrictivo puede impedir descargar pesos.
 Los resultados de sesión se guardan en **IndexedDB del navegador**
 únicamente cuando se solicita.
 
-## 3. Abrir la aplicación
+## 3. Conectar video en tiempo real
 
 1. Acceder a https://vision-ai-erosss.vercel.app .
-2. Entrar en **Análisis en vivo**.
-3. La pestaña **Cámara pública TfL** muestra dos fuentes con URLs JPEG
-   públicas: Piccadilly Circus y Romford Road / Tennyson Road.
-   Seleccionar una cámara y esperar la fotografía.
-4. Pulsar **Iniciar YOLO** para descargar ONNX/WASM y obtener detecciones
-   reales de vehículos y personas visibles en la imagen.
-5. Ajustar la confianza, actualizar la fotografía o descargar evidencia PNG.
-6. Para los escenarios industriales sintéticos, seleccionar **Simulaciones 3D**.
-   Allí se conservan los cuatro escenarios y el detector de EPP.
-7. Si los humanos 3D resultan pesados, cambiar a la visualización
-   **ligera**, cuando el visor lo permita.
-8. Ajustar cámara (isométrica, frontal, superior o primer plano),
-   velocidad, pausa y zonas según se necesite.
+2. Abrir **Análisis en vivo** y seleccionar **Video público en directo**.
+3. Elegir una cámara SDOT de Seattle: 2nd Ave / Pike St,
+   Western Ave / Broad St, 4th Ave / Battery St o Queen Anne / Thomas.
+4. Pulsar **Iniciar video en directo**. Se descarga Hls.js bajo demanda;
+   se valida que el manifiesto HLS sea de tipo LIVE y que avancen nuevos
+   fotogramas antes de mostrar **DIRECTO**.
+5. Pulsar **Iniciar reconocimiento** para cargar YOLOv8n y examinar los
+   píxeles de los fotogramas recibidos. El último fotograma inferido se
+   muestra a la derecha, separado del video que sigue avanzando.
+6. Se informa la cantidad real de inferencias, clases, confianza y tiempo
+   de procesamiento. No se promete 30 FPS: depende del procesador.
+7. Detener el reconocimiento o el video cuando haya terminado.
+8. Para estudiar EPP, calidad industrial y logística sintética,
+   seleccionar **Simulaciones 3D** en la misma pantalla.
+
+**Límites:** el video puede tener varios segundos de retraso; la
+disponibilidad de cada cámara depende del proveedor. Si el servidor no
+autoriza acceso CORS a los píxeles, se informa el error y no se inventan
+resultados. No se almacena video ni se identifican rostros o matrículas.
 
 ## 4. Los cuatro escenarios
 
@@ -156,3 +161,18 @@ clases reconocibles sobre los píxeles del fotograma de tráfico.
 **Nota sobre frescura:** aunque la aplicación consulte la fuente cada tres
 minutos, TfL puede conservar temporalmente una imagen anterior o suspender
 la transmisión; la hora de consulta no representa la hora real de captura.
+
+## Video público de tránsito SDOT
+
+Las cámaras SDOT del Departamento de Transporte de Seattle publican
+video HLS para monitoreo del tráfico, disponible en el portal oficial:
+https://web.seattle.gov/travelers . La plataforma conecta el reproductor
+del navegador directamente con el proveedor (sin proxy de video
+ni transcodificación en Render o Vercel). La reproducción y detección
+requieren conectividad y permiso CORS para leer fotogramas.
+El análisis se limita al conteo de clases generales visibles por
+fotograma; no es control de cumplimiento industrial ni biométrico.
+
+Ver las condiciones del operador antes de distribuir comercialmente
+el sistema. La disponibilidad pública para ver tráfico no equivale a
+un permiso universal para redistribuir el video.
