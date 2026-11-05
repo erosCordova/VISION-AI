@@ -1,4 +1,5 @@
 import {useEffect,useRef} from 'react';
+import {gsap} from 'gsap';
 import * as THREE from 'three';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass.js';
@@ -100,8 +101,8 @@ export function StudioWorld({active,paused,onReady}:Props){
     block(platform,emission,i*1.4,-.383,-4.7,.20,.011,.04);
    }
   }
-  const ambience=new THREE.HemisphereLight(0x9bdaf0,0x0e1b2b,2.5);scene.add(ambience);
-  const key=new THREE.DirectionalLight(0xf0faff,4.7);
+  const ambience=new THREE.HemisphereLight(0x9bdaf0,0x0e1b2b,1.28);scene.add(ambience);
+  const key=new THREE.DirectionalLight(0xf0faff,2.85);
   key.position.set(-8,14,11);
   key.castShadow=true;
   key.shadow.mapSize.set(1024,1024);
@@ -109,8 +110,8 @@ export function StudioWorld({active,paused,onReady}:Props){
   key.shadow.camera.top=13;key.shadow.camera.bottom=-13;
   key.shadow.camera.near=.5;key.shadow.camera.far=40;
   key.shadow.bias=-.0007;scene.add(key);
-  const neonLeft=new THREE.PointLight(0x56e8e0,88,20);neonLeft.position.set(-5,5,2);scene.add(neonLeft);
-  const neonRight=new THREE.PointLight(0x9b8dff,72,18);neonRight.position.set(6,5,-3);scene.add(neonRight);
+  const neonLeft=new THREE.PointLight(0x56e8e0,33,20);neonLeft.position.set(-5,5,2);scene.add(neonLeft);
+  const neonRight=new THREE.PointLight(0x9b8dff,26,18);neonRight.position.set(6,5,-3);scene.add(neonRight);
   const worlds={} as Record<WorldKey,{group:any;moving:any[];rotating:any[]}>;
   function person(g:any,x:number,z:number,vest:any,helmet=true){
    const p=new THREE.Group();p.position.set(x,0,z);g.add(p);
@@ -312,6 +313,20 @@ export function StudioWorld({active,paused,onReady}:Props){
    const p=WORLD_PALETTES[key];
    neonLeft.color.setHex(p.accent);
    neonRight.color.setHex(p.secondary);
+   // Travelling suave entre instalaciones (GSAP gratuito). No afecta YOLO.
+   const viewpoints:Record<WorldKey,readonly[number,number,number]>={
+    safety:[10.8,8.6,16.8],
+    quality:[9.1,7.5,15.8],
+    warehouse:[11.4,9.1,18.0],
+    retail:[9.4,8.4,16.8]
+   };
+   const [x,y,z]=viewpoints[key];
+   gsap.killTweensOf(targetCam);
+   if(playing&&!prefer.matches){
+    gsap.to(targetCam,{x,y,z,duration:1.25,ease:'power2.inOut'});
+   }else{
+    targetCam.set(x,y,z);
+   }
    paint();
   };
   const motion=()=>{if(prefer.matches)playing=false;paint();};
@@ -326,7 +341,7 @@ export function StudioWorld({active,paused,onReady}:Props){
     powerPreference:'high-performance'
    });
    renderer.toneMapping=THREE.ACESFilmicToneMapping;
-   renderer.toneMappingExposure=1.85;
+   renderer.toneMappingExposure=1.15;
    renderer.shadowMap.enabled=true;
    renderer.shadowMap.type=THREE.PCFSoftShadowMap;
    try{
@@ -335,6 +350,7 @@ export function StudioWorld({active,paused,onReady}:Props){
     room=new RoomEnvironment(renderer);
     environment=pmrem.fromScene(room,.035);
     scene.environment=environment.texture;
+    scene.environmentIntensity=.53;
     pmrem.dispose();
    }catch{/* Fallback PBR con luces y sombras sin environment map. */}
    renderer.outputColorSpace=THREE.SRGBColorSpace;
@@ -343,7 +359,7 @@ export function StudioWorld({active,paused,onReady}:Props){
     try{
      composer=new EffectComposer(renderer);
      composer.addPass(new RenderPass(scene,camera));
-     composer.addPass(new UnrealBloomPass(new THREE.Vector2(1,1),.57,.45,.88));
+     composer.addPass(new UnrealBloomPass(new THREE.Vector2(1,1),.30,.28,1.15));
      composer.addPass(new OutputPass());
     }catch{composer?.dispose();composer=null;}
    }
@@ -368,6 +384,7 @@ export function StudioWorld({active,paused,onReady}:Props){
    resize.disconnect();intersect.disconnect();
    composer?.dispose();
    scene.environment=null;
+   gsap.killTweensOf(targetCam);
    environment?.dispose();room?.dispose();
    renderer?.dispose();
    for(const geo of geometries)geo.dispose();
