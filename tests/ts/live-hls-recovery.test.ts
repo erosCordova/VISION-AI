@@ -17,8 +17,8 @@ describe('Recuperación HLS sin vídeos falsos ni bucles infinitos',()=>{
   expect(chooseFatalHlsAction('otherError',false,false)).toBe('reconnect');
  });
  it('explica cuando la fuente es incompatible sin inventar detecciones',()=>{
-  expect(conciseVideoError(4)).toContain('código 4');
-  expect(conciseVideoError(3)).toContain('decodificar');
+  expect(conciseVideoError(4)).toContain('no se puede reproducir');
+  expect(conciseVideoError(3)).toContain('problema al reproducir');
  });
  it('reconecta sin recargar pagina y ofrece un control manual',()=>{
   expect(component).toContain('setConnectionEpoch');

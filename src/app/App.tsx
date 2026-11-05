@@ -33,7 +33,7 @@ const scenarios = [
   { id: 'retail', name: 'Retail', icon: '▥', text: 'Conteo y ocupación de espacios', rule: 'Conteo de personas dentro de una zona', classes: 'Persona · Estante · Producto' },
 ];
 function currentPage(): Page { let value = ''; try { value = decodeURIComponent(location.hash.slice(1)); } catch { return 'Resumen'; } return pages.find(p => p === value) ?? 'Resumen'; }
-export function App({ origin, apiBaseUrl, sessionRepository, liveObservationRepository }: { origin: Origin; apiBaseUrl: string | null; sessionRepository:SimulationSessionRepository; liveObservationRepository:LiveObservationRepository }) {
+export function App({ apiBaseUrl, sessionRepository, liveObservationRepository }: { origin: Origin; apiBaseUrl: string | null; sessionRepository:SimulationSessionRepository; liveObservationRepository:LiveObservationRepository }) {
   const [page, setPage] = useState<Page>(currentPage);
   const [scenarioId, setScenarioId] = useState('safety');
   const [menu, setMenu] = useState(false);
@@ -86,7 +86,7 @@ export function App({ origin, apiBaseUrl, sessionRepository, liveObservationRepo
         onClick={()=>{setCommandOpen(true);setMenu(false);}}>
         <Command size={17}/><span>Acceso rápido</span><kbd>⌘ K</kbd></button>
        <div className="experience-sidebar-system"><span className="engine-light"/>
-        <div><strong>MOTOR DE VISIÓN</strong><small>ONNX · EJECUCIÓN LOCAL</small></div>
+        <div><strong>ANÁLISIS VISUAL</strong><small>LISTO PARA USAR</small></div>
         <span aria-hidden="true">↗</span>
        </div>
        <p>Analiza cámaras públicas y escenarios 3D con reconocimiento visual.</p>
@@ -101,16 +101,16 @@ export function App({ origin, apiBaseUrl, sessionRepository, liveObservationRepo
   aria-label="Abrir búsqueda global de páginas y escenarios" onClick={()=>setCommandOpen(true)}>
   <ScanSearch size={17}/><span>Buscar cualquier función</span><kbd>Ctrl K</kbd>
  </button><label className="profile-control">Perfil de prueba<select aria-label="Perfil de prueba" value={role} onChange={e => setRole(e.target.value)}>{['operador','supervisor','administrador','auditor'].map(r => <option key={r} value={r}>{r[0].toUpperCase()+r.slice(1)}</option>)}</select></label><span className="mode-badge"><span aria-hidden="true" className="experience-status-dot"/>
-CÁMARAS EN VIVO · YOLO</span></header>
+CÁMARAS EN VIVO · RECONOCIMIENTO</span></header>
       <main id="contenido" tabIndex={-1}>{page !== 'Resumen'&&<div className="page-heading"><div><span className="eyebrow">VISIÓN COMPUTACIONAL</span><h1>{page}</h1><p>{page === 'Análisis en vivo' ? 'Cámaras públicas en directo y simulaciones con reconocimiento de objetos.' : page === 'Historial' ? 'Sesiones y evidencias de tus análisis.' : 'Estado del entorno y capacidades disponibles.'}</p></div></div>}
       <ErrorBoundary key={page + role}>
       {page === 'Resumen' && <>
        <StudioLanding onExplore={openScene}
         onHistory={()=>navigate('Historial')} sessionCount={savedStats?.total??null}/>
        <div className="experience-dashboard-label studio-insights-label studio-scroll-reveal">
-        <span>01 / CENTRO DE CONTROL</span><p>DATOS VERIFICABLES · INDEXEDDB LOCAL</p>
+        <span>01 / CENTRO DE CONTROL</span><p>RESULTADOS GUARDADOS</p>
        </div>
-       <div className="stats studio-scroll-reveal">{[['Escenarios','04','Simulaciones 3D'],['Motor de visión','YOLO','ONNX en navegador'],['Sesiones 3D',savedStats?savedStats.total.toString():'—','Guardadas en este navegador'],['Indicios conservados',savedStats?savedStats.indicios.toString():'—','Señales YOLO guardadas']].map(([title,value,detail]) => <section className="stat" key={title}><span>{title}</span><strong>{value}</strong><small>{detail}</small></section>)}</div><div className="experience-saved-dashboard studio-scroll-reveal"><SessionsDashboard repository={sessionRepository}
+       <div className="stats studio-scroll-reveal">{[['Escenarios','04','Simulaciones 3D'],['Reconocimiento','Disponible','Análisis de imágenes'],['Sesiones 3D',savedStats?savedStats.total.toString():'—','Guardadas en este navegador'],['Indicios conservados',savedStats?savedStats.indicios.toString():'—','Observaciones guardadas']].map(([title,value,detail]) => <section className="stat" key={title}><span>{title}</span><strong>{value}</strong><small>{detail}</small></section>)}</div><div className="experience-saved-dashboard studio-scroll-reveal"><SessionsDashboard repository={sessionRepository}
    onHistory={()=>navigate('Historial')} onOperations={()=>navigate('Operaciones')} /></div>
    <LiveObservationsDashboard onHistory={()=>navigate('Historial')} onAnalyze={()=>navigate('Análisis en vivo')}/>
    <section className="section-heading experience-scenarios-heading studio-scroll-reveal"><div><h2>Elige tu escenario</h2><p>Un flujo de trabajo adaptado a cada operación.</p></div><span>01 — 04</span></section><div className="scenario-grid experience-scenario-grid studio-scroll-reveal">{scenarios.map((s,i) =>
@@ -124,7 +124,7 @@ CÁMARAS EN VIVO · YOLO</span></header>
      <div className="card-footer">Explorar entorno <span aria-hidden="true">↗</span></div>
     </button>)}</div><section className="ready-banner experience-ready-banner studio-scroll-reveal"><div className="banner-icon">⟡</div>
      <div><span className="experience-banner-eyebrow">02 / INTELIGENCIA OPERATIVA</span>
-      <h2>De la simulación a la evidencia</h2><p>Analiza video público en directo con YOLO o explora simulaciones 3D y revisa sus resultados.</p></div><button onClick={() => navigate('Análisis en vivo')}>Iniciar exploración ↗</button></section></>}
+      <h2>De la simulación a la evidencia</h2><p>Observa cámaras en directo o explora escenas 3D. Guarda los resultados que necesites.</p></div><button onClick={() => navigate('Análisis en vivo')}>Iniciar exploración ↗</button></section></>}
       {page === 'Análisis en vivo' && <LiveAnalysisPage scenarios={scenarios} scenarioId={scenarioId} onScenarioChange={setScenarioId} sessionRepository={sessionRepository} role={role} apiBaseUrl={apiBaseUrl} />}
       {page === 'Historial' && <HistoryPanel onAnalyze={() => navigate('Análisis en vivo')} sessionRepository={sessionRepository} />}
       {page === 'Privacidad' && <PrivacyCenter repository={sessionRepository} />}
@@ -142,7 +142,7 @@ CÁMARAS EN VIVO · YOLO</span></header>
        <section className="panel vision-guide" aria-label="Funciones de VISION-AI">
         <div className="vision-guide-heading">
          <span>EXPLORA LAS FUNCIONES</span><h2>Todo en un espacio de análisis</h2>
-         <p>Combina cámaras reales, simulaciones 3D y YOLO real sin instalar programas adicionales.</p>
+         <p>Explora cámaras en directo, escenas 3D y resultados de reconocimiento en un solo lugar.</p>
         </div>
         <div className="vision-guide-flow">
          <article><b>01</b><h3>Cámaras en directo</h3><p>Video en movimiento, cambio automático de cámara y reconocimiento de personas o vehículos.</p></article>
@@ -162,8 +162,17 @@ CÁMARAS EN VIVO · YOLO</span></header>
       {page === 'Operaciones' && <OperationsPanel repository={sessionRepository}
    onHistory={() => navigate('Historial')} />}
       {(page === 'Administración' || page === 'Configuración') && role !== 'administrador' && <section className="panel empty-page"><h2>Vista restringida</h2><p>Esta vista está reservada al perfil administrador de prueba.</p><button onClick={() => navigate('Resumen')}>Volver al resumen</button></section>}
-      {page === 'Administración' && role === 'administrador' && <section className="panel settings"><h2>Administración del espacio</h2><p>Perfil de prueba. No constituye autenticación de servidor.</p><dl><dt>Usuarios</dt><dd>Gestión pendiente de integración con identidad real.</dd><dt>Escenarios</dt><dd>Cuatro escenarios versionados y reproducibles; administración avanzada pendiente.</dd><dt>Auditoría</dt><dd>Sin registros productivos.</dd></dl></section>}
-      {page === 'Configuración' && role === 'administrador' && <><SessionSettings /><section className="panel settings"><h2>Estado del entorno</h2><dl><dt>Origen configurado</dt><dd>{origin.toUpperCase()} · sin inferencia activa</dd><dt>Fuentes de video</dt><dd>Cámaras públicas en directo y cuatro escenarios de simulación 3D</dd><dt>Reconocimiento</dt><dd>YOLO para personas y vehículos en directo; modelos de objetos y protección en las simulaciones</dd><dt>Destino de fotogramas</dt><dd>Procesados localmente por WebAssembly; no enviados a Render</dd><dt>Almacenamiento</dt><dd>Resultados guardados voluntariamente en este navegador; sin grabaciones</dd><dt>Identidad y permisos</dt><dd>Sin autenticación de servidor</dd><dt>Conectividad</dt><dd>La página se aloja en Vercel; las transmisiones públicas dependen de sus operadores</dd></dl></section></>}
+      {page === 'Administración' && role === 'administrador' && <section className="panel settings">
+       <h2>Herramientas del espacio</h2>
+       <p>Accede a las funciones de administración disponibles en esta página.</p>
+       <div className="settings-actions">
+        <button type="button" onClick={()=>navigate('Configuración')}>Ajustar análisis</button>
+        <button type="button" onClick={()=>navigate('Historial')}>Consultar historial</button>
+        <button type="button" onClick={()=>navigate('Privacidad')}>Gestionar datos</button>
+       </div>
+       <p>Los perfiles seleccionables son de prueba y no son cuentas personales.</p>
+      </section>}
+      {page === 'Configuración' && role === 'administrador' && <><SessionSettings /><section className="panel settings"><h2>Estado de la aplicación</h2><dl><dt>Estado</dt><dd>Disponible para iniciar un análisis</dd><dt>Fuentes de video</dt><dd>Cámaras públicas en directo y cuatro escenarios de simulación 3D</dd><dt>Reconocimiento</dt><dd>Personas y vehículos en cámaras; objetos y protección personal en escenas 3D</dd><dt>Privacidad</dt><dd>Los videos no se graban ni se guardan en la aplicación</dd><dt>Historial</dt><dd>Solo conserva los resultados que decidas guardar</dd><dt>Cuenta</dt><dd>Se usa sin iniciar sesión</dd><dt>Videos públicos</dt><dd>La disponibilidad depende de cada cámara</dd></dl></section></>}
       </ErrorBoundary><footer className="workspace-footer"><span>VISION AI / Visión computacional aplicada</span><span>Cámaras públicas · Detección · Historial</span></footer></main>
     </div>
     <StudioCommandPalette open={commandOpen} onClose={()=>setCommandOpen(false)}

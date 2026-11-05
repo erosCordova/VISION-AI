@@ -108,7 +108,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange,sessionReposit
  async function capture(){
   try{
    const blob=await sceneRef.current?.capture();
-   if(!blob)throw new Error('No se ha inicializado el visor WebGL.');
+   if(!blob)throw new Error('No se pudo preparar la imagen de la escena.');
    const href=URL.createObjectURL(blob);
    const link=document.createElement('a');
    link.download='vision-ai-3d-'+scenarioId+'-'+Math.floor(elapsed)+'s.png';
@@ -144,10 +144,10 @@ export function InteractiveSimulator({scenarioId,onScenarioChange,sessionReposit
    <div className="simulator-topline">
     <div>
      <span className="simulator-overline">VISION-AI / LABORATORIO INDUSTRIAL</span>
-     <h2>Simulación industrial 3D <span className="simulator-pro-label">YOLO + 3D</span></h2>
+     <h2>Simulación industrial 3D <span className="simulator-pro-label">INTERACTIVO</span></h2>
      <p>Personajes humanos animados, rutas autónomas, instalaciones industriales y supervisión visual.</p>
     </div>
-    <span className="simulator-mode"><span className="simulator-signal"/> ESCENA SINTÉTICA · YOLO OPCIONAL</span>
+    <span className="simulator-mode"><span className="simulator-signal"/> ESCENA VIRTUAL · RECONOCIMIENTO OPCIONAL</span>
    </div>
    <nav className="simulator-scenarios" aria-label="Escenarios 3D">
     {SCENES.map(scene=><button key={scene.id} type="button" aria-pressed={scenarioId===scene.id}
@@ -156,10 +156,10 @@ export function InteractiveSimulator({scenarioId,onScenarioChange,sessionReposit
    <div className="simulator-3d-summary" aria-label="Estado de la simulación">
      <div><span>ESCENARIO ACTIVO</span><strong>{config.name}</strong></div>
      <div><span>TIPO DE MOVIMIENTO</span><strong>Rutas múltiples</strong></div>
-     <div><span>RENDERIZADO</span><strong>{renderFps||'—'} FPS <small>visuales</small></strong></div>
-     <div><span>{analysisMode==='yolo'?'DETECCIONES YOLO':'OBJETOS SINTÉTICOS'}</span>
+     <div><span>FLUIDEZ DE LA ESCENA</span><strong>{renderFps||'—'} <small>imágenes/s</small></strong></div>
+     <div><span>{analysisMode==='yolo'?'OBJETOS RECONOCIDOS':'OBJETOS DE LA ESCENA'}</span>
       <strong>{analysisMode==='yolo'?(yoloLatest?yoloLatest.detections.length:'—'):filterCount.toString().padStart(2,'0')}</strong></div>
-     <div><span>{analysisMode==='yolo'?'MOTOR DE INFERENCIA':'ESTADO SIMULADO'}</span>
+     <div><span>{analysisMode==='yolo'?'RECONOCIMIENTO':'ESTADO SIMULADO'}</span>
       {analysisMode==='yolo'?
        <strong className={yoloTelemetry.phase==='failed'?'sim-status-alert':'sim-status-normal'}>
         {yoloTelemetry.phase==='running'?'EN CURSO':
@@ -196,12 +196,12 @@ export function InteractiveSimulator({scenarioId,onScenarioChange,sessionReposit
      </div>
      <div className="simulator-ai-select" role="group" aria-label="Origen de las detecciones">
        <div><strong>ORIGEN DE LAS DETECCIONES</strong>
-        <span>{analysisMode==='yolo'?'YOLO analiza exclusivamente la escena 3D':'Datos geométricos programados'}</span></div>
+        <span>{analysisMode==='yolo'?'Reconocimiento sobre la escena 3D':'Elementos de la escena virtual'}</span></div>
        <div className="simulator-ai-switch">
         <button type="button" aria-pressed={analysisMode==='synthetic'}
          onClick={()=>{if(analysisMode!=='synthetic'){setAnalysisMode('synthetic');setYoloTelemetry(INITIAL_YOLO_TELEMETRY);}}}>Simulación visual</button>
         <button type="button" aria-pressed={analysisMode==='yolo'}
-         onClick={()=>{if(analysisMode!=='yolo'){setAnalysisMode('yolo');setYoloTelemetry(INITIAL_YOLO_TELEMETRY);}}}>◉ YOLO real (navegador)</button>
+         onClick={()=>{if(analysisMode!=='yolo'){setAnalysisMode('yolo');setYoloTelemetry(INITIAL_YOLO_TELEMETRY);}}}>◉ Reconocer objetos</button>
        </div>
      </div>
      <div className="simulator-canvas-wrap">
@@ -259,7 +259,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange,sessionReposit
      </div>
      <div className="simulator-bottomline"><span><i/> Renderizado tridimensional y animación de personajes en navegador</span>
       <span>{analysisMode==='synthetic'?'Las cajas y alertas mostradas son sintéticas.':
-       'YOLO analiza los fotogramas de la simulación, sin importar archivos.'}</span></div>
+       'Reconociendo objetos en las imágenes de la escena.'}</span></div>
     </div>
     <aside className="simulator-controls" aria-label="Controles avanzados de simulación">
      <span className="simulator-kicker">SISTEMA DE SUPERVISIÓN</span>
@@ -267,11 +267,11 @@ export function InteractiveSimulator({scenarioId,onScenarioChange,sessionReposit
        <span className="simulator-control-label">Estado del sistema</span>
        <strong>{paused?'Simulación pausada':'Rutas autónomas en ejecución'}</strong>
        <p>{analysisMode==='yolo'?
-         'YOLO analiza imágenes capturadas del entorno 3D. Los resultados del monitor son predicciones reales del modelo.':
+         'El sistema reconoce objetos visibles en la escena 3D.':
          'Los objetos, eventos y zonas se calculan con las reglas sintéticas de la simulación.'}</p>
        <div className="simulator-health"><span>Motor gráfico</span><b>ACTIVO</b></div>
        <div className="simulator-health"><span>Fuente</span><b>SIMULACIÓN 3D</b></div>
-       <div className="simulator-health"><span>Inferencia remota</span><b>NO UTILIZADA</b></div>
+       
      </div>
      {analysisMode==='synthetic'&&<>
      <div className="simulator-control-section">
@@ -295,9 +295,9 @@ export function InteractiveSimulator({scenarioId,onScenarioChange,sessionReposit
      </div>
      </>}
      {analysisMode==='yolo'&&<div className="simulator-control-section simulator-yolo-guidance">
-       <span className="simulator-control-label">Detecciones del modelo</span>
-       <p>Inicia YOLO y ajusta su umbral de confianza en el panel de inferencia.
-       Aquí se muestran exclusivamente las predicciones obtenidas, sin las etiquetas sintéticas.</p>
+       <span className="simulator-control-label">Resultados del reconocimiento</span>
+       <p>Inicia el reconocimiento y ajusta la confianza mínima.
+       Aquí verás los objetos identificados en la imagen.</p>
      </div>}
      <div className="simulator-control-section">
       <div className="simulator-inline"><span className="simulator-control-label">Velocidad de movimiento</span><strong>{speed}×</strong></div>
@@ -311,11 +311,6 @@ export function InteractiveSimulator({scenarioId,onScenarioChange,sessionReposit
        <SimulationAnalytics snapshot={snapshot} elapsed={elapsed} fps={renderFps}/>}
     </aside>
    </div>
-   <div className="simulator-footnote">
-    <strong>Dos flujos independientes:</strong> «Simulación visual» calcula objetos y alertas con reglas programadas.
-    «YOLO real (navegador)» examina únicamente fotogramas de los cuatro escenarios 3D con una red ONNX,
-    muestra detecciones sobre el fotograma analizado y no requiere fotografías, videos ni datasets. Los indicadores de la derecha
-    siguen describiendo la simulación, no la precisión de YOLO. Render Free mantiene exclusivamente la API ligera.
-   </div>
+   <div className="simulator-footnote">Elige entre explorar la escena virtual y reconocer objetos en sus imágenes. Los resultados del reconocimiento requieren revisión visual.</div>
  </section>;
 }

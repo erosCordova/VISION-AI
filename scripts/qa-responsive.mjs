@@ -152,7 +152,7 @@ try {
           + 'hasFocusableMain: !!document.querySelector("main[tabindex=\\\"-1\\\"]"), '
           + 'hasSkip: !!document.querySelector("a.skip"), hasText: !!element.textContent.trim(), '
           + 'hasSimulationOnly: !!document.querySelector(".simulation-only-notice"),  noExternalSources: !document.querySelector(".simulation-source-tabs") && !document.querySelector(".browser-yolo-upload") && !document.querySelector(".ppe-evaluation"), '
-          + 'hasYoloModeSwitch: Array.from(document.querySelectorAll(".simulator-ai-switch button")).some(b=>b.textContent.includes("YOLO real")), '
+          + 'hasYoloModeSwitch: Array.from(document.querySelectorAll(".simulator-ai-switch button")).some(b=>b.textContent.includes("Reconocer objetos")), '
           + 'hasSimulatorStage: !!document.querySelector(".simulator-3d-stage canvas"), '
           + 'hasSimulatorControls: !!document.querySelector(".simulator-controls input[type=range]"), '
           + 'hasCameraPresets: document.querySelectorAll(".simulator-view-group button").length === 4, '
@@ -773,7 +773,7 @@ try {
             + 'window.addEventListener("error", event => window.__yoloQaErrors.push(event.message));'
             + 'window.addEventListener("unhandledrejection", event => window.__yoloQaErrors.push(String(event.reason)));'
             + 'const buttons=Array.from(document.querySelectorAll(".simulator-ai-switch button"));'
-            + 'const b=buttons.find(button=>button.textContent.includes("YOLO real"));'
+            + 'const b=buttons.find(button=>button.textContent.includes("Reconocer objetos"));'
             + 'if(b) b.click();'
             + 'return { found:!!b, buttons:buttons.map(x=>x.textContent),'
             + ' selected:b?.getAttribute("aria-pressed") };'
@@ -819,12 +819,12 @@ try {
         });
         const monitorInitial=monitorBefore.result?.value;
         if(!monitorInitial?.monitor||monitorInitial.simulated||
-          monitorInitial.initial!=='—'||monitorInitial.cards!==8||
+          monitorInitial.initial!=='—'||monitorInitial.cards!==6||
           !monitorInitial.review||monitorInitial.reviewCount!=='—'||monitorInitial.reviewLog)
           throw Error('Monitor YOLO muestra datos sintéticos o cifras previas: '+JSON.stringify(monitorInitial));
         const safetyModelCheck=await cdp.send('Runtime.evaluate',{
           expression:'(() => ({ selected:Array.from(document.querySelectorAll(".browser-yolo-picker button"))'
-            + '.find(b=>b.textContent.includes("EPP industrial"))?.getAttribute("aria-pressed"),'
+            + '.find(b=>b.textContent.includes("Equipos de protección"))?.getAttribute("aria-pressed"),'
             + ' noUploads:!document.querySelector(".browser-yolo-upload")'
             + ' && !document.querySelector(".ppe-evaluation")'
             + ' && !document.querySelector(".ppe-evaluation-uploads")'
@@ -850,8 +850,8 @@ try {
         // OB01/OB03/OB04: cada simulación utiliza exclusivamente el canvas 3D.
         // No se descargan modelos durante el cambio de escenario.
         for (const [tab, expected] of [
-          ['Manufactura','YOLOv8n'], ['Retail','YOLOv8n'],
-          ['Logística','YOLOv8n'], ['Seguridad','YOLOv8s']
+          ['Manufactura','Objetos generales'], ['Retail','Objetos generales'],
+          ['Logística','Objetos generales'], ['Seguridad','Equipos de protección']
         ]) {
           const navigation=await cdp.send('Runtime.evaluate',{
             expression:'(() => {const b=Array.from(document.querySelectorAll(".simulator-scenarios button"))'
@@ -881,7 +881,7 @@ try {
           // Prueba real de YOLO COCO EN CADA uno de los 3 escenarios
           // generales: se descargan los pesos ONNX una sola vez y se
           // reutilizan desde la caché del navegador. Cero imágenes externas.
-          if(expected==='YOLOv8n'){
+          if(expected==='Objetos generales'){
             const started=await cdp.send('Runtime.evaluate',{
               expression:'(() => {const b=document.querySelector(".browser-yolo-actions button.primary");'
                 +'b?.click();return Boolean(b);})()',returnByValue:true
@@ -895,22 +895,23 @@ try {
                   +'phase:document.querySelector(".browser-yolo-phase")?.textContent?.trim(),'
                   +'error:document.querySelector(".browser-yolo-error")?.textContent?.trim(),'
                   +'run:document.querySelector(".browser-yolo-run")?.textContent?.trim(),'
+                  +'origin:document.querySelector(".browser-yolo-run")?.dataset.origin,'
                   +'source:document.querySelector(".yolo-monitor-source")?.textContent?.trim()'
                   +'}))()',returnByValue:true
               });
               const x=result.result?.value;
               if(x?.error)throw Error('COCO '+tab+': '+x.error);
               return x?.count>=1&&x.run?.includes('ANÁLISIS COMPLETADO')&&
-                x.source?.includes('COCO')?x:null;
+                x.source?.includes('Objetos generales')?x:null;
             },'OB01 COCO real en '+tab,340);
-            if(!verified.run.includes('Origen: simulación 3D'))
+            if(verified.origin!=='simulation-3d')
               throw Error('OB01: COCO no conservó procedencia 3D en '+tab);
             const profile=await inspectRealOnnxProfile(cdp,tab,'coco');
             onnxScenarioMeasurements.push(profile);
             console.log('IA15 ONNX REAL: '+JSON.stringify(profile));
             await cdp.send('Runtime.evaluate',{
               expression:'(() => {const b=Array.from(document.querySelectorAll(".browser-yolo-actions button"))'
-               +'.find(x=>x.textContent?.includes("Detener inferencia"));b?.click();return Boolean(b);})()',
+               +'.find(x=>x.textContent?.includes("Detener reconocimiento"));b?.click();return Boolean(b);})()',
               returnByValue:true
             });
             const stopped=await eventually(async()=>{
@@ -964,9 +965,9 @@ try {
           returnByValue:true
         });
         const rule=liveRule.result?.value;
-        if(!rule?.container||!rule.description?.includes('Ausencias EPP')||
+        if(!rule?.container||!rule.description?.includes('Posibles faltas de protección')||
           !rule.description.toLocaleLowerCase('es').includes('revisión')||
-          !rule.source?.includes('simulación 3D'))
+          !rule.source?.includes('Escena 3D'))
           throw Error('RG01: panel de reglas sin EPP o procedencia');
         console.log('RG01: regla EPP explicable con origen YOLO real');
         // OB02/OB05: pausar la animación detiene nuevas capturas; filtrar no
@@ -1041,20 +1042,21 @@ try {
             expression:'(() => ({'
               +'error:document.querySelector(".browser-yolo-error")?.textContent?.trim(),'
               +'attempt:document.querySelector(".browser-yolo-run")?.textContent?.trim(),'
+              +'frameId:document.querySelector(".browser-yolo-run")?.dataset.frameId,'
               +'retry:Array.from(document.querySelectorAll(".browser-yolo-actions button"))'
-              +'.some(b=>b.textContent?.includes("Reintentar último fotograma")),'
+              +'.some(b=>b.textContent?.includes("Reintentar imagen")),'
               +'frames:Number(document.querySelector(".browser-yolo-count-frames b")?.textContent||0)'
               +'}))()',returnByValue:true
           });
           const s=result.result?.value;
-          return s?.retry&&s.error?.includes('QA: error temporal')&&
+          return s?.retry&&s.error?.includes('No se pudo completar el reconocimiento')&&
             s.attempt?.includes('ANÁLISIS FALLIDO')?s:null;
         },'AN03 fallo temporal y opción de reintento',340);
-        const failedFrame=beforeRetry.attempt.match(/Frame #([0-9]+)/)?.[1];
+        const failedFrame=beforeRetry.frameId;
         if(!failedFrame)throw Error('AN03: no existe ID del frame fallido');
         const doRetry=await cdp.send('Runtime.evaluate',{
           expression:'(() => { const b=Array.from(document.querySelectorAll(".browser-yolo-actions button"))'
-            +'.find(x=>x.textContent?.includes("Reintentar último fotograma"));'
+            +'.find(x=>x.textContent?.includes("Reintentar imagen"));'
             +'b?.click();return Boolean(b);})()',returnByValue:true
         });
         if(!doRetry.result?.value)throw Error('AN04: botón de reintento inaccesible');
@@ -1062,6 +1064,8 @@ try {
           const result=await cdp.send('Runtime.evaluate',{
             expression:'(() => ({'
              +'tag:document.querySelector(".browser-yolo-run")?.textContent?.trim(),'
+             +'frameId:document.querySelector(".browser-yolo-run")?.dataset.frameId,'
+             +'attempt:document.querySelector(".browser-yolo-run")?.dataset.attempt,'
              +'error:document.querySelector(".browser-yolo-error")?.textContent?.trim(),'
              +'phase:document.querySelector(".browser-yolo-phase")?.textContent?.trim(),'
              +'monitor:document.querySelector(".yolo-monitor-status")?.textContent?.trim(),'
@@ -1071,10 +1075,10 @@ try {
           });
           const s=result.result?.value;
           return s?.tag?.includes('ANÁLISIS COMPLETADO')&&
-            s.tag.includes('Intento 2')&&s.phase?.includes('DETENIDO')&&
-            s.monitor?.includes('DETENIDA')&&!s.error?s:null;
+            s.attempt==='2'&&s.phase?.includes('DETENIDO')&&
+            s.monitor?.includes('DETENIDO')&&!s.error?s:null;
         },'AN04 reintento ONNX del mismo fotograma',340);
-        if(afterRetry.tag.match(/Frame #([0-9]+)/)?.[1]!==failedFrame||
+        if(afterRetry.frameId!==failedFrame||
           afterRetry.frames!==beforeRetry.frames+1)
           throw Error('AN04: reintento no conservó ID ni incrementó una sola lectura: '+
             JSON.stringify({beforeRetry,afterRetry}));
@@ -1122,7 +1126,7 @@ try {
           return value?.summary&&!value.error?value:null;
         },'SG01 máscara sobre resultado ONNX');
         if(maskInfo.count!==afterRetry.frames||!maskInfo.summary.includes('píxeles')||
-           !maskInfo.source.includes('simulación 3D'))
+           !maskInfo.source.includes('Escena 3D'))
           throw Error('SG01: máscara no corresponde al fotograma YOLO');
         // Mantener la capa activa hasta concluir SG05 y SG06.
         // Las opciones de ruido y silueta transforman únicamente el render,
@@ -1197,12 +1201,13 @@ try {
           maskIsHidden.result?.value?.count!==afterRetry.frames)
           throw Error('SG06: desactivar la máscara alteró el conteo o dejó controles activos');
         const runTag=await cdp.send('Runtime.evaluate',{
-          expression:'document.querySelector(".browser-yolo-run")?.textContent?.trim()||""',
+          expression:'(() => ({text:document.querySelector(".browser-yolo-run")?.textContent?.trim()||"",'
+           +'origin:document.querySelector(".browser-yolo-run")?.dataset.origin}))()',
           returnByValue:true
         });
-        if(!runTag.result?.value?.includes('ANÁLISIS COMPLETADO')||
-          !runTag.result.value.includes('Frame #')||
-          !runTag.result.value.includes('Origen: simulación 3D'))
+        if(!runTag.result?.value?.text?.includes('ANÁLISIS COMPLETADO')||
+          !runTag.result.value.text.includes('Imagen #')||
+          runTag.result.value.origin!=='simulation-3d')
           throw Error('AN01/AN02: la inferencia no está correlacionada con su fotograma 3D');
         console.log('AN01/AN02 UI OK: resultado YOLO correlacionado con fotograma real');
         await sleep(350);
@@ -1220,7 +1225,7 @@ try {
         if(!numbers||!Number.isInteger(Number(numbers.detector))||
           !Number.isInteger(Number(numbers.monitor))||
           Number(numbers.detector)>Number(numbers.monitor)||
-          numbers.synthetic||numbers.readings<1||!numbers.model?.includes('EPP'))
+          numbers.synthetic||numbers.readings<1||!numbers.model?.includes('Equipos de protección'))
           throw Error('El monitor YOLO no coincide con la inferencia ejecutada: '+JSON.stringify(numbers));
         console.log('MONITOR YOLO REAL OK: detecciones del frame vinculadas al panel operativo');
         const captureStats=await cdp.send('Runtime.evaluate',{
@@ -1229,9 +1234,9 @@ try {
            + ' }))()',
           returnByValue:true
         });
-        if(captureStats.result?.value?.captured!==8||
-          !captureStats.result.value.kpis.some(x=>x?.includes('FPS de capturas'))||
-          !captureStats.result.value.kpis.some(x=>x?.includes('Antigüedad de lectura')))
+        if(captureStats.result?.value?.captured!==6||
+          !captureStats.result.value.kpis.some(x=>x?.includes('Imágenes recibidas/s'))||
+          !captureStats.result.value.kpis.some(x=>x?.includes('Último resultado hace')))
           throw Error('Fase 8: faltan indicadores medidos del ciclo YOLO');
         const ppeReviewUi=await cdp.send('Runtime.evaluate',{
           expression:'(() => ({'
@@ -1242,7 +1247,7 @@ try {
           returnByValue:true
         });
         if(!ppeReviewUi.result?.value?.review||
-          !ppeReviewUi.result.value.explanation.includes('2 de los últimos 3')||
+          !ppeReviewUi.result.value.explanation.includes('revisión visual')||
           ppeReviewUi.result.value.invalid)
           throw Error('Revisión temporal de EPP no está bien separada de la simulación');
         const inferenceShot = await cdp.send('Page.captureScreenshot', {
@@ -1275,7 +1280,7 @@ try {
             returnByValue:true
           });
           const s=result.result?.value;
-          return s?.phase?.includes('EJECUTÁNDOSE')&&s.frames>0?s:null;
+          return s?.phase?.includes('RECONOCIENDO')&&s.frames>0?s:null;
         },'OB05 reanudación del motor y nuevo fotograma',340);
         const adaptiveReported=await eventually(async()=>{
           const result=await cdp.send('Runtime.evaluate',{
@@ -1285,14 +1290,14 @@ try {
             returnByValue:true
           });
           const x=result.result?.value;
-          const match=x?.info?.match(/Intervalo estimado: ([0-9]+) ms/);
+          const match=x?.info?.match(/Pausa entre análisis: ([0-9]+) ms/);
           const interval=match?Number(match[1]):null;
           return x?.pace==='auto'&&x.frames>0&&interval>=500&&interval<=2500?x:null;
         },'IA15 cadencia auto con intervalo real acotado');
         console.log('IA15: cadencia adaptativa en ejecución '+JSON.stringify(adaptiveReported));
         const stopClicked=await cdp.send('Runtime.evaluate',{
           expression:'(() => {const b=Array.from(document.querySelectorAll(".browser-yolo-actions button"))'
-           +'.find(x=>x.textContent.includes("Detener inferencia"));'
+           +'.find(x=>x.textContent.includes("Detener reconocimiento"));'
            +'b?.click();return Boolean(b);})()',returnByValue:true
         });
         if(!stopClicked.result?.value)throw Error('OB05: control Detener no disponible');
@@ -1304,7 +1309,7 @@ try {
             returnByValue:true
           });
           const s=result.result?.value;
-          return s?.panel?.includes('DETENIDO')&&s.monitor?.includes('DETENIDA')&&s.restart?true:null;
+          return s?.panel?.includes('DETENIDO')&&s.monitor?.includes('DETENIDO')&&s.restart?true:null;
         },'OB05 parar tras reanudar');
         console.log('OB05: inferencia YOLO se reanudó, produjo otro fotograma y se detuvo correctamente');
 
@@ -1462,8 +1467,8 @@ try {
       returnByValue:true
     });
     const a=x.result?.value;
-    return a?.steps===3&&a.guide?.includes('YOLO real')&&
-      a.guide?.includes('simulaciones 3D')&&!a.input&&
+    return a?.steps===3&&a.guide?.includes('reconocimiento')&&
+      a.guide?.includes('escenas 3D')&&!a.input&&
       a.link?.includes('Manual_Usuario_VISION_AI.md')?a:null;
   },'RF01 guía integrada con tres pasos y manual del repositorio');
   console.log('RF01: guía rápida de VISION-AI accesible en la propia interfaz');

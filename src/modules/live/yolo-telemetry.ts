@@ -186,12 +186,12 @@ export function reviewSignals(model:YoloFamily,detections:readonly Detection[]):
 }
 export function modelScope(scenario:ScenarioKey,model:YoloFamily):string{
  if(scenario==='safety'&&model==='ppe')
-  return 'Señales EPP positivas para revisión. Sin detección no significa cumplimiento.';
+  return 'Posibles faltas de protección para revisar. No detectar algo no garantiza seguridad.';
  if(scenario==='quality')
-  return 'COCO no identifica defectos de manufactura ni calidad de productos.';
+  return 'El reconocimiento general no permite comprobar defectos de fabricación.';
  if(scenario==='warehouse')
-  return 'COCO no diferencia montacargas y pallets como clases especializadas.';
+  return 'Este reconocimiento no distingue todos los equipos de almacén.';
  if(scenario==='retail')
-  return 'YOLO puede detectar personas, pero no identifica ni sigue individuos entre fotogramas.';
- return 'COCO reconoce objetos generales; no evalúa casco ni chaleco de protección.';
+  return 'Se pueden reconocer personas visibles, pero no identificarlas ni seguirlas.';
+ return 'Este modo reconoce objetos generales, no equipos de protección.';
 }

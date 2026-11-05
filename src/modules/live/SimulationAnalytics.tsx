@@ -140,7 +140,7 @@ export function SimulationAnalytics({snapshot,elapsed,fps}:Props){
     <span><i className="sim-legend-zone"/> Zonas</span></div>
   </div>
   <div className="sim-analytics-class">
-   <div className="sim-analytics-section-head"><div><h4>Objetos del escenario</h4><p>Referencias visuales, sin YOLO</p></div></div>
+   <div className="sim-analytics-section-head"><div><h4>Objetos del escenario</h4><p>Objetos de la escena virtual</p></div></div>
    {snapshot.palette.map(p=><div className="sim-analytic-class-row" key={p.label}>
     <span className="sim-class-dot" style={{background:p.color}}/>
     <span>{p.label}</span>
@@ -155,6 +155,6 @@ export function SimulationAnalytics({snapshot,elapsed,fps}:Props){
    </div>
    <RecentEvents snapshot={snapshot} elapsed={elapsed}/>
   </div>
-  <p className="sim-analytics-note">*Valores de referencia sintéticos. No representan precisión, FPS de inferencia ni decisiones de seguridad validadas.</p>
+  <p className="sim-analytics-note">*Valores de la escena virtual. No confirman situaciones reales de seguridad.</p>
  </div>;
 }

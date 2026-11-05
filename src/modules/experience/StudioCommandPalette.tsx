@@ -16,11 +16,11 @@ interface Props{
 }
 const PAGE_LINKS=[
  {key:'Resumen',label:'Centro de control',detail:'Panel general y experiencia 3D',icon:LayoutDashboard},
- {key:'Análisis en vivo',label:'Análisis en vivo',detail:'Motor YOLO y simulaciones industriales',icon:ScanEye},
+ {key:'Análisis en vivo',label:'Análisis en vivo',detail:'Cámaras en directo y escenas industriales',icon:ScanEye},
  {key:'Visión IA',label:'Tecnología y manuales',detail:'Cómo funciona el sistema',icon:Boxes},
  {key:'Operaciones',label:'Revisión de indicios',detail:'Decisiones humanas verificables',icon:ClipboardCheck},
  {key:'Historial',label:'Historial de sesiones',detail:'Sesiones y exportaciones locales',icon:History},
- {key:'Privacidad',label:'Privacidad y retención',detail:'Control de IndexedDB',icon:ShieldCheck},
+ {key:'Privacidad',label:'Privacidad y retención',detail:'Datos guardados y privacidad',icon:ShieldCheck},
 ] as const;
 const SCENARIOS=[
  {key:'safety',label:'Seguridad industrial',detail:'Personal y EPP — simulación 3D',icon:ShieldCheck},

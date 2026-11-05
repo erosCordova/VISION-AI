@@ -33,7 +33,7 @@ export function LiveAnalysisPage({scenarioId,onScenarioChange,sessionRepository,
   </section>
   {source==='simulated'&&<div className="simulation-only-notice" role="note">
    <strong>ESCENARIOS VIRTUALES</strong>
-   <span>Explora cuatro escenarios y observa qué objetos puede reconocer YOLO.</span>
+   <span>Explora cuatro escenarios y observa los objetos reconocidos.</span>
   </div>}
   {source==='live'?
    <LiveTrafficAnalysis/>:
