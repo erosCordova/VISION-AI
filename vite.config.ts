@@ -5,5 +5,5 @@ export default defineConfig({
   plugins: [react()],
   server: { allowedHosts: ['terminal.local'] },
   build: { target: 'es2023', sourcemap: false },
-  test: { environment: 'node', include: ['tests/ts/**/*.test.ts'] },
+  test: { environment: 'node', include: ['tests/unit/**/*.test.ts','tests/integration/**/*.test.ts'] },
 });
