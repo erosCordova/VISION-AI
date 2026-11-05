@@ -1,0 +1,27 @@
+# La imagen solo recibe el código FastAPI y los fixtures de test necesarios.
+.git
+.github
+.gitignore
+.env
+.env.*
+.venv
+venv
+node_modules
+dist
+coverage
+qa-artifacts
+private-data
+private-models
+__pycache__
+**/__pycache__
+**/*.pyc
+**/*.pyo
+*.log
+*.pt
+*.onnx
+*.tar
+*.zip
+*.mp4
+*.webm
+*.m3u8
+.DS_Store

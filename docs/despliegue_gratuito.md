@@ -158,3 +158,18 @@ servicios o recursos ajenos al Free/Hobby.
 - Las cámaras se publican por Seattle Department of Transportation (SDOT)
   para monitoreo de tráfico: https://web.seattle.gov/travelers .
   La autorización para uso comercial o retransmisión requiere revisión.
+
+## Docker solo para desarrollo y pruebas
+
+Se añadió una imagen Docker para el backend FastAPI y un archivo
+`compose.yaml` opcional. **No cambia la arquitectura gratuita publicada:**
+la interfaz sigue en Vercel, Render conserva su servicio Python Free,
+y el reconocimiento sigue ejecutándose en el navegador. No es necesario
+desplegar una nueva imagen en Render, crear servicios adicionales ni
+activar un registro de contenedores de pago.
+
+Desde Git Bash en la raíz del proyecto, ejecutar
+`docker compose -f compose.yaml up --build -d api` para disponer
+de la API local en `http://127.0.0.1:8010/api/v1/health`.
+La documentación, configuración de seguridad y comandos de pruebas
+se encuentran en [Docker local](docker_local.md).

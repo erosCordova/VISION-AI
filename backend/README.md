@@ -19,9 +19,10 @@ no importa datasets ni ejecuta PyTorch.
 | CORS | `VISION_ALLOWED_ORIGINS=https://vision-ai-erosss.vercel.app` (agregar otros dominios solo si existen) |
 | Health | `GET /api/v1/health` |
 
-El código de producción devuelve siempre:
-`mode=render-free-status-only`, `inferenceAvailable=false`,
-`source=four-3d-simulations-only`. El viejo endpoint
+El endpoint de salud devuelve `mode=render-free-status-only` e
+`inferenceAvailable=false`. La API puede exponer fotografías periódicas
+TfL por compatibilidad, pero **no transporta las transmisiones HLS**
+de la página ni ejecuta reconocimiento visual. El viejo endpoint
 `POST /api/v1/infer` devuelve **HTTP 503** y no recibe ni procesa
 imágenes. Ni siquiera `VISION_INFERENCE_ENABLED=1` activa
 inferencia en este perfil.
@@ -50,3 +51,24 @@ Para poner en servicio y recuperar código siga
 **Nota histórica:** los ejemplos antiguos de YOLO26n, cámara y envío
 de JPEG correspondían a un prototipo ya descartado. No son parte
 de la arquitectura actual ni deben instalarse en Render Free.
+
+## Docker local (opcional, sin migrar Render)
+
+La imagen de `backend/Dockerfile` se construye con Python 3.12 Slim y
+**únicamente las dependencias mínimas de Render**. La etapa `test`
+ejecuta las pruebas Python; la etapa final `runtime` contiene solo el backend.
+
+```bash
+docker compose -f compose.yaml up --build -d api
+docker compose -f compose.yaml ps
+curl -fsS http://127.0.0.1:8010/api/v1/health
+```
+
+Para correr las pruebas aisladas: `docker build --target test
+-f backend/Dockerfile .`. Para detener: `docker compose -f compose.yaml
+down`. Se limita la exposición de puertos a la máquina local, se usa
+un usuario no privilegiado y el contenedor tiene sistema de archivos
+de solo lectura. El despliegue remoto de Render **sigue usando Python,
+sin Docker**.
+
+Manual completo: [Docker local](../docs/docker_local.md).

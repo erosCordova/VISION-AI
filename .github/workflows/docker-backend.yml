@@ -1,0 +1,66 @@
+name: Verificación Docker del backend
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'tests/**'
+      - 'tools/**'
+      - 'docs/fixtures/**'
+      - 'assets/scenarios/**'
+      - 'compose.yaml'
+      - '.dockerignore'
+      - '.github/workflows/docker-backend.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'tests/**'
+      - 'tools/**'
+      - 'docs/fixtures/**'
+      - 'assets/scenarios/**'
+      - 'compose.yaml'
+      - '.dockerignore'
+      - '.github/workflows/docker-backend.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vision-ai-docker-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docker-backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validar configuración de Docker Compose
+        run: docker compose -f compose.yaml config --quiet
+
+      - name: Ejecutar pruebas Python dentro de Docker
+        run: docker build --progress=plain --target test -f backend/Dockerfile .
+
+      - name: Construir imagen mínima de la API
+        run: docker compose -f compose.yaml build api
+
+      - name: Comprobar seguridad y contrato de la API en el contenedor
+        run: |
+          docker compose -f compose.yaml up -d --no-deps api
+          trap 'docker compose -f compose.yaml down --remove-orphans' EXIT
+          for attempt in {1..25}; do
+            if curl --fail --silent --output /tmp/vision-ai-health.json http://127.0.0.1:8010/api/v1/health; then
+              break
+            fi
+            sleep 2
+          done
+          python3 -c 'import json; d=json.load(open("/tmp/vision-ai-health.json",encoding="utf-8")); assert d["ok"] is True; assert d["inferenceAvailable"] is False; assert len(d["configuredScenarios"])==4'
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' --request POST http://127.0.0.1:8010/api/v1/infer)" = "503"
+          test "$(docker inspect --format '{{.Config.User}}' "$(docker compose -f compose.yaml ps -q api)")" = "10001:10001"
+          docker compose -f compose.yaml ps
