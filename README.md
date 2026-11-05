@@ -140,3 +140,13 @@ lectores de pantalla y teclado. El QA sigue comprobando 12
 rutas responsive y las cuatro escenas ONNX reales.
 
 Ver [diseño, fuentes y criterios de experiencia](docs/ux_inmersiva_active_theory.md).
+
+## Experiencia de interfaz Studio V2
+
+El producto usa ahora **Three.js + GSAP + Lenis + Lucide**, con
+cuatro mundos industriales en 3D, posprocesamiento de iluminación,
+paleta de comandos `Ctrl+K`, navegación refinada y una
+interfaz responsive. Todas estas herramientas tienen uso gratuito
+en este proyecto; GSAP utiliza licencia estándar «no charge».
+La inferencia YOLO ONNX y los datos persistentes no se alteran.
+Consulta [arquitectura visual y licencias](docs/ux_studio_v2.md).
