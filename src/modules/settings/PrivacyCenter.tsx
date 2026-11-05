@@ -62,12 +62,12 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
    if(target==='expired'){
     const removed=await repository.purgeExpired(retention);
     const removedLive=await liveRepository.purgeExpired(retention);
-    setNotice('Depuración completada: '+removed+' sesiones de escenarios y '+
+    setNotice('Depuración confirmada: '+removed+' sesiones de escenarios y '+
      removedLive+' análisis de cámaras eliminados.');
    }else{
     const result=await repository.eraseAll();
     const liveRemoved=await liveRepository.eraseAll();
-    setNotice('Historial eliminado: '+result.sessions+' sesiones, '+
+    setNotice('Historial local eliminado: '+result.sessions+' sesiones, '+
      liveRemoved+' análisis de cámaras y '+result.reviews+
      ' revisiones. Las descargas permanecen en tu dispositivo.');
    }
