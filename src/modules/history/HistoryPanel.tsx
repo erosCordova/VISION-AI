@@ -107,7 +107,7 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
   setPeriod('all');setReviewStatus('all');setPage(1);}
  return <><LiveObservationsHistory onAnalyze={onAnalyze}/><section className="panel history-panel" aria-label="Historial persistente de simulaciones">
   <div className="panel-heading"><div><h2>Sesiones guardadas de las simulaciones</h2>
-   <p>IndexedDB local · sin videos ni fotogramas almacenados</p></div>
+   <p>Resultados guardados en este navegador, sin grabaciones</p></div>
    <span className="status">{loading?'Cargando':records.length+' registros'}</span>
   </div>
   <div className="history-filters">
@@ -124,7 +124,7 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
    <label>Origen
     <select value={mode} onChange={e=>{setMode(e.target.value);setPage(1);}}>
      <option value="">Todos</option><option value="synthetic">Simulación</option>
-     <option value="yolo">YOLO real</option>
+     <option value="yolo">Reconocimiento de objetos</option>
     </select>
    </label>
    <label>Periodo
@@ -150,12 +150,12 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
   <section className="history-report-summary" aria-label="Informe del historial filtrado">
    <div className="history-report-heading"><div>
     <span>INFORMES GUARDADOS</span><h3>Informe de sesiones y evidencias</h3>
-    <p>Registros válidos de IndexedDB · sin imágenes ni datasets</p>
+    <p>Resultados guardados · sin imágenes ni videos</p>
    </div><small>{filtered.length} de {records.length} sesiones visibles</small></div>
    <div className="history-report-stats" aria-live="polite">
     <div><span>Sesiones</span><strong>{loading?'—':metrics.total}</strong></div>
-    <div><span>Sesiones YOLO</span><strong>{loading?'—':metrics.yolo}</strong></div>
-    <div><span>Detecciones YOLO</span><strong>{loading?'—':metrics.detections}</strong></div>
+    <div><span>Sesiones analizadas</span><strong>{loading?'—':metrics.yolo}</strong></div>
+    <div><span>Objetos detectados</span><strong>{loading?'—':metrics.detections}</strong></div>
     <div><span>Por revisar</span><strong>{loading?'—':metrics.open}</strong></div>
     <div><span>Revisadas</span><strong>{loading?'—':metrics.closed}</strong></div>
     <div><span>Latencia media</span><strong>{metrics.meanInferenceMs===null?'—':metrics.meanInferenceMs.toFixed(1)+' ms'}</strong></div>
@@ -173,13 +173,13 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
      Imprimir informe</button>
    </div>
    <p className="history-report-caveat">Las exportaciones respetan los filtros.
-    Puede haber cero detecciones YOLO. La confianza del modelo no es precisión
+    Puede haber cero objetos detectados. La confianza no equivale a precisión
     y una revisión humana no confirma infracciones.</p>
   </section>
   <section className="history-print-report" aria-label="Versión imprimible del informe">
    <h2>VISION-AI · Informe local de sesiones</h2>
-   <p>Emisión: {timestamp} · Fuente: IndexedDB local · {metrics.total} sesiones filtradas</p>
-   <p>Sesiones con YOLO: {metrics.yolo} · Detecciones: {metrics.detections} ·
+   <p>Emisión: {timestamp} · Origen: este navegador · {metrics.total} sesiones filtradas</p>
+   <p>Sesiones analizadas: {metrics.yolo} · Detecciones: {metrics.detections} ·
     Por revisar: {metrics.open} · Revisadas: {metrics.closed}</p>
    <table><thead><tr><th>Escenario</th><th>Sesiones</th></tr></thead>
     <tbody>{metrics.byScenario.map(item=><tr key={item.id}>
@@ -218,7 +218,7 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
      <td>{r.scenarioName}</td>
      <td>{timeLabel(r.savedAt)}</td>
      <td><span className={'session-history-mode '+(r.mode==='yolo'?'is-yolo':'')}>
-       {r.mode==='yolo'?'YOLO real':'Simulación visual'}</span></td>
+       {r.mode==='yolo'?'Reconocimiento de objetos':'Simulación visual'}</span></td>
      <td className="session-history-actions">
       <button type="button" aria-expanded={selected===r.id} onClick={()=>setSelected(v=>v===r.id?null:r.id)}>
        {selected===r.id?'Cerrar':'Ver detalle'}</button>
@@ -247,21 +247,18 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
     <button type="button" onClick={()=>setSelected(null)}>Cerrar detalle</button></div>
    <dl>
     <dt>Escenario</dt><dd>{details.scenarioName}</dd>
-    <dt>Origen</dt><dd>{details.mode==='yolo'?'Detecciones YOLO del simulador':'Eventos sintéticos de la simulación'}</dd>
+    <dt>Origen</dt><dd>{details.mode==='yolo'?'Objetos reconocidos en escena 3D':'Resultados de la escena virtual'}</dd>
     <dt>Tiempo simulado</dt><dd>{formatElapsed(details.source.elapsedMs)}</dd>
     <dt>Visualización</dt><dd>{details.source.graphics==='human'?'Personajes GLB':'Modo ligero'} · {details.source.camera}</dd>
-    <dt>Versión de la fuente</dt><dd>{details.source.sceneVersion}</dd>
-    <dt>Huella reproducible</dt><dd><code>{details.source.fingerprint}</code></dd>
-    <dt>Objetos geométricos</dt><dd>{details.source.syntheticObjectCount} · referencia simulada, no YOLO</dd>
     {details.inference&&<>
-     <dt>Modelo</dt><dd>{details.inference.modelLabel}</dd>
+     <dt>Tipo de reconocimiento</dt><dd>{details.inference.model==='ppe'?'Protección personal':'Objetos generales'}</dd>
      <dt>Fotograma analizado</dt><dd>#{details.inference.frameNumber} · {new Date(details.inference.observedAtMs).toLocaleTimeString('es-PE')}</dd>
      <dt>Detecciones reales</dt><dd>{details.inference.detections.length}</dd>
-     <dt>Latencia ONNX</dt><dd>{Math.round(details.inference.inferenceMs)} ms</dd>
+     <dt>Tiempo de análisis</dt><dd>{Math.round(details.inference.inferenceMs)} ms</dd>
      <dt>Clases reconocidas</dt><dd>{details.inference.detections.length?
       details.inference.detections.map(d=>d.label+' ('+Math.round(d.confidence*100)+'%)').join(' · '):
       'Ninguna detección sobre el umbral'}</dd>
-     <dt>Indicios EPP</dt><dd>{details.inference.reviewLog.length} señales de revisión, no infracciones confirmadas</dd>
+     <dt>Observaciones de protección</dt><dd>{details.inference.reviewLog.length} señales de revisión, no infracciones confirmadas</dd>
      <dt>Revisión humana</dt><dd>{detailReviews.length?detailReviews.map(item=>
       <div className="history-review-item" key={item.id}><strong>{item.label}</strong>
        <span>{item.decisionLabel??'Pendiente'}</span>
@@ -284,7 +281,7 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
     }}>Exportar detalle JSON</button>
    </div>
    <p>Esta sesión conserva metadatos y resultados, no la imagen exacta ni una grabación.
-    La huella identifica el estado determinista del escenario, no certifica los píxeles de una inferencia YOLO.</p>
+    Se conservaron los resultados y la información de la sesión, no la imagen original.</p>
   </section>}
   {pendingDelete&&<div className="session-history-confirm" role="group" aria-label="Confirmar eliminación">
    <p>¿Eliminar permanentemente este registro del navegador? Esta acción no se puede deshacer.</p>

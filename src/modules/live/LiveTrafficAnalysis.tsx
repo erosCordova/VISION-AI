@@ -61,7 +61,7 @@ export function LiveTrafficAnalysis(){
  const [liveConfirmed,setLiveConfirmed]=useState(false);
  const [yoloPhase,setYoloPhase]=useState<YoloPhase>('idle');
  const [yoloError,setYoloError]=useState('');
- const [yoloMessage,setYoloMessage]=useState('YOLOv8n ONNX se carga al iniciar el análisis.');
+ const [yoloMessage,setYoloMessage]=useState('Inicia el reconocimiento para ver los objetos detectados.');
  const [analyzing,setAnalyzing]=useState(false);
  const [threshold,setThreshold]=useState(()=>readLivePreferences().threshold);
  const [classFilter,setClassFilter]=useState('all');
@@ -156,7 +156,7 @@ export function LiveTrafficAnalysis(){
    },wait);
   };
   setVideoPhase('connecting');setVideoError('');
-  setVideoMessage('Conectando con el video HLS público de SDOT…');
+  setVideoMessage('Conectando con la cámara…');
   setLiveConfirmed(false);
   // No llamar load() sin URL: algunos navegadores lanzan MEDIA_ERR_SRC_NOT_SUPPORTED.
   // La limpieza de la conexión anterior se realiza antes, en el return del effect.
@@ -187,7 +187,7 @@ export function LiveTrafficAnalysis(){
      if(performance.now()-liveSince>=30_000)reconnectAttempts.current=0;
      setVideoPhase('live');setLiveConfirmed(true);
      setVideoError('');
-     setVideoMessage('Transmisión HLS activa · video en movimiento');
+     setVideoMessage('Video en directo');
     }else if(movement>=1){
      setVideoPhase('buffering');
      setVideoMessage('Comprobando que llegan nuevos fotogramas en directo…');
@@ -216,7 +216,7 @@ export function LiveTrafficAnalysis(){
     }else{
      const Hls=await loadHlsFactory();
      if(closed||streamGeneration.current!==token)return;
-     if(!Hls.isSupported())throw Error('El navegador no admite HLS mediante MediaSource.');
+     if(!Hls.isSupported())throw Error('Este navegador no puede reproducir la cámara seleccionada.');
      player=new Hls({
       enableWorker:true,lowLatencyMode:true,
       liveSyncDurationCount:2,maxBufferLength:12,
@@ -232,36 +232,32 @@ export function LiveTrafficAnalysis(){
      });
      player.on(Hls.Events.MANIFEST_PARSED,()=>{
       if(closed)return;
-      void video.play().catch(error=>{
-       if(closed)return;
-       const message=error instanceof Error?error.message:String(error);
-       fail('No se pudo iniciar la reproducción: '+message.slice(0,120));
-      });
+      void video.play().catch(()=>{if(!closed)fail('No se pudo iniciar el video.');});
      });
      player.on(Hls.Events.ERROR,(_event:string,data:HlsErrorData)=>{
       if(closed||!data.fatal)return;
       const action=chooseFatalHlsAction(data.type,recoveredMedia,restartedNetwork);
       if(action==='recover-media'&&player?.recoverMediaError){
        recoveredMedia=true;
-       setVideoMessage('Recuperando decodificación del video en directo…');
+       setVideoMessage('Recuperando video…');
        player.recoverMediaError();return;
       }
       if(action==='restart-network'&&player?.startLoad){
        restartedNetwork=true;
-       setVideoMessage('Reanudando la descarga de segmentos de video…');
+       setVideoMessage('Restableciendo conexión…');
        player.startLoad();return;
       }
-      fail('Error HLS: '+(data.details||data.type||'transmisión interrumpida'));
+      fail('La transmisión se interrumpió.');
      });
      sourceAttached=true;
      player.attachMedia(video);
      player.loadSource(camera.streamUrl);
      setVideoPhase('buffering');
-     setVideoMessage('Descargando manifiesto y segmentos del video HLS…');
+     setVideoMessage('Preparando el video…');
     }
    }catch(error){
     if(closed)return;
-    fail(error instanceof Error?error.message:'No se pudo iniciar la transmisión.');
+    fail('No se pudo conectar con la cámara.');
    }
   };
   void start();
@@ -302,11 +298,11 @@ export function LiveTrafficAnalysis(){
   if(videoPhase!=='live'&&analyzing){
    setAnalyzing(false);runGeneration.current++;
    setYoloPhase('idle');
-   setYoloMessage('Reconectando: YOLO se reanudará al recibir video nuevo.');
+   setYoloMessage('Reconectando. El reconocimiento continuará cuando vuelva la señal.');
   }else if(videoPhase==='live'&&!analyzing&&wantsRecognition.current&&modelRef.current&&
    videoRef.current&&!videoRef.current.paused&&videoRef.current.readyState>=2){
    setYoloPhase('running');setAnalyzing(true);
-   setYoloMessage('YOLO reanudado sobre fotogramas actuales.');
+   setYoloMessage('Reconocimiento reanudado.');
   }
  },[videoPhase,analyzing,yoloPhase]);
 
@@ -340,7 +336,7 @@ export function LiveTrafficAnalysis(){
     canvas.height=Math.max(2,Math.round(video.videoHeight*scale));
     const ctx=canvas.getContext('2d',{willReadFrequently:true});
     if(!ctx){
-     setYoloPhase('error');setYoloError('No se pudo crear el canvas de inferencia.');
+     setYoloPhase('error');setYoloError('No se pudo preparar la imagen para analizarla.');
      setAnalyzing(false);return;
     }
     try{
@@ -362,15 +358,15 @@ export function LiveTrafficAnalysis(){
       const span=recent[recent.length-1]-recent[0];
       setFps(span>0?(recent.length-1)*1000/span:null);
      }
-     setYoloMessage('YOLO examina los píxeles de los fotogramas nuevos de esta cámara.');
+     setYoloMessage('Reconociendo objetos en las imágenes de esta cámara.');
     }catch(error){
      if(closed||token!==runGeneration.current)return;
      const text=error instanceof Error?error.message:String(error);
      wantsRecognition.current=false;
      setYoloPhase('error');setAnalyzing(false);
      setYoloError(/SecurityError|tainted|cross-origin/i.test(text)?
-      'El servidor de video no permite leer sus píxeles (CORS). No se puede ejecutar YOLO con esta fuente.':
-      'Error de inferencia: '+text.slice(0,180));
+      'Esta cámara no permite analizar sus imágenes. Selecciona otra cámara.':
+      'No se pudo reconocer la imagen. Intenta con otra cámara.');
      return;
     }
     await delay(analysisDelayRef.current); // Sin acumulación de fotogramas atrasados.
@@ -412,23 +408,23 @@ export function LiveTrafficAnalysis(){
   wantsRecognition.current=true;
   const token=++runGeneration.current;
   setYoloPhase('loading');setYoloError('');
-  setYoloMessage('Cargando modelo YOLOv8n para analizar el video…');
+  setYoloMessage('Preparando el reconocimiento…');
   try{
-   const model=modelRef.current??await loadYoloBrowser(message=>{
-    if(token===runGeneration.current)setYoloMessage(message);
+   const model=modelRef.current??await loadYoloBrowser(()=>{
+    if(token===runGeneration.current)setYoloMessage('Preparando el reconocimiento…');
    },'coco');
    if(token!==runGeneration.current)return;
    modelRef.current=model;
    if(!videoRef.current||videoRef.current.paused||videoRef.current.readyState<2){
     setYoloPhase('idle');
-    setYoloMessage('Reconectando cámara: YOLO continuará al volver los fotogramas.');
+    setYoloMessage('Reconectando cámara: el reconocimiento continuará al recuperar la señal.');
     return;
    }
    setYoloPhase('running');setAnalyzing(true);
-  }catch(error){
+  }catch{
    if(token!==runGeneration.current)return;
    wantsRecognition.current=false;
-   setYoloPhase('error');setYoloError(error instanceof Error?error.message:String(error));
+   setYoloPhase('error');setYoloError('No se pudo iniciar el reconocimiento. Revisa tu conexión e inténtalo otra vez.');
   }
  };
  const stopYolo=()=>{
@@ -470,7 +466,7 @@ export function LiveTrafficAnalysis(){
    },'image/png');
   }catch{setSaveNotice('No se pudo descargar esta imagen.');}
  };
- return <section className="live-traffic-lab" aria-label="Transmisión pública en tiempo real con YOLO">
+ return <section className="live-traffic-lab" aria-label="Cámara pública con reconocimiento de objetos">
   <header className="live-traffic-head">
    <div><span className="live-traffic-eyebrow">CÁMARAS PÚBLICAS EN DIRECTO</span>
     <h2>Monitoreo de tráfico en directo</h2>
@@ -530,21 +526,21 @@ export function LiveTrafficAnalysis(){
    <aside className="live-traffic-inference">
     <div className="live-traffic-inference-head">
      <span className="live-traffic-eyebrow">RESULTADOS DEL ÚLTIMO ANÁLISIS</span>
-     <h3>Reconocimiento YOLO real</h3>
+     <h3>Objetos reconocidos</h3>
      <p>Las detecciones corresponden a la imagen analizada,
       aunque el video siga avanzando.</p>
     </div>
     <div className="live-traffic-evidence">
-     <canvas ref={evidenceRef} role="img" aria-label="Último fotograma analizado, con cajas YOLO reales"/>
+     <canvas ref={evidenceRef} role="img" aria-label="Imagen analizada con objetos resaltados"/>
      {!analyzed&&<div className="live-traffic-evidence-empty">
-      Inicia el video y después YOLO para ver las detecciones reales.
+      Inicia el video y el reconocimiento para ver los objetos detectados.
      </div>}
     </div>
     <div className="live-traffic-actions">
      {!analyzing?
       <button className="primary" type="button" disabled={!readyForInference||yoloPhase==='loading'}
        onClick={()=>void startYolo()}>
-       {yoloPhase==='loading'?'Cargando modelo…':'◉ Iniciar reconocimiento'}
+       {yoloPhase==='loading'?'Preparando…':'◉ Iniciar reconocimiento'}
       </button>:
       <button type="button" onClick={stopYolo}>■ Detener reconocimiento</button>}
     </div>
@@ -584,13 +580,13 @@ export function LiveTrafficAnalysis(){
     <div className="live-traffic-metrics">
      <div><span>Fotogramas analizados</span><strong>{analyzed}</strong></div>
      <div><span>Objetos detectados</span><strong>{analyzed?visibleDetections.length:'—'}</strong></div>
-     <div><span>Inferencias por segundo</span><strong>{fps===null?'—':fps.toFixed(1)}</strong></div>
-     <div><span>Tiempo del último YOLO</span><strong>{inferenceMs===null?'—':inferenceMs+' ms'}</strong></div>
+     <div><span>Imágenes analizadas por segundo</span><strong>{fps===null?'—':fps.toFixed(1)}</strong></div>
+     <div><span>Tiempo de análisis</span><strong>{inferenceMs===null?'—':inferenceMs+' ms'}</strong></div>
     </div>
     <div className="live-traffic-observations">
      <strong>Última lectura {sampleTime||'—'}</strong>
      {analyzed===0?<p>Sin mediciones todavía.</p>:
-      visibleDetections.length===0?<p>YOLO no detectó objetos que superen el umbral.</p>:
+      visibleDetections.length===0?<p>No se detectaron objetos con la confianza seleccionada.</p>:
       <ul>{visibleDetections.slice(0,10).map((item,index)=>
        <li key={index}><span>{item.label}</span><b>{Math.round(item.confidence*100)}%</b></li>)}</ul>}
     </div>

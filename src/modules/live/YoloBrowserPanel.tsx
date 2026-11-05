@@ -66,13 +66,10 @@ function drawFrame(frame:YoloFrame,dest:HTMLCanvasElement,family:YoloFamily,
  }
 }
 const delay=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));
-const explainError=(error:unknown)=>{
- const info=error instanceof Error?error.message:String(error);
- return info.length>230?info.slice(0,230)+'…':info;
-};
+const explainError=(_error:unknown)=>'No se pudo completar el reconocimiento. Comprueba la conexión y vuelve a intentarlo.';
 export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenarioId,paused,onTelemetry}:Props){
  const [phase,setPhase]=useState<Phase>('idle');
- const [message,setMessage]=useState('El modelo solo se descarga cuando presionas Iniciar YOLO.');
+ const [message,setMessage]=useState('Presiona Iniciar reconocimiento para analizar la escena.');
  const [confidence,setConfidence]=useState(.35);
  const [capturePace,setCapturePace]=useState<CapturePace>('balanced');
  const adaptive=useRef(new AdaptiveCapturePacer());
@@ -114,19 +111,18 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
   cycle.current.reset();failedCanvas.current=null;failedSource.current=null;setLastRun(null);lastCompletedRun.current=null;
   setPhase('loading');setError('');
   onTelemetry({type:'status',phase:'loading',model:family});
-  setMessage('Preparando el motor de inferencia…');
+  setMessage('Preparando el reconocimiento…');
   times.current=[];adaptive.current.reset();setAutoInterval(null);setPipeline(null);
   setSampleCount(0);setObservedFps(null);
   lastAnalyzed.current=null;lastEvidenceSource.current=null;setExportMessage('');setMaskStats(null);setMaskError('');
   setDetections([]);setInferenceMs(null);setLastFrameAt(null);
   if(preview.current){const ctx=preview.current.getContext('2d');ctx?.clearRect(0,0,preview.current.width,preview.current.height);}
   try{
-   const session=model?.family===family?model:await loadYoloBrowser(text=>{
-    if(generation.current===token)setMessage(text);
+   const session=model?.family===family?model:await loadYoloBrowser(()=>{
+    if(generation.current===token)setMessage('Preparando el reconocimiento…');
    },family);
    if(generation.current!==token)return;
-   setModel(session);setMessage('Modelo '+(family==='ppe'?'EPP industrial':'COCO')+
-    ' cargado. Analizando píxeles sin leer el estado del simulador…');
+   setModel(session);setMessage('Reconocimiento iniciado. Analizando la escena…');
    setPhase('running');
    onTelemetry({type:'status',phase:'running',model:family});
   }catch(e){
@@ -135,14 +131,14 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
    setPhase('failed');
    onTelemetry({type:'status',phase:'failed',model:family,error:explainError(e)});
    setError(explainError(e));
-   setMessage('No fue posible inicializar el modelo YOLO.');
+   setMessage('No se pudo iniciar el reconocimiento.');
   }
  },[phase,model,family,onTelemetry]);
  const stop=useCallback(()=>{
   generation.current++;startLocked.current=false;cycle.current.reset();failedCanvas.current=null;failedSource.current=null;
   setPhase('stopped');
   onTelemetry({type:'status',phase:'stopped',model:family});
-  setMessage('Inferencia detenida. No se están procesando más fotogramas.');
+  setMessage('Reconocimiento detenido.');
  },[onTelemetry,family]);
  function selectFamily(next:YoloFamily){
   if(next===family)return;
@@ -155,8 +151,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
   setError('');setDetections([]);setSampleCount(0);
   adaptive.current.reset();setAutoInterval(null);setPipeline(null);
   setObservedFps(null);setInferenceMs(null);setLastFrameAt(null);
-  setMessage('Seleccionado '+(next==='ppe'?'YOLOv8s EPP (44,8 MB)':'YOLOv8n COCO (13 MB)')+
-   '. Presiona Iniciar YOLO real para cargarlo.');
+  setMessage('Seleccionado '+(next==='ppe'?'Equipos de protección':'Objetos generales')+'. Presiona Iniciar reconocimiento.');
  }
  useEffect(()=>{
   if(phase!=='running'||!model)return;
@@ -205,8 +200,8 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
       1000*(stamps.length-1)/(stamps[stamps.length-1]-stamps[0]):null);
      setSampleCount(value=>value+1);
      setMessage(family==='ppe'?
-      'YOLOv8s EPP examinó los píxeles de la imagen. Las alertas requieren revisión humana.':
-      'YOLOv8n COCO analizó el último fotograma. No evalúa equipos de protección.');
+      'Protección personal analizada. Revisa visualmente las observaciones.':
+      'Imagen analizada. Este modo no evalúa equipos de protección.');
     }catch(e){
      if(cancelled||generation.current!==token){
       if(job)cycle.current.discard(job);
@@ -306,7 +301,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
   const mask=maskStats,source=lastEvidenceSource.current,frame=lastAnalyzed.current,
    completed=lastCompletedRun.current;
   if(!mask||!source||!frame||!completed||maskSource.current!==frame.source){
-   setExportMessage('Activa la máscara después de una inferencia YOLO completa.');
+   setExportMessage('Activa el resaltado de regiones después de analizar una imagen.');
    return;
   }
   try{
@@ -327,7 +322,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
   const metadata=lastEvidenceSource.current;
   const run=lastCompletedRun.current;
   if(!analyzed||!metadata||!run||run.phase!=='completed'){
-   setExportMessage('No hay un fotograma YOLO completo para exportar.');
+   setExportMessage('Primero analiza una imagen para poder exportarla.');
    return;
   }
   try{
@@ -337,58 +332,55 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
    drawFrame(analyzed,output,run.run.model);
    await saveEvidencePng(output,evidencePngName(metadata,run.run.frameId,
     run.run.capturedAtMs));
-   setExportMessage('Evidencia PNG generada con las predicciones originales de YOLO.');
+   setExportMessage('Imagen con detecciones guardada.');
   }catch(e){setExportMessage('No fue posible exportar: '+explainError(e));}
  }
  const personCount=visibleDetections.filter(d=>d.classId==='person').length;
  const ppe=family==='ppe'?ppeFindings(detections):null;
- return <section className="browser-yolo-panel" aria-label="YOLO real en el navegador">
+ return <section className="browser-yolo-panel" aria-label="Reconocimiento de objetos en el escenario">
    <div className="browser-yolo-heading">
-    <div><span className="eyebrow">INFERENCIA REAL • ONNX / WASM</span>
-      <h3>{family==='ppe'?'YOLOv8s — Equipos de protección':'YOLOv8n — Objetos generales'}</h3>
-      <p>YOLO examina automáticamente fotogramas de la simulación 3D mientras está en marcha.
-      Las cajas provienen del modelo, nunca de las posiciones programadas.</p></div>
+    <div><span className="eyebrow">RECONOCIMIENTO DE OBJETOS</span>
+      <h3>{family==='ppe'?'Equipos de protección':'Objetos generales'}</h3>
+      <p>Reconoce objetos visibles en la escena y muestra los resultados sobre la imagen.</p></div>
     <span className={'browser-yolo-phase '+(phase==='running'?'is-live':'')} role="status">
-     {phase==='running'?'● YOLO EJECUTÁNDOSE':phase==='loading'?'CARGANDO MODELO':
-      phase==='retrying'?'REINTENTANDO FOTOGRAMA':
-      phase==='failed'?'ERROR DE MODELO':'YOLO DETENIDO'}</span>
+     {phase==='running'?'● RECONOCIENDO':phase==='loading'?'PREPARANDO':
+      phase==='retrying'?'REINTENTANDO':
+      phase==='failed'?'NO DISPONIBLE':'DETENIDO'}</span>
    </div>
    <div className="browser-yolo-selectors browser-yolo-simulation-only">
     <div className="browser-yolo-picker">
-     <span>DETECTOR YOLO</span>
-     <div role="group" aria-label="Seleccionar modelo YOLO para la simulación">
+     <span>TIPO DE RECONOCIMIENTO</span>
+     <div role="group" aria-label="Seleccionar tipo de reconocimiento">
       <button type="button" aria-pressed={family==='coco'} onClick={()=>selectFamily('coco')}>
-       General · 80 clases
+       Objetos generales
       </button>
       {scenarioId==='safety'&&<button type="button" aria-pressed={family==='ppe'}
-       onClick={()=>selectFamily('ppe')}>EPP industrial · 14 clases</button>}
+       onClick={()=>selectFamily('ppe')}>Equipos de protección</button>}
      </div>
     </div>
     <div className="browser-yolo-source-locked">
-     <strong>FUENTE EXCLUSIVA</strong>
+     <strong>ESCENA SELECCIONADA</strong>
      <span>Escenario 3D en ejecución</span>
-     <small>Los fotogramas se capturan automáticamente. No se cargan archivos.</small>
+     <small>El análisis utiliza la escena que estás viendo.</small>
     </div>
    </div>
    {family==='ppe'&&<p className="browser-yolo-modelnote">
-    Modelo industrial especializado: descarga bajo demanda de 44,8 MB, licencia AGPL-3.0.
-    Detecta cascos, chalecos, personas y algunas ausencias de EPP.
-    No es un sistema certificado ni puede confirmar cumplimiento a partir de detecciones vacías.
+    Identifica personas y equipos de protección visibles. Los resultados requieren revisión visual.
    </p>}
    <div className="browser-yolo-actions">
     {phase!=='running'&&phase!=='loading'&&phase!=='retrying'&&
       <button type="button" className="primary" onClick={()=>void start()}>
-       {model?'▶ Reanudar YOLO real':'◉ Iniciar YOLO real'}
+       {model?'▶ Reanudar reconocimiento':'◉ Iniciar reconocimiento'}
       </button>}
     {(phase==='running'||phase==='loading'||phase==='retrying')&&
-      <button type="button" onClick={stop}>Ⅱ Detener inferencia</button>}
+      <button type="button" onClick={stop}>Ⅱ Detener reconocimiento</button>}
     {phase==='failed'&&model&&failedCanvas.current&&
       <button type="button" onClick={()=>void retryFailedFrame()}>
-       Reintentar último fotograma
+       Reintentar imagen
       </button>}
     {sampleCount>0&&lastAnalyzed.current&&lastEvidenceSource.current&&
       <button type="button" className="browser-yolo-export" onClick={()=>void exportEvidence()}>
-       ▣ Exportar evidencia YOLO (PNG)
+       ▣ Descargar imagen con detecciones
       </button>}
     <label htmlFor="yolo-confidence">Confianza visual mínima
       <strong>{Math.round(confidence*100)} %</strong>
@@ -396,7 +388,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
     <input id="yolo-confidence" type="range" min="15" max="85" step="5"
      value={Math.round(confidence*100)}
      onChange={e=>setConfidence(Number(e.target.value)/100)}/>
-    <label htmlFor="yolo-capture-pace">Cadencia de captura</label>
+    <label htmlFor="yolo-capture-pace">Velocidad de análisis</label>
     <select id="yolo-capture-pace" value={capturePace}
      onChange={e=>setCapturePace(e.target.value as CapturePace)}>
      <option value="balanced">Equilibrada (750 ms)</option>
@@ -405,9 +397,9 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
      <option value="efficient">Ahorro (1500 ms)</option>
     </select>
     {capturePace==='auto'&&<small className="browser-yolo-adaptive" role="status">
-     Intervalo estimado: {autoInterval??750} ms · una inferencia a la vez.
+     Pausa entre análisis: {autoInterval??750} ms.
     </small>}
-    <label htmlFor="yolo-class-filter">Clase visible</label>
+    <label htmlFor="yolo-class-filter">Mostrar objetos</label>
     <select id="yolo-class-filter" value={classFilter} onChange={e=>setClassFilter(e.target.value)}>
      <option value="all">Todas las clases</option>
      {availableClasses.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}
@@ -441,7 +433,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
     {showChromaticMask&&sampleCount>0&&maskStats&&<p className="browser-yolo-mask-summary" role="status">
      Área cromática resaltada: <b>{maskStats.coveragePercent.toFixed(1)} %</b> del fotograma
      {' · '}<b>{maskStats.selectedPixels.toLocaleString('es-PE')}</b> píxeles
-     {' · '}{maskStats.regions.length} regiones YOLO evaluadas
+     {' · '}{maskStats.regions.length} regiones examinadas
      {boundaryStats&&<> · Bordes: {boundaryStats.boundaryPixels.toLocaleString('es-PE')} píxeles de contorno
       {' · '}Perímetro estimado: {boundaryStats.perimeterEdges.toLocaleString('es-PE')} lados de píxel</>}
     </p>}
@@ -460,76 +452,67 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
       </div>)}
      </div>}
     {maskError&&<p className="browser-yolo-error" role="alert">{maskError}</p>}
-    <small>La máscara usa contraste RGB de píxeles dentro de cajas YOLO; elimina manchas de ruido pequeñas si se solicita. No es segmentación semántica ni una máscara del modelo YOLO.</small>
+    <small>El resaltado de regiones es aproximado y se basa en diferencias de color.</small>
    </div>
-   <p className="browser-yolo-modelnote">La cadencia es el intervalo mínimo objetivo entre capturas; el tiempo real depende del equipo. Al ocultar la pestaña se suspenden nuevas capturas.
-    Los filtros cambian solo las cajas visibles.
-    Las inferencias originales, desde {Math.round(MIN_RAW_YOLO_CONFIDENCE*100)} % de confianza, se conservan para el monitor y la sesión.
+   <p className="browser-yolo-modelnote">Los filtros cambian lo que ves, sin alterar los resultados del análisis. Al ocultar la página, el reconocimiento se pausa.
    </p>
    <p className="browser-yolo-status" role="status">{message}</p>
    {exportMessage&&<p className="browser-yolo-export-status" role="status">{exportMessage}</p>}
-   {lastRun&&<p className="browser-yolo-run" aria-label="Ejecución correlacionada del fotograma">
+   {lastRun&&<p className="browser-yolo-run" aria-label="Estado del último análisis"
+    data-frame-id={lastRun.run.frameId} data-attempt={lastRun.run.attempt} data-origin="simulation-3d">
     {lastRun.phase==='completed'?'ANÁLISIS COMPLETADO':'ANÁLISIS FALLIDO'}
-    {' · '}Frame #{lastRun.run.frameId}
-    {' · '}Intento {lastRun.run.attempt}
-    {' · '}Origen: simulación 3D
-    {lastEvidenceSource.current&&lastRun.phase==='completed'&&
-     <> · Cámara: {lastEvidenceSource.current.camera}
-      {' · '}Segundo de escena: {(lastEvidenceSource.current.elapsedMs/1000).toFixed(1)}</>}
-    {lastRun.durationMs!==null&&' · '+Math.round(lastRun.durationMs)+' ms de ciclo'}
+    {' · '}Imagen #{lastRun.run.frameId}
    </p>}
    {error&&<p className="browser-yolo-error" role="alert">{error}</p>}
    <div className="browser-yolo-result">
     <div className="browser-yolo-preview">
      <div className="browser-yolo-subhead"><strong>ÚLTIMO FOTOGRAMA ANALIZADO</strong>
-       <span>YOLO · simulación 3D</span></div>
+       <span>Escena 3D</span></div>
      <div className="browser-yolo-preview-frame">
       <canvas ref={preview} width={960} height={550} role="img"
-       aria-label={'Fotograma de '+scenarioName+' con las cajas realmente inferidas por YOLO'} />
+       aria-label={'Imagen de '+scenarioName+' con los objetos reconocidos'} />
       {sampleCount===0&&<p className="browser-yolo-placeholder">
        {phase==='loading'?'Preparando red neuronal…':
-        'Inicia YOLO para analizar los fotogramas de la simulación.'}
+        'Inicia el reconocimiento para analizar la escena.'}
       </p>}
      </div>
-     <p>Las cajas provienen exactamente del fotograma de la escena procesado por YOLO,
-      sin consultar las posiciones internas del simulador.</p>
+     <p>Los objetos reconocidos aparecen resaltados sobre la imagen analizada.</p>
     </div>
     <div className="browser-yolo-summary">
-     <span className="eyebrow">LECTURA DEL MODELO</span>
+     <span className="eyebrow">RESULTADOS DEL ANÁLISIS</span>
      <div className="browser-yolo-kpis">
       <div><span>Detecciones visibles</span><strong>{sampleCount?visibleDetections.length:'—'}</strong></div>
       <div><span>Personas</span><strong>{sampleCount?personCount:'—'}</strong></div>
-      <div><span>Inferencia</span><strong>{inferenceMs===null?'—':Math.round(inferenceMs)+' ms'}</strong></div>
-      <div><span>FPS inferidos</span><strong>{observedFps===null?'—':observedFps.toFixed(1)}</strong></div>
+      <div><span>Tiempo de análisis</span><strong>{inferenceMs===null?'—':Math.round(inferenceMs)+' ms'}</strong></div>
+      <div><span>Análisis por segundo</span><strong>{observedFps===null?'—':observedFps.toFixed(1)}</strong></div>
      </div>
-     {pipeline&&<section className="browser-yolo-profile"
-       aria-label="Tiempos reales de la última inferencia YOLO">
-       <h4>Tiempo real por etapa (último fotograma)</h4>
+     {pipeline&&<details className="browser-yolo-profile"
+       aria-label="Detalles del tiempo de análisis">
+       <summary>Detalles de tiempo</summary>
+       <h4>Duración del último análisis</h4>
        <div><span>Preparación</span><strong>{pipeline.preprocessMs.toFixed(1)} ms</strong></div>
-       <div><span>ONNX / WASM</span><strong>{pipeline.runMs.toFixed(1)} ms</strong></div>
-       <div><span>Posproceso</span><strong>{pipeline.postprocessMs.toFixed(1)} ms</strong></div>
-       <div className="browser-yolo-profile-total"><span>Total modelo</span>
+       <div><span>Reconocimiento</span><strong>{pipeline.runMs.toFixed(1)} ms</strong></div>
+       <div><span>Resultados</span><strong>{pipeline.postprocessMs.toFixed(1)} ms</strong></div>
+       <div className="browser-yolo-profile-total"><span>Tiempo total</span>
         <strong>{pipeline.totalMs.toFixed(1)} ms</strong></div>
-       <p>Mediciones del navegador; no incluyen descarga ni render 3D.
-        No indican precisión de reconocimiento.</p>
-      </section>}
+       <p>Valores medidos durante el análisis. No representan un porcentaje de acierto.</p>
+      </details>}
      {ppe&&sampleCount>0&&<div className="browser-ppe-summary">
-       <div><span>EPP observado</span><strong>{ppe.worn.length}</strong></div>
+       <div><span>Protección observada</span><strong>{ppe.worn.length}</strong></div>
        <div><span>Señales para revisión</span>
         <strong className={ppe.requiresReview?'is-review':''}>{ppe.review.length}</strong></div>
-       {ppe.review.length>0&&<p role="status">El modelo encontró indicios de EPP ausente:
+       {ppe.review.length>0&&<p role="status">Se identificaron posibles faltas de protección:
         {ppe.review.map(e=>' '+e.label).join(', ')}. Confirmar visualmente antes de decidir.</p>}
        {ppe.review.length===0&&<p>No se emitieron señales explícitas de incumplimiento.
         Esto NO certifica que las personas lleven casco o chaleco.</p>}
       </div>}
-     <p className="browser-yolo-count browser-yolo-count-evidence">Predicciones originales retenidas: <b>{sampleCount?detections.length:'—'}</b> · Visibles: <b>{sampleCount?visibleDetections.length:'—'}</b>.</p>
-     <p className="browser-yolo-count browser-yolo-count-frames">Fotogramas procesados: <b>{sampleCount}</b>
+     <p className="browser-yolo-count browser-yolo-count-evidence">Objetos encontrados: <b>{sampleCount?detections.length:'—'}</b> · Mostrados: <b>{sampleCount?visibleDetections.length:'—'}</b>.</p>
+     <p className="browser-yolo-count browser-yolo-count-frames">Imágenes analizadas: <b>{sampleCount}</b>
       {lastFrameAt&&<> · último: <b>{new Date(lastFrameAt).toLocaleTimeString('es-PE')}</b></>}</p>
      {sampleCount>0&&detections.length>0&&visibleDetections.length===0&&
-      <p className="browser-yolo-empty">Hay predicciones YOLO, pero ninguna cumple los filtros visuales actuales.</p>}
+      <p className="browser-yolo-empty">Hay objetos reconocidos, pero ninguno cumple los filtros actuales.</p>}
      {sampleCount>0&&detections.length===0&&<p className="browser-yolo-empty">
-      Ningún objeto superó el umbral. Un modelo entrenado en fotografías puede no reconocer
-      modelos 3D estilizados. No se añadirán detecciones artificiales.
+      No se reconocieron objetos con la confianza seleccionada. Prueba otra vista o reduce el umbral.
      </p>}
      {visibleDetections.length>0&&<div className="browser-yolo-classes">
       {visibleDetections.slice(0,8).map(d=><div key={d.id}>
@@ -537,8 +520,8 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
      </div>}
      <p className="browser-yolo-limit"><b>Limitaciones:</b>
       {family==='ppe'?
-       ' El detector EPP no valida el cumplimiento automáticamente; sus indicios de ausencia deben revisarse. No reconoce todas las prendas ni se ha evaluado en nuestra escena 3D estilizada. La clase «sin mascarilla» no se usa para alertar.':
-       ' El detector COCO no reconoce cascos, chalecos, montacargas específicos ni defectos industriales.'}
+       ' El reconocimiento de protección no garantiza que se cumplan las medidas de seguridad. Revisa siempre las observaciones. La clase «sin mascarilla» no se usa para alertar.':
+       ' Este tipo de reconocimiento no permite verificar protección personal ni defectos industriales.'}
        No se usa para sanciones ni para seguridad certificada.
      </p>
     </div>

@@ -45,7 +45,7 @@ export function PublicCameraLab(){
  const [minConfidence,setMinConfidence]=useState(.35);
  const minConfidenceRef=useRef(.35);minConfidenceRef.current=minConfidence;
  const [running,setRunning]=useState(false);
- const [modelInfo,setModelInfo]=useState('El modelo YOLO se descarga solo cuando lo solicitas.');
+ const [modelInfo,setModelInfo]=useState('El reconocimiento se activa cuando lo solicitas.');
  const [busy,setBusy]=useState(false);
  const [refreshNonce,setRefreshNonce]=useState(0);
  const source=useRef<HTMLCanvasElement>(null);
@@ -67,7 +67,7 @@ export function PublicCameraLab(){
  const infer=useCallback(async(model:LoadedYolo,token:number)=>{
   if(!source.current||source.current.width<2)return;
   try{
-   setPhase('processing');setModelInfo('YOLO analiza los píxeles de una fotografía pública…');
+   setPhase('processing');setModelInfo('Reconociendo objetos en la imagen…');
    const snapshot=captureRenderedFrame(source.current);
    const output=await analyzeYoloFrame(model,snapshot,.22);
    if(token!==requestGeneration.current||!alive.current)return;
@@ -75,12 +75,12 @@ export function PublicCameraLab(){
    setInferenceMs(Math.round(output.inferenceMs));
    setFrameCount(value=>value+1);
    setPhase('ready');
-   setModelInfo('Inferencia real completada; resultados del fotograma mostrado.');
+   setModelInfo('Análisis terminado.');
    redraw(output.detections.filter(item=>item.confidence>=minConfidenceRef.current));
   }catch(error){
    if(token!==requestGeneration.current||!alive.current)return;
    setPhase('failed');
-   setModelInfo(error instanceof Error?error.message:'Error al ejecutar YOLO.');
+   setModelInfo('No se pudo completar el reconocimiento.');
   }
  },[redraw]);
  useEffect(()=>{
@@ -124,7 +124,7 @@ export function PublicCameraLab(){
     }
    }catch(error){
     if(live&&!abort.signal.aborted&&token===requestGeneration.current){
-     setFrameError(error instanceof Error?error.message:'No se pudo leer la imagen pública.');
+     setFrameError('No se pudo cargar la imagen de esta cámara.');
      setSourceStatus('Fuente temporalmente no disponible · última imagen sin actualizar');
     }
    }finally{if(live&&token===requestGeneration.current)setBusy(false);}
@@ -141,11 +141,11 @@ export function PublicCameraLab(){
  },[cameraId,redraw]);
  const startYolo=async()=>{
   if(!source.current||source.current.width<2)return;
-  setPhase('loading');setModelInfo('Descargando YOLOv8n COCO (ONNX/WASM)…');
+  setPhase('loading');setModelInfo('Preparando el reconocimiento…');
   const token=++requestGeneration.current;
   try{
-   const model=await loadYoloBrowser(message=>{
-    if(alive.current&&token===requestGeneration.current)setModelInfo(message);
+   const model=await loadYoloBrowser(()=>{
+    if(alive.current&&token===requestGeneration.current)setModelInfo('Preparando el reconocimiento…');
    },'coco');
    if(!alive.current||token!==requestGeneration.current)return;
    currentModel.current=model;runningRef.current=true;setRunning(true);
@@ -153,7 +153,7 @@ export function PublicCameraLab(){
   }catch(error){
    if(token!==requestGeneration.current||!alive.current)return;
    runningRef.current=false;setRunning(false);setPhase('failed');
-   setModelInfo(error instanceof Error?error.message:'No fue posible iniciar YOLO.');
+   setModelInfo('No se pudo iniciar el reconocimiento.');
   }
  };
  const stopYolo=()=>{
@@ -176,9 +176,9 @@ export function PublicCameraLab(){
  return <section className="public-camera-lab" aria-label="Análisis de cámaras públicas TfL">
   <div className="public-camera-header">
    <div><span className="public-camera-eyebrow">FUENTE REAL · CÁMARA PÚBLICA CON LICENCIA</span>
-    <h2>Cámaras públicas + YOLO</h2>
+    <h2>Cámaras públicas</h2>
     <p>Fotografías de vías urbanas de Transport for London. Detección local de vehículos
-    y personas; sin cámara del dispositivo, sin Render y sin inferencia en servidor.</p></div>
+    y personas. No utiliza la cámara de tu dispositivo.</p></div>
    <span className="public-camera-pill">TF LONDON / OPEN DATA</span>
   </div>
   <div className="public-camera-toolbar">
@@ -199,7 +199,7 @@ export function PublicCameraLab(){
     </div>
     <div className="public-camera-frame">
      <canvas ref={source} hidden aria-hidden="true"/>
-     <canvas ref={result} role="img" aria-label="Fotograma público de tráfico con detecciones YOLO si se inició el modelo"/>
+     <canvas ref={result} role="img" aria-label="Imagen pública de tráfico con objetos reconocidos"/>
      {!lastRefresh&&<div className="public-camera-empty">
       {frameError?'La cámara seleccionada no está disponible':'Esperando el primer fotograma público…'}
      </div>}
@@ -216,13 +216,13 @@ export function PublicCameraLab(){
    </div>
    <aside className="public-camera-analysis">
     <span className="public-camera-eyebrow">MOTOR DE VISIÓN</span>
-    <h3>Detección YOLO real</h3>
-    <p>El modelo ONNX detecta clases generales directamente sobre el fotograma
+    <h3>Objetos reconocidos</h3>
+    <p>El reconocimiento identifica objetos visibles en la imagen
      recibido. No se generan predicciones sintéticas.</p>
     <div className="public-camera-actions">
      {!running?<button className="primary" onClick={()=>void startYolo()}
-      disabled={phase==='loading'||!lastRefresh}>Iniciar YOLO</button>:
-      <button onClick={stopYolo}>Detener YOLO</button>}
+      disabled={phase==='loading'||!lastRefresh}>Iniciar reconocimiento</button>:
+      <button onClick={stopYolo}>Detener reconocimiento</button>}
      <button onClick={exportFrame} disabled={!lastRefresh}>Guardar evidencia PNG</button>
     </div>
     <p role="status" className="public-camera-engine-state">{modelInfo}</p>
@@ -234,9 +234,9 @@ export function PublicCameraLab(){
     </label>
     <div className="public-camera-metrics">
      <div><span>Imágenes nuevas recibidas</span><strong>{updateCount}</strong></div>
-     <div><span>Inferencias realizadas</span><strong>{frameCount}</strong></div>
+     <div><span>Imágenes analizadas</span><strong>{frameCount}</strong></div>
      <div><span>Objetos detectados</span><strong>{running&&frameCount?visible.length:'—'}</strong></div>
-     <div><span>Tiempo YOLO</span><strong>{inferenceMs===null?'—':inferenceMs+' ms'}</strong></div>
+     <div><span>Tiempo de análisis</span><strong>{inferenceMs===null?'—':inferenceMs+' ms'}</strong></div>
      <div><span>Última consulta</span><strong>{lastRefresh||'—'}</strong></div>
     </div>
     <h4>Resultados del último fotograma</h4>
@@ -245,8 +245,8 @@ export function PublicCameraLab(){
       {visible.map((d,index)=><li key={index}><span>{d.label}</span>
        <strong>{Math.round(d.confidence*100)} %</strong></li>)}
      </ul>:<p className="public-camera-muted">{running&&frameCount?
-      'YOLO no identificó objetos que superen el umbral actual.':
-      'Inicia YOLO para obtener detecciones comprobables.'}</p>}
+      'No se reconocieron objetos con la confianza seleccionada.':
+      'Inicia el reconocimiento para ver resultados.'}</p>}
     <p className="public-camera-limits">Aplicable a movilidad urbana, logística de transporte
      y ocupación visible. No comprueba EPP industrial ni defectos de fabricación.</p>
    </aside>

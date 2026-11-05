@@ -75,7 +75,7 @@ export function SimulationVideoPanel({ videoRef, scenario, onStatusChange }: {
     <div className="panel-heading"><div><h2>Simulación en tiempo real</h2><p>{scenario}</p></div><span role="status" className={'status ' + (status === 'preview' ? 'live' : '')}><i />{status === 'preview' ? 'Video reproduciéndose' : status === 'paused' ? 'Video pausado' : 'Sin video activo'}</span></div>
     <div className="viewport simulation-viewport">
       <video ref={videoRef} playsInline muted loop hidden={!name} aria-label="Video de simulación"/>
-      {!name && <div className="camera-empty"><span className="camera-symbol" aria-hidden="true">▣</span><h3>Selecciona un video para simular el escenario</h3><p>Se reproducirá en bucle y YOLO analizará los fotogramas que capturemos.</p></div>}
+      {!name && <div className="camera-empty"><span className="camera-symbol" aria-hidden="true">▣</span><h3>Selecciona un video para simular el escenario</h3><p>Se reproducirá en bucle y se reconocerán los objetos visibles que capturemos.</p></div>}
       <span className="viewport-label">VIDEO LOCAL · NO TRANSMITIDO HASTA INICIAR ANÁLISIS</span>
     </div>
     <div className="camera-controls"><label>Video del escenario<input type="file" accept="video/*" aria-label="Cargar video para simulación" onChange={event => { const file = event.target.files?.[0]; void loadFile(file); event.target.value = ''; }} /></label>

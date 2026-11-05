@@ -2,13 +2,13 @@ import {useEffect,useState} from 'react';
 import {detectedClasses,modelScope,observedCaptureFps,observedYoloFps,observationAgeSeconds,reviewSignals} from './yolo-telemetry';
 import type {YoloTelemetry} from './yolo-telemetry';
 import type {ScenarioKey} from './simulation-engine';
-import {evaluateOperationalRules,OPERATIONAL_RULE_VERSION} from './operational-rule-engine';
+import {evaluateOperationalRules} from './operational-rule-engine';
 
 interface Props {readonly telemetry:YoloTelemetry;readonly scenario:ScenarioKey;readonly paused:boolean}
 const number=(n:number)=>n.toLocaleString('es-PE',{maximumFractionDigits:1});
 const statusText:Record<YoloTelemetry['phase'],string>={
- idle:'SIN INICIAR',loading:'CARGANDO MODELO',running:'INFERENCIA ACTIVA',
- retrying:'REINTENTANDO FOTOGRAMA',stopped:'INFERENCIA DETENIDA',failed:'ERROR DEL DETECTOR'
+ idle:'SIN INICIAR',loading:'PREPARANDO',running:'ANALIZANDO',
+ retrying:'REINTENTANDO',stopped:'DETENIDO',failed:'ERROR DE ANÁLISIS'
 };
 export function YoloMonitor({telemetry,scenario,paused}:Props){
  const [now,setNow]=useState(()=>Date.now());
@@ -32,46 +32,39 @@ export function YoloMonitor({telemetry,scenario,paused}:Props){
  const stale=telemetry.phase==='running'&&!paused&&ageSeconds!==null&&
   ageSeconds>5;
  const maxCount=Math.max(1,...telemetry.observations.map(o=>o.detections.length));
- return <div className="yolo-monitor" aria-label="Monitoreo de inferencia YOLO real">
+ return <div className="yolo-monitor" aria-label="Resultados del reconocimiento">
    <div className="yolo-monitor-header">
-    <span className="yolo-monitor-eyebrow">RESULTADOS DEL MODELO NEURONAL</span>
-    <h3>Monitor YOLO</h3>
+    <span className="yolo-monitor-eyebrow">RESULTADOS DE LA ESCENA</span>
+    <h3>Objetos detectados</h3>
     <span className={'yolo-monitor-status '+(telemetry.phase==='running'?'is-active':'')}>
      {paused&&telemetry.phase==='running'?'SIMULACIÓN PAUSADA':statusText[telemetry.phase]}
     </span>
    </div>
-   <p className="yolo-monitor-source">Fuente: <strong>fotogramas de la simulación 3D</strong>.
-    Detector: <strong>{telemetry.model==='ppe'?'YOLO EPP industrial':'YOLO COCO general'}</strong>.
-   </p>
+   <p className="yolo-monitor-source">Escena 3D · <strong>{telemetry.model==='ppe'?'Equipos de protección':'Objetos generales'}</strong></p>
    <div className="yolo-monitor-kpis">
     <div className="yolo-monitor-kpi primary"><span>Objetos detectados</span>
       <strong>{last?last.detections.length:'—'}</strong>
-      <small>{last?'Último fotograma procesado':'Sin inferencias realizadas'}</small></div>
+      <small>{last?'Último fotograma procesado':'Sin análisis todavía'}</small></div>
     <div className="yolo-monitor-kpi"><span>Personas detectadas</span>
       <strong>{last?last.detections.filter(d=>d.classId==='person').length:'—'}</strong>
-      <small>Clase YOLO «persona»</small></div>
-    <div className="yolo-monitor-kpi"><span>Tiempo de inferencia</span>
+      <small>En la última imagen</small></div>
+    <div className="yolo-monitor-kpi"><span>Tiempo de análisis</span>
       <strong>{last?number(last.inferenceMs)+' ms':'—'}</strong>
-      <small>Solo ejecución del modelo</small></div>
-    <div className="yolo-monitor-kpi"><span>FPS del detector</span>
+      <small>Última imagen</small></div>
+    <div className="yolo-monitor-kpi"><span>Análisis por segundo</span>
       <strong>{fps===null?'—':number(fps)}</strong>
-      <small>No son FPS del renderizador</small></div>
-    <div className="yolo-monitor-kpi"><span>FPS de capturas</span>
+      <small>Ritmo de reconocimiento</small></div>
+    <div className="yolo-monitor-kpi"><span>Imágenes recibidas/s</span>
       <strong>{captureFps===null?'—':number(captureFps)}</strong>
-      <small>Capturas enviadas a YOLO, no FPS WebGL</small></div>
-    <div className="yolo-monitor-kpi"><span>Antigüedad de lectura</span>
+      <small>Imágenes tomadas para analizar</small></div>
+    <div className="yolo-monitor-kpi"><span>Último resultado hace</span>
       <strong>{ageSeconds===null?'—':number(ageSeconds)+' s'}</strong>
-      <small>Tiempo desde la última inferencia terminada</small></div>
-    <div className="yolo-monitor-kpi"><span>Capturas omitidas</span>
-      <strong>{telemetry.phase==='idle'?'—':telemetry.skippedCaptures}</strong>
-      <small>Intentos sin canvas disponible, no frames WebGL</small></div>
-    <div className="yolo-monitor-kpi"><span>Sesión YOLO local</span>
-      <strong>{telemetry.phase==='running'?'1':'0'}</strong>
-      <small>Activa solo en este navegador</small></div>
+      <small>Segundos transcurridos</small></div>
+    
    </div>
    <section className="yolo-monitor-trend" aria-label="Historial medido de objetos detectados">
-    <div className="yolo-monitor-sectionhead"><h4>Lecturas del modelo</h4>
-     <span>{telemetry.observations.length} recientes · último frame #{last?.frameNumber??0}</span></div>
+    <div className="yolo-monitor-sectionhead"><h4>Detecciones recientes</h4>
+     <span>{telemetry.observations.length} recientes · última imagen #{last?.frameNumber??0}</span></div>
     {telemetry.observations.length>0?
      <svg viewBox="0 0 320 106" preserveAspectRatio="none" role="img"
        aria-label={'Detecciones reales por fotograma procesado: '+telemetry.observations.map(o=>o.detections.length).join(', ')}>
@@ -86,16 +79,16 @@ export function YoloMonitor({telemetry,scenario,paused}:Props){
       <text x="3" y="10" fill="#abd2c6" fontSize="10">Máx. {maxCount} objetos</text>
       <text x="317" y="104" textAnchor="end" fill="#8db9b4" fontSize="9">último fotograma</text>
      </svg>:
-     <p className="yolo-monitor-empty">Inicia YOLO para obtener mediciones. No hay cifras estimadas.</p>}
+     <p className="yolo-monitor-empty">Inicia el reconocimiento para ver los resultados.</p>}
    </section>
    {telemetry.model==='ppe'&&<section className="yolo-monitor-ppe">
-     <div className="yolo-monitor-sectionhead"><h4>Señales EPP detectadas</h4>
+     <div className="yolo-monitor-sectionhead"><h4>Señales de protección personal</h4>
       <strong className={review>0?'is-review':''}>{last?review:'—'}</strong></div>
-     <p>{!last?'Aún no hay predicciones de EPP.':
-       review>0?'El modelo marcó clases explícitas de posible ausencia de EPP. Requieren revisión humana.':
-       'Ninguna predicción explícita de ausencia de EPP en el último fotograma. No certifica cumplimiento.'}</p>
+     <p>{!last?'Aún no hay observaciones.':
+       review>0?'Se han señalado posibles faltas de protección. Revisa la imagen.':
+       'No se detectaron faltas de protección en la última imagen. Esto no garantiza cumplimiento.'}</p>
    </section>}
-   {telemetry.model==='ppe'&&<section className="yolo-monitor-review" aria-label="Alertas de revisión basadas en YOLO">
+   {telemetry.model==='ppe'&&<section className="yolo-monitor-review" aria-label="Observaciones de seguridad para revisar">
     <div className="yolo-monitor-sectionhead">
      <h4>Señales repetidas para revisión</h4>
      <strong className={activeVisible.length?'is-review':''}>
@@ -103,8 +96,7 @@ export function YoloMonitor({telemetry,scenario,paused}:Props){
      </strong>
     </div>
     <p className="yolo-monitor-review-explain">
-     Se emite una señal cuando la misma clase de posible ausencia de EPP aparece en al menos
-     2 de los últimos 3 fotogramas, con confianza mínima del 55 % y dentro de 30 segundos.
+     Se muestran observaciones repetidas que requieren una revisión visual.
     </p>
     {activeVisible.length>0&&<div className="yolo-monitor-review-active" role="status">
      {activeVisible.map(item=><div key={item.classId}>
@@ -130,19 +122,16 @@ export function YoloMonitor({telemetry,scenario,paused}:Props){
      exista una infracción. Se requiere revisión humana.</p>
    </section>}
    <section className="yolo-monitor-rules" aria-label="Reglas operativas verificables">
-    <div className="yolo-monitor-sectionhead"><h4>Reglas sobre las detecciones</h4>
-     <small>Versión {OPERATIONAL_RULE_VERSION}</small></div>
+    <div className="yolo-monitor-sectionhead"><h4>Observaciones del escenario</h4>
+     </div>
     {rules.map(rule=><div className={'yolo-rule-card is-'+rule.status} key={rule.id}>
      <div><strong>{rule.title}</strong><span>{ruleLabel[rule.status]}</span></div>
      <p>{rule.description}</p>
      <small>{rule.status==='unavailable'?'La regla no puede ejecutarse con este detector.':
-      'Fotogramas recientes: '+rule.observedFrames+' · Evidencia repetida: '+
-      rule.supportingFrames+' de 3 posibles'}</small>
+      'Imágenes recientes: '+rule.observedFrames+' · Coincidencias: '+rule.supportingFrames}</small>
     </div>)}
     <p className="yolo-monitor-review-disclaimer">
-     Reglas calculadas exclusivamente a partir de predicciones YOLO. Una observación
-     no demuestra riesgo, ocupación reglamentaria, defecto o infracción.
-     Los resultados no se mezclan con eventos programados del simulador.
+     Estas observaciones no confirman riesgos ni infracciones. Es necesaria una revisión humana.
     </p>
    </section>
    <section className="yolo-monitor-classes">
@@ -153,14 +142,13 @@ export function YoloMonitor({telemetry,scenario,paused}:Props){
      <small>{Math.round(c.meanConfidence*100)} % confianza*</small>
     </div>):<p className="yolo-monitor-empty">{last?
       'El detector no superó el umbral para ninguna clase.':
-      'Se mostrarán únicamente las clases que YOLO reconozca.'}</p>}
+      'Aquí verás los objetos identificados.'}</p>}
    </section>
    {stale&&<p className="yolo-monitor-stale" role="status">
     No hay una detección nueva desde hace varios segundos. La última lectura puede estar desactualizada.
    </p>}
-   {telemetry.error&&<p className="yolo-monitor-error" role="alert">{telemetry.error}</p>}
+   {telemetry.error&&<p className="yolo-monitor-error" role="alert">No se pudo completar el reconocimiento. Intenta nuevamente.</p>}
    <p className="yolo-monitor-caveat">{modelScope(scenario,telemetry.model)}</p>
-   <p className="yolo-monitor-note">*La confianza del detector no es precisión medida. Los conteos
-    provienen del último fotograma inferido; no se mezclan con eventos ni posiciones programadas.</p>
+   <p className="yolo-monitor-note">*La confianza del detector no es precisión medida. Los conteos corresponden únicamente a la última imagen analizada.</p>
   </div>;
 }

@@ -110,7 +110,7 @@ export function LiveInferencePanel({ videoRef, sourceStatus, scenarioId, apiBase
         const sourceHash = await hashPromise;
         if (cancelled) return;
         if (!matchesInferenceResponse(value, requested, sourceHash)) {
-          throw Error('Resultado rechazado: identidad, SHA256 o geometría incorrectos.');
+          throw Error('El resultado recibido no es válido.');
         }
         const url = URL.createObjectURL(blob);
         const previous = imageUrlRef.current;
@@ -136,7 +136,7 @@ export function LiveInferencePanel({ videoRef, sourceStatus, scenarioId, apiBase
         setError('');
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : 'Motor de visión inaccesible.');
+          setError('No se pudo analizar la imagen. Intenta de nuevo.');
           setRunning(false);
         }
         return;
@@ -155,23 +155,23 @@ export function LiveInferencePanel({ videoRef, sourceStatus, scenarioId, apiBase
 
   const insight = scenarioInsight(scenarioId, lastResult, coverage);
   const connectionLabel: Record<ServerState,string> = {
-    unconfigured: 'Motor no configurado',
+    unconfigured: 'No disponible',
     checking: 'Comprobando conexión',
-    online: 'API y motor disponibles',
-    limited: 'API conectada · YOLO no disponible',
-    offline: 'API fuera de línea'
+    online: 'Conexión disponible',
+    limited: 'Reconocimiento no disponible',
+    offline: 'Sin conexión'
   };
 
   return <section className="panel inference-controls" aria-label="Motor de análisis en tiempo real">
-    <div className="panel-heading"><div><span className="eyebrow">INFERENCIA REAL</span><h2>Análisis de fotogramas con YOLO</h2></div>
+    <div className="panel-heading"><div><span className="eyebrow">ANÁLISIS EN DIRECTO</span><h2>Reconocimiento de objetos</h2></div>
       <span className={'status ' + (running && frames ? 'live' : '')} role="status"><i />
         {running ? (frames ? 'Analizando video' : 'Esperando primera inferencia') : 'Análisis detenido'}
       </span>
     </div>
-    <p>La fuente se reproduce de manera continua. Se procesa un fotograma por solicitud, sin cola de imágenes atrasadas.</p>
+    <p>La imagen se analiza mientras el video continúa reproduciéndose.</p>
     <div className="inference-connection" role="status">
       <span className={serverState === 'online' || serverState === 'limited' ? 'connection-online' : 'connection-offline'}>{connectionLabel[serverState]}</span>
-      {apiBaseUrl && <span className="connection-address">{apiBaseUrl}</span>}
+      
       {apiBaseUrl && serverState !== 'checking' &&
         <button onClick={() => setRetry(value => value + 1)}>Comprobar de nuevo</button>}
     </div>
@@ -181,19 +181,19 @@ export function LiveInferencePanel({ videoRef, sourceStatus, scenarioId, apiBase
         setInferenceMs(null); setRoundTripMs(null); setFps(null);
         setLastFrameId(null); setFrames(0); times.current = [];
         setRunning(true);
-      }}>Iniciar análisis con YOLO</button>}
+      }}>Iniciar reconocimiento</button>}
       {running && <button onClick={() => setRunning(false)}>Detener análisis</button>}
       <span>{sourceStatus !== 'preview' ? 'Primero inicia la reproducción del video o la cámara.' :
-        serverState !== 'online' ? 'Comprueba que el servidor de inferencia esté disponible.' :
+        serverState !== 'online' ? 'No hay conexión para analizar las imágenes.' :
         'Los fotogramas se envían exclusivamente mientras el análisis está activo.'}</span>
     </div>
     {error && <p role="alert" className="error">{error}</p>}
     <div className="simulation-metrics">
       <div><span>Fotogramas válidos</span><strong>{frames || '—'}</strong></div>
-      <div><span>Inferencia del último fotograma</span><strong>{inferenceMs === null ? '—' : Math.round(inferenceMs) + ' ms'}</strong></div>
-      <div><span>Frecuencia medida</span><strong>{fps === null ? '—' : fps.toFixed(1) + ' FPS'}</strong></div>
+      <div><span>Tiempo de análisis</span><strong>{inferenceMs === null ? '—' : Math.round(inferenceMs) + ' ms'}</strong></div>
+      <div><span>Imágenes por segundo</span><strong>{fps === null ? '—' : fps.toFixed(1) + ' imágenes/s'}</strong></div>
       <div><span>Captura a recepción</span><strong>{roundTripMs === null ? '—' : roundTripMs + ' ms'}</strong></div>
-      <div><span>ID último fotograma</span><strong>{lastFrameId ?? '—'}</strong></div>
+      <div><span>Última imagen</span><strong>{lastFrameId ?? '—'}</strong></div>
     </div>
     {lastResult && <div className={'scenario-insight ' + insight.status} aria-live="polite">
       <div><span className="eyebrow">LECTURA DEL ESCENARIO</span><h3>{insight.title}</h3><strong>{insight.amount}</strong></div>
@@ -201,17 +201,17 @@ export function LiveInferencePanel({ videoRef, sourceStatus, scenarioId, apiBase
     </div>}
     {coverage && <p className={coverage.complete ? 'simulation-coverage' : 'simulation-coverage warning'} role="status">
       {coverage.complete
-        ? 'El checkpoint declara las clases esperadas. Las reglas y la precisión real aún requieren evaluación.'
-        : 'Clases ausentes en el checkpoint: ' + coverage.missingClasses.join(', ') + '. ' + coverage.detail}
+        ? 'El resultado requiere revisión visual.'
+        : 'Este modo no reconoce todas las clases esperadas.'}
     </p>}
     {serverState === 'limited' && <p className="simulation-coverage warning" role="status">
-      Render gratuito responde correctamente, pero no tiene el motor YOLO activado. Puedes explorar los cuatro escenarios y reproducir videos; las detecciones reales requieren inferencia en el navegador o un servicio con recursos suficientes.
+      El reconocimiento no está disponible para esta fuente. Prueba otra fuente o abre una escena 3D.
     </p>}
     {serverState === 'offline' && <p className="simulation-coverage warning">
-      El servidor no responde. Comprueba su URL y su estado; la vista previa puede seguir funcionando sin inferencia.
+      No hay conexión para analizar imágenes. Puedes seguir viendo el video.
     </p>}
     {serverState === 'unconfigured' && <p className="simulation-coverage warning">
-      No hay API conectada. Configura VITE_VISION_MODE=real y VITE_VISION_API_BASE_URL con un servidor alcanzable; no se fabricarán resultados.
+      El reconocimiento no está disponible para esta fuente.
     </p>}
   </section>;
 }

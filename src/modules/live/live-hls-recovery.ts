@@ -15,9 +15,9 @@ export function chooseFatalHlsAction(
  return 'reconnect';
 }
 export function conciseVideoError(code:number|undefined):string{
- if(code===4)return 'El navegador rechazó la fuente de video (código 4).';
- if(code===3)return 'Error al decodificar los segmentos de video (código 3).';
- if(code===2)return 'Se interrumpió la descarga del video (código 2).';
- if(code===1)return 'La reproducción de video fue cancelada (código 1).';
- return 'El proveedor interrumpió la transmisión HLS.';
+ if(code===4)return 'Esta cámara no se puede reproducir en este navegador.';
+ if(code===3)return 'Hubo un problema al reproducir el video.';
+ if(code===2)return 'La conexión con la cámara se interrumpió.';
+ if(code===1)return 'La reproducción del video se detuvo.';
+ return 'Se interrumpió el video de esta cámara.';
 }

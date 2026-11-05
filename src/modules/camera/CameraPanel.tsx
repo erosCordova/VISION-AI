@@ -52,7 +52,7 @@ export function CameraPanel({ scenario, onStatusChange, videoRef }: { scenario: 
       <video ref={video} muted playsInline aria-label="Vista previa de la cámara" hidden={!active} />
       {!active && <div className="camera-empty"><span className="camera-symbol">▣</span><h3>{status === 'requesting' ? 'Autoriza el acceso a tu cámara' : 'Tu escenario, en tiempo real'}</h3><p>{status === 'requesting' ? 'Puedes cancelar mientras esperas el permiso.' : 'Selecciona una cámara e inicia la vista en vivo.'}</p></div>}
       {status === 'paused' && <div className="paused-label">Vista pausada</div>}
-      <span className="viewport-label">VISTA PREVIA · SIN INFERENCIA</span>
+      <span className="viewport-label">VISTA PREVIA</span>
     </div>
     <div className="camera-controls"><label>Cámara<select value={device} disabled={active || status === 'requesting'} onChange={e => setDevice(e.target.value)}><option value="">Cámara predeterminada</option>{devices.map((d,i) => <option key={d.deviceId} value={d.deviceId}>{d.label || `Cámara ${i+1}`}</option>)}</select></label>
       {!active && status !== 'requesting' && <button className="primary" onClick={() => void start()}>Iniciar cámara</button>}
@@ -60,6 +60,6 @@ export function CameraPanel({ scenario, onStatusChange, videoRef }: { scenario: 
       {(active || status === 'requesting') && <button onClick={stop}>{status === 'requesting' ? 'Cancelar solicitud' : 'Detener cámara'}</button>}
     </div>
     {error && <p className="error" role="alert">{error}</p>}
-    <div className="camera-note"><span className="dot" />YOLO sin conectar. La vista previa permanece en este navegador; no se envían imágenes ni audio.</div>
+    <div className="camera-note"><span className="dot" />La imagen solo se muestra en este navegador.</div>
   </section>;
 }

@@ -52,9 +52,9 @@ describe('telemetría YOLO real vinculada exclusivamente a inferencias',()=>{
  });
  it('documenta los límites de las clases para los cuatro escenarios',()=>{
   expect(modelScope('quality','coco')).toContain('defectos');
-  expect(modelScope('warehouse','coco')).toContain('montacargas');
+  expect(modelScope('warehouse','coco')).toContain('equipos de almacén');
   expect(modelScope('retail','coco')).toContain('personas');
-  expect(modelScope('safety','ppe')).toContain('cumplimiento');
+  expect(modelScope('safety','ppe')).toContain('seguridad');
  });
 });
 

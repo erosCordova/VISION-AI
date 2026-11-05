@@ -60,10 +60,10 @@ export function OperationsPanel({repository,onHistory}:{
   }catch(e){setError(e instanceof Error?e.message:String(e));}
   finally{setBusy(null);}
  }
- return <section className="panel operations-review" aria-label="Centro de revisión de indicios YOLO">
+ return <section className="panel operations-review" aria-label="Revisión de observaciones de seguridad">
   <div className="panel-heading"><div>
-   <h2>Revisión de indicios YOLO</h2>
-   <p>Indicios EPP guardados · decisiones humanas locales, sin sanciones automáticas</p>
+   <h2>Revisión de observaciones</h2>
+   <p>Posibles faltas de protección · revisión manual</p>
   </div><span className="status">{loading?'Leyendo…':all.length+' indicios'}</span></div>
   <div className="operations-review-stats" aria-live="polite">
    <div><span>Sin revisar</span><strong>{loading?'—':pending}</strong></div>
@@ -92,8 +92,7 @@ export function OperationsPanel({repository,onHistory}:{
   {loading?<p className="operations-review-empty">Leyendo las revisiones guardadas…</p>:
    filtered.length===0?<div className="operations-review-empty">
     <h3>{all.length===0?'No hay indicios guardados':'No hay indicios con estos filtros'}</h3>
-    <p>Las alertas aparecen aquí solo cuando YOLO EPP detecta una señal repetida
-     y guardas esa sesión. No se generan alertas artificiales.</p>
+    <p>Las observaciones aparecen aquí cuando guardas un análisis con señales repetidas de falta de protección.</p>
    </div>:
    <div className="operations-review-list">
     {filtered.map(item=><article className="operations-review-item" key={item.id}>
@@ -143,7 +142,7 @@ export function OperationsPanel({repository,onHistory}:{
    Cada decisión es una acción humana local; no confirma incumplimientos ni
    identifica personas. No escribas datos personales en las notas.
    Las detecciones originales no se modifican. Los estados se guardan
-   en IndexedDB de este navegador, no se sincronizan con Render.
+   únicamente en este navegador.
   </p>
  </section>;
 }

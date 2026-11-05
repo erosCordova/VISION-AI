@@ -99,14 +99,12 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
    <h3>¿Qué datos conserva la aplicación?</h3>
    <dl>
     <dt>Sesiones 3D</dt><dd>Escenario, fecha, estado reproducible, huella local y duración.</dd>
-    <dt>Detecciones YOLO</dt><dd>Modelo, fotograma, cajas, clases y confianzas de los análisis que guardes.</dd>
+    <dt>Reconocimiento de objetos</dt><dd>Resultados de los análisis que decidas guardar.</dd>
     <dt>Cámaras públicas</dt><dd>Fecha de análisis, nombre de la cámara y detecciones guardadas de forma voluntaria. No se conserva el video.</dd>
-    <dt>Revisión humana</dt><dd>Decisión, hora y nota opcional vinculadas a cada indicio EPP.</dd>
+    <dt>Revisión humana</dt><dd>Decisión, hora y nota opcional vinculadas a cada observación de seguridad.</dd>
     <dt>Imágenes y videos</dt><dd>El historial no conserva capturas, grabaciones ni imágenes subidas.</dd>
-    <dt>Protección y límites</dt><dd>IndexedDB depende de la seguridad del navegador y del sistema operativo.
-     No incorpora cifrado propio, cuentas autenticadas ni sincronización cifrada entre dispositivos.</dd>
-    <dt>Modelos ONNX</dt><dd>El navegador puede conservar pesos descargados en su caché.
-     Este panel no elimina esa caché ni los CSV/JSON que hayas descargado.</dd>
+    <dt>Seguridad de tus datos</dt><dd>Los resultados quedan en este navegador. No se sincronizan con otros dispositivos.</dd>
+    <dt>Archivos descargados</dt><dd>Eliminar el historial no borra los archivos que ya descargaste en tu dispositivo.</dd>
    </dl>
    <p className="privacy-warning">Los perfiles operador, supervisor, auditor y administrador
     son perfiles de demostración. Seleccionar uno no es autenticación ni restringe

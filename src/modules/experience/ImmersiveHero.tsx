@@ -188,13 +188,13 @@ export function ImmersiveHero({onExplore,onHistory,sessionCount}:Props){
    </div>
    <div className="experience-hero-meta">
     <div><strong>04</strong><span>ESCENARIOS EN 3D</span></div>
-    <div><strong>YOLO</strong><span>INFERENCIA ONNX REAL</span></div>
+    <div><strong>VISIÓN</strong><span>RECONOCIMIENTO VISUAL</span></div>
     <div><strong>{sessionCount??'—'}</strong><span>SESIONES LOCALES</span></div>
    </div>
   </div>
   <div className="experience-hero-side-label" aria-hidden="true">VISION · ANALYZE · UNDERSTAND</div>
   <div className="experience-hero-bottom">
-   <span>EXPERIENCIA INTERACTIVA / WEBGL</span>
+   <span>EXPERIENCIA INTERACTIVA</span>
    <button type="button" className="experience-motion-toggle"
     aria-pressed={!motion} onClick={()=>setMotion(v=>!v)}>
     {motion?'Pausar movimiento':'Activar movimiento'}

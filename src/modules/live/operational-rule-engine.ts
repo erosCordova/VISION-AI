@@ -23,14 +23,14 @@ const FRAME_COUNT=3;
 const MIN_CONFIDENCE=.55;
 const SUPPORT=2;
 const catalog={
- safety:{id:'ppe-repeat-v1',title:'Ausencias EPP explícitas y repetidas',
-  description:'Solo señales positivas del detector EPP repetidas en 2 de hasta 3 fotogramas, confianza mínima del 55 %. Requieren revisión humana.'},
+ safety:{id:'ppe-repeat-v1',title:'Posibles faltas de protección repetidas',
+  description:'Posibles faltas de protección observadas repetidamente. Requieren revisión humana.'},
  retail:{id:'retail-people-observed-v1',title:'Presencia repetida de personas',
-  description:'Observación informativa cuando el modelo COCO distingue 2 o más personas en 2 de hasta 3 fotogramas. No equivale a aforo ni seguimiento.'},
+  description:'Se observaron varias personas en imágenes recientes. No equivale a un conteo de visitantes únicos.'},
  warehouse:{id:'warehouse-people-observed-v1',title:'Personas reconocidas en logística',
   description:'Observación informativa de personas reconocidas en 2 de hasta 3 fotogramas. No determina proximidad a maquinaria ni invasión de zonas.'},
  quality:{id:'quality-defects-unsupported-v1',title:'Defectos industriales no verificables',
-  description:'COCO no contiene clases de defecto de producto para este escenario; no se generan alertas de calidad ni resultados de conformidad.'}
+  description:'Este tipo de reconocimiento no permite confirmar defectos de producto.'}
 } as const;
 export const operationalRuleCatalog=catalog;
 function recentFrames(scenario:ScenarioKey,model:YoloFamily,observations:readonly YoloObservation[]):YoloObservation[]{

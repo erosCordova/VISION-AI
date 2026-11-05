@@ -64,7 +64,7 @@ export function SessionsDashboard({repository,onHistory,onOperations}:{
      onChange={e=>setFilter(v=>({...v,mode:e.target.value as DashboardFilter['mode']}))}>
      <option value="all">Todas las sesiones</option>
      <option value="synthetic">Simulación visual</option>
-     <option value="yolo">Detecciones YOLO</option>
+     <option value="yolo">Reconocimiento de objetos</option>
     </select>
    </label>
    <label>Periodo
@@ -78,10 +78,10 @@ export function SessionsDashboard({repository,onHistory,onOperations}:{
   </div>
   {error&&<p className="session-history-error" role="alert">{error}</p>}
   <div className="saved-dashboard-metrics" aria-live="polite">
-   <div><span>Sesiones guardadas</span><strong>{loading?'—':result.sessions}</strong><small>Simulación + YOLO</small></div>
-   <div><span>Sesiones YOLO</span><strong>{loading?'—':result.yoloSessions}</strong><small>Con inferencia ejecutada</small></div>
+   <div><span>Sesiones guardadas</span><strong>{loading?'—':result.sessions}</strong><small>Escenas y reconocimiento</small></div>
+   <div><span>Análisis guardados</span><strong>{loading?'—':result.yoloSessions}</strong><small>Con reconocimiento realizado</small></div>
    <div><span>Detecciones conservadas</span><strong>{loading?'—':result.detections}</strong><small>Último fotograma de cada sesión</small></div>
-   <div><span>Latencia media YOLO</span><strong>{result.meanInferenceMs===null?'—':result.meanInferenceMs.toFixed(1)+' ms'}</strong><small>{result.yoloSessions} sesiones con medida</small></div>
+   <div><span>Tiempo medio de análisis</span><strong>{result.meanInferenceMs===null?'—':result.meanInferenceMs.toFixed(1)+' ms'}</strong><small>{result.yoloSessions} sesiones con medida</small></div>
   </div>
   <div className="saved-dashboard-details">
    <div className="saved-dashboard-plot">
@@ -100,7 +100,7 @@ export function SessionsDashboard({repository,onHistory,onOperations}:{
      <dt>Indicios EPP · total</dt><dd>{loading?'—':result.reviewEvents}</dd>
      <dt>Sin revisar</dt><dd className="dashboard-open-reviews">{loading?'—':result.openReviews}</dd>
      <dt>Revisados</dt><dd className="dashboard-closed-reviews">{loading?'—':result.closedReviews}</dd>
-     <dt>Confianza media YOLO</dt>
+     <dt>Confianza media</dt>
      <dd>{result.meanConfidence===null?'—':(result.meanConfidence*100).toFixed(1)+' %'}</dd>
      <dt>Última sesión guardada</dt>
      <dd>{result.lastSavedAt?
@@ -127,7 +127,7 @@ export function SessionsDashboard({repository,onHistory,onOperations}:{
      </div>):
      <p className="saved-dashboard-empty">Sin sesiones para el periodo seleccionado.</p>}
    </section>
-   <section className="saved-dashboard-recent" aria-label="Indicios YOLO recientes">
+   <section className="saved-dashboard-recent" aria-label="Observaciones recientes">
     <div className="saved-dashboard-recent-title"><h3>Indicios EPP recientes</h3>
      <button type="button" onClick={onOperations}>Abrir Operaciones</button></div>
     {result.recentReviews.length>0?result.recentReviews.map(item=>
@@ -137,12 +137,12 @@ export function SessionsDashboard({repository,onHistory,onOperations}:{
       <span className={item.status==='closed'?'is-closed':''}>
        {item.status==='closed'?'Revisado':'Pendiente'}</span>
      </div>):
-     <p className="saved-dashboard-empty">No hay indicios YOLO en las sesiones del filtro.</p>}
+     <p className="saved-dashboard-empty">No hay observaciones en estas sesiones.</p>}
    </section>
   </div>
   <p className="saved-dashboard-caveat">
    Los datos provienen exclusivamente de sesiones guardadas y revisiones locales, no de todos los fotogramas procesados.
-   La confianza del modelo no es una medida de exactitud, y las señales EPP no confirman infracciones.
+   La confianza no equivale a exactitud. Las observaciones de seguridad requieren revisión.
    Sin datos, los indicadores no muestran porcentajes inventados.
   </p>
  </section>;

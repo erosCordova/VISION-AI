@@ -11,16 +11,16 @@ import type {WorldKey} from './StudioWorld';
 
 const info:Record<WorldKey,{serial:string;tag:string;title:string;detail:string;category:string}>={
  safety:{serial:'01',tag:'SEGURIDAD INDUSTRIAL',title:'Visualiza lo que antes era invisible.',
-  detail:'Personal y protección en un espacio de trabajo virtual. Examina cada fotograma con YOLO EPP y revisa sus indicios reales.',
-  category:'PERSONAS / EPP'},
+  detail:'Personal y protección en un espacio de trabajo virtual. Activa el reconocimiento de equipos de protección y revisa las observaciones.',
+  category:'PERSONAS / PROTECCIÓN'},
  quality:{serial:'02',tag:'CONTROL DE CALIDAD',title:'Cada detalle importa.',
-  detail:'Una línea de producción recreada en 3D. Observa qué reconoce COCO sobre las piezas y qué requiere una evaluación especializada.',
+  detail:'Una línea de producción recreada en 3D. Observa los objetos reconocidos y cuáles requieren una revisión más específica.',
   category:'MANUFACTURA / PROCESOS'},
  warehouse:{serial:'03',tag:'LOGÍSTICA INTELIGENTE',title:'El entorno se convierte en datos.',
   detail:'Almacenes, estanterías y rutas de paso en una escena tridimensional. Detecta clases disponibles y analiza sus límites.',
   category:'ALMACENES / LOGÍSTICA'},
  retail:{serial:'04',tag:'RETAIL Y OCUPACIÓN',title:'Una nueva perspectiva del espacio.',
-  detail:'Explora zonas comerciales y movimiento de personajes. Interpreta detecciones del modelo sin confundirlas con identificación personal.',
+  detail:'Explora zonas comerciales y movimiento de personajes. Observa objetos reconocidos sin identificar a las personas.',
   category:'COMERCIO / ENTORNOS'},
 };
 const icons={safety:ShieldCheck,quality:Factory,warehouse:Warehouse,retail:ShoppingBag};
@@ -118,7 +118,7 @@ export function StudioLanding({onExplore,onHistory,sessionCount}:Props){
     </button>
    </div>
    <div className="studio-trust studio-display-entry">
-    <span><span aria-hidden="true" className="studio-verified"/>MODELOS ONNX REALES</span>
+    <span><span aria-hidden="true" className="studio-verified"/>RECONOCIMIENTO DE OBJETOS</span>
     <span>PROCESAMIENTO LOCAL</span>
     <span>SIN CÁMARAS NI DATASETS</span>
    </div>
@@ -130,7 +130,7 @@ export function StudioLanding({onExplore,onHistory,sessionCount}:Props){
    <span>ESCENARIO {current.serial} / 04</span>
    <span>PERSONAJES 3D · LUCES PBR</span>
    <span>ORBITAR / ACERCAR / EXPLORAR</span>
-   <small>Escena ilustrativa · Inferencia YOLO en Análisis</small>
+   <small>Escena ilustrativa · Reconocimiento en Análisis</small>
   </div>
   <div className="studio-vertical-label" aria-hidden="true">
    IMAGING SYSTEMS / INTERACTIVE ENVIRONMENTS / 2026
@@ -140,7 +140,7 @@ export function StudioLanding({onExplore,onHistory,sessionCount}:Props){
    <strong>{current.serial}<small>/04</small></strong>
    <span>{current.category}</span>
    <span className="studio-side-line"/>
-   <span>RENDERIZADO WEBGL</span>
+   <span>ESCENA INTERACTIVA</span>
   </div>
   <div className="studio-bottom-deck">
    <div className="studio-deck-heading">

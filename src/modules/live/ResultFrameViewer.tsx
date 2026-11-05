@@ -45,7 +45,7 @@ export function ResultFrameViewer({ frame }: { frame: AnalyzedFrame | null }) {
     <div className="panel-heading evidence-heading">
       <div><span className="eyebrow">VISOR DE EVIDENCIAS</span><h2>Fotograma analizado</h2><p>Separado de la cámara: cada anotación corresponde a una imagen concreta.</p></div>
       <span className={'status ' + (ready ? 'live' : '')} role="status">
-        <i />{ready ? 'Resultado válido' : stale ? 'Resultado caducado' : decision.state === 'invalid' ? 'Resultado descartado' : 'Sin inferencia'}
+        <i />{ready ? 'Resultado válido' : stale ? 'Resultado caducado' : decision.state === 'invalid' ? 'Resultado descartado' : 'Sin analizar'}
       </span>
     </div>
     <div className="evidence-options" role="group" aria-label="Capas visibles">
@@ -64,13 +64,13 @@ export function ResultFrameViewer({ frame }: { frame: AnalyzedFrame | null }) {
           }}><span>{detection.label} · {Math.round(detection.confidence * 100)} % confianza</span></div>)}
       </div>
       <figcaption>{stale ? 'Fotograma conservado solo como referencia: anotaciones ocultas por caducidad.' :
-        `Fotograma ${frame.identity.frameId} · Modelo ${result?.modelVersion ?? '—'} · Antigüedad ${decision.state === 'ready' ? Math.round(decision.ageMs) : '—'} ms`}</figcaption>
+        `Imagen ${frame.identity.frameId} · Tiempo desde análisis: ${decision.state === 'ready' ? Math.round(decision.ageMs) : '—'} ms`}</figcaption>
     </figure> : <div className="evidence-placeholder" role="status">
       <span className="evidence-placeholder-icon" aria-hidden="true">▧</span>
       <h3>{brokenImage ? 'La imagen analizada no está disponible' : decision.state === 'invalid' ? 'Resultado incompatible' : 'Esperando fotograma procesado'}</h3>
       <p>{brokenImage ? 'Se ocultaron las anotaciones porque no se puede comprobar su alineación con la imagen.' :
         decision.state === 'invalid' ? decision.reason :
-        'La vista previa de cámara no es una predicción. Este visor recibirá únicamente fotogramas y resultados validados de YOLO.'}</p>
+        'Aquí aparecerán los objetos reconocidos cuando inicies el análisis.'}</p>
     </div>}
     {ready && result && <div className="evidence-insights">
       <div><h3>Detecciones ({result.detections.length})</h3>
@@ -78,6 +78,6 @@ export function ResultFrameViewer({ frame }: { frame: AnalyzedFrame | null }) {
       <div><h3>Patrones ({result.patterns.length})</h3>
         {patterns && result.patterns.length ? <ul>{result.patterns.map(p => <li key={p.id}>{p.label} · {p.assessment === 'triggered' ? 'Revisión requerida' : p.assessment === 'not-triggered' ? 'No activado' : 'Indeterminado'}</li>)}</ul> : <p>{result.patterns.length ? 'Capa de patrones oculta.' : 'Sin patrones evaluados.'}</p>}</div>
     </div>}
-    <p className="evidence-privacy">Este visor no guarda imágenes. Al iniciar la inferencia se envían fotogramas JPEG al backend local configurado; no se guarda el video.</p>
+    <p className="evidence-privacy">El video no se graba en esta pantalla.</p>
   </section>;
 }
