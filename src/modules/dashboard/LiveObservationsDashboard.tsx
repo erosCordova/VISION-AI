@@ -1,21 +1,22 @@
 import {useEffect,useMemo,useState} from 'react';
 import type {LiveObservation} from '../../core/domain/live-observation';
-import {listLiveObservations} from '../../infrastructure/persistence/live-observation-store';
+import {useLiveObservationRepository} from '../../shared/live-observation-context';
 export function LiveObservationsDashboard({onHistory,onAnalyze}:{
  readonly onHistory:()=>void;readonly onAnalyze:()=>void
 }){
+ const liveRepository=useLiveObservationRepository();
  const [rows,setRows]=useState<readonly LiveObservation[]>([]);
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState('');
  useEffect(()=>{
   let active=true;
-  const reload=()=>{void listLiveObservations().then(data=>{
+  const reload=()=>{void liveRepository.list().then(data=>{
    if(active){setRows(data);setError('');}
   }).catch(e=>{if(active)setError(e instanceof Error?e.message:String(e));})
   .finally(()=>{if(active)setLoading(false);});};
   reload();window.addEventListener('vision-ai-live-updated',reload);
   return()=>{active=false;window.removeEventListener('vision-ai-live-updated',reload);};
- },[]);
+ },[liveRepository]);
  const stats=useMemo(()=>{
   const tally=new Map<string,number>();
   let count=0,totalMs=0;

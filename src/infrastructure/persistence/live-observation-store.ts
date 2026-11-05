@@ -1,5 +1,6 @@
 import type {LiveObservation} from '../../core/domain/live-observation';
 import {validateLiveObservation} from '../../core/domain/live-observation';
+import type {LiveObservationRepository} from '../../core/ports/live-observation-repository';
 
 const NAME='vision-ai-live-observations';
 const STORE='observations';
@@ -100,3 +101,11 @@ export async function purgeLiveObservations(days:30|90|180,now=Date.now()):Promi
   return count;
  }finally{db.close();}
 }
+
+export const liveObservationRepository:LiveObservationRepository={
+ list:listLiveObservations,
+ save:saveLiveObservation,
+ remove:deleteLiveObservation,
+ eraseAll:eraseLiveObservations,
+ purgeExpired:purgeLiveObservations
+};

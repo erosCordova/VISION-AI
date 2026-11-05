@@ -1,10 +1,11 @@
 import {useEffect,useMemo,useState} from 'react';
 import type {LiveObservation} from '../../core/domain/live-observation';
-import {listLiveObservations,deleteLiveObservation} from '../../infrastructure/persistence/live-observation-store';
+import {useLiveObservationRepository} from '../../shared/live-observation-context';
 import {downloadLiveCsv} from './live-observation-export';
 
 const PAGE_SIZE=6;
 export function LiveObservationsHistory({onAnalyze}:{readonly onAnalyze:()=>void}){
+ const liveRepository=useLiveObservationRepository();
  const [records,setRecords]=useState<readonly LiveObservation[]>([]);
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState('');
@@ -18,14 +19,14 @@ export function LiveObservationsHistory({onAnalyze}:{readonly onAnalyze:()=>void
  useEffect(()=>{
   let mounted=true;
   const reload=()=>{
-   void listLiveObservations().then(rows=>{if(mounted){setRecords(rows);setError('');}})
+   void liveRepository.list().then(rows=>{if(mounted){setRecords(rows);setError('');}})
     .catch(e=>{if(mounted)setError(e instanceof Error?e.message:String(e));})
     .finally(()=>{if(mounted)setLoading(false);});
   };
   reload();
   window.addEventListener('vision-ai-live-updated',reload);
   return()=>{mounted=false;window.removeEventListener('vision-ai-live-updated',reload);};
- },[]);
+ },[liveRepository]);
  const cameras=useMemo(()=>[...new Map<string,string>(records.map(r=>[r.cameraId,r.cameraName] as const)).entries()], [records]);
  const filtered=useMemo(()=>{
   const time=Date.now(),cutoff=period==='day'?time-86400000:period==='week'?time-604800000:0;
@@ -40,7 +41,7 @@ export function LiveObservationsHistory({onAnalyze}:{readonly onAnalyze:()=>void
  const detail=records.find(r=>r.id===selected);
  async function remove(id:string){
   try{
-   await deleteLiveObservation(id);
+   await liveRepository.remove(id);
    setSelected(null);setPending(null);
    setNotice('Observación eliminada de este navegador.');
   }catch(e){setError(e instanceof Error?e.message:String(e));}

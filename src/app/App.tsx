@@ -9,6 +9,8 @@ import type {SimulationSessionRepository} from '../core/ports/simulation-session
 import {validateReproducibility} from '../modules/live/simulation-session-model';
 import {SessionsDashboard} from '../modules/dashboard/SessionsDashboard';
 import {LiveObservationsDashboard} from '../modules/dashboard/LiveObservationsDashboard';
+import {LiveObservationContext} from '../shared/live-observation-context';
+import type {LiveObservationRepository} from '../core/ports/live-observation-repository';
 import {OperationsPanel} from '../modules/operations/OperationsPanel';
 import {StudioLanding} from '../modules/experience/StudioLanding';
 import {StudioCommandPalette} from '../modules/experience/StudioCommandPalette';
@@ -31,7 +33,7 @@ const scenarios = [
   { id: 'retail', name: 'Retail', icon: '▥', text: 'Conteo y ocupación de espacios', rule: 'Conteo de personas dentro de una zona', classes: 'Persona · Estante · Producto' },
 ];
 function currentPage(): Page { let value = ''; try { value = decodeURIComponent(location.hash.slice(1)); } catch { return 'Resumen'; } return pages.find(p => p === value) ?? 'Resumen'; }
-export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin; apiBaseUrl: string | null; sessionRepository:SimulationSessionRepository }) {
+export function App({ origin, apiBaseUrl, sessionRepository, liveObservationRepository }: { origin: Origin; apiBaseUrl: string | null; sessionRepository:SimulationSessionRepository; liveObservationRepository:LiveObservationRepository }) {
   const [page, setPage] = useState<Page>(currentPage);
   const [scenarioId, setScenarioId] = useState('safety');
   const [menu, setMenu] = useState(false);
@@ -63,7 +65,7 @@ export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin;
    document.addEventListener('vision-ai:open-command',open);
    return()=>document.removeEventListener('vision-ai:open-command',open);
   },[]);
-  return <div className="app-shell experience-shell studio-shell">
+  return <LiveObservationContext.Provider value={liveObservationRepository}><div className="app-shell experience-shell studio-shell">
     <a className="skip" href="#contenido" onClick={e => { e.preventDefault(); document.getElementById('contenido')?.focus(); }}>Saltar al contenido</a>
     {menu&&<button type="button" className="experience-nav-scrim"
      aria-label="Cerrar navegación" onClick={()=>setMenu(false)}/>}
@@ -166,5 +168,5 @@ CÁMARAS EN VIVO · YOLO</span></header>
     </div>
     <StudioCommandPalette open={commandOpen} onClose={()=>setCommandOpen(false)}
      onNavigate={name=>navigate(name as Page)} onScenario={openScene}/>
-  </div>;
+  </div></LiveObservationContext.Provider>;
 }

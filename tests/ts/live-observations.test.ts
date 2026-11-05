@@ -47,15 +47,15 @@ describe('Historial y configuración de video en directo',()=>{
   const privacy=source('src/modules/settings/PrivacyCenter.tsx');
   const dashboard=source('src/app/App.tsx');
   const settings=source('src/modules/settings/SessionSettings.tsx');
-  expect(monitor).toContain('saveLiveObservation(item)');
+  expect(monitor).toContain('liveRepository.save(item)');
   expect(monitor).toContain('Descargar imagen');
   expect(monitor).toContain('live-traffic-class-filter');
   expect(monitor).toContain('failedCameras.current.add(cameraId)');
   expect(monitor).toContain('analysisDelayRef.current');
   expect(history).toContain('LiveObservationsHistory');
   expect(dashboard).toContain('LiveObservationsDashboard');
-  expect(privacy).toContain('eraseLiveObservations()');
-  expect(privacy).toContain('purgeLiveObservations(retention)');
+  expect(privacy).toContain('liveRepository.eraseAll()');
+  expect(privacy).toContain('liveRepository.purgeExpired(retention)');
   expect(settings).toContain('saveLivePreferences');
  });
 });

@@ -6,7 +6,7 @@ import {frameBoxPixels} from './frame-analysis-cycle';
 import {loadHlsFactory} from './live-hls-loader';
 import type {HlsPlayer,HlsErrorData,HlsLevelData} from './live-hls-loader';
 import {LIVE_TRAFFIC_SOURCES,isAuthorizedLiveTrafficUrl} from './live-traffic-sources';
-import {saveLiveObservation} from '../../infrastructure/persistence/live-observation-store';
+import {useLiveObservationRepository} from '../../shared/live-observation-context';
 import type {LiveObservation} from '../../core/domain/live-observation';
 import {readLivePreferences,saveLivePreferences} from '../settings/live-preferences';
 import {streamReconnectDelay,MAX_STREAM_RECONNECTS,chooseFatalHlsAction,
@@ -51,6 +51,7 @@ function renderEvidence(
  * Sin cámara del dispositivo, transcodificación en Render ni descarga del vídeo.
  */
 export function LiveTrafficAnalysis(){
+ const liveRepository=useLiveObservationRepository();
  const [cameraId,setCameraId]=useState(LIVE_TRAFFIC_SOURCES[0].id);
  const camera=LIVE_TRAFFIC_SOURCES.find(s=>s.id===cameraId)??LIVE_TRAFFIC_SOURCES[0];
  const [streaming,setStreaming]=useState(false);
@@ -449,7 +450,7 @@ export function LiveTrafficAnalysis(){
     frameWidth:frame.width,frameHeight:frame.height,
     detections:frame.detections.map(d=>({...d,box:{...d.box}}))
    };
-   await saveLiveObservation(item);
+   await liveRepository.save(item);
    setSaveNotice('Análisis guardado. Puedes verlo en Historial.');
   }catch(e){setSaveNotice(e instanceof Error?e.message:'No se pudo guardar el análisis.');}
   finally{setSaving(false);}

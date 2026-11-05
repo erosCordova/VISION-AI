@@ -5,12 +5,12 @@ import {expiredSessionIds,PRIVACY_CONFIRM_PURGE,PRIVACY_CONFIRM_ERASE,
  RETENTION_DAYS,formatLocalDataSummary} from '../../core/domain/local-data-policy';
 import type {RetentionDays} from '../../core/domain/local-data-policy';
 import type {LiveObservation} from '../../core/domain/live-observation';
-import {listLiveObservations,eraseLiveObservations,purgeLiveObservations}
- from '../../infrastructure/persistence/live-observation-store';
+import {useLiveObservationRepository} from '../../shared/live-observation-context';
 
 type DeleteTarget='expired'|'all';
 /** Privacidad utilizable sin cambiar roles de prueba; no promete autenticación. */
 export function PrivacyCenter({repository}:{repository:SimulationSessionRepository}){
+ const liveRepository=useLiveObservationRepository();
  const [inspection,setInspection]=useState<SimulationSessionInspection|null>(null);
  const [closures,setClosures]=useState<readonly ReviewClosure[]>([]);
  const [liveRows,setLiveRows]=useState<readonly LiveObservation[]>([]);
@@ -26,7 +26,7 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
   let alive=true;
   const refresh=async()=>{
    try{
-    const [next,reviews,live]=await Promise.all([repository.inspect(),repository.listReviewClosures(),listLiveObservations()]);
+    const [next,reviews,live]=await Promise.all([repository.inspect(),repository.listReviewClosures(),liveRepository.list()]);
     if(alive){setInspection(next);setClosures(reviews);setLiveRows(live);setError('');}
    }catch(e){if(alive)setError(e instanceof Error?e.message:String(e));}
    finally{if(alive)setLoading(false);}
@@ -41,7 +41,7 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
    window.removeEventListener('vision-ai-reviews-updated',onUpdate);
    window.removeEventListener('vision-ai-live-updated',onUpdate);
   };
- },[repository,refreshKey]);
+ },[repository,liveRepository,refreshKey]);
  const expired=useMemo(()=>inspection?
   expiredSessionIds(inspection.records,retention):[],[inspection,retention]);
  const summary=inspection?formatLocalDataSummary(inspection.records.length,
@@ -61,12 +61,12 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
   try{
    if(target==='expired'){
     const removed=await repository.purgeExpired(retention);
-    const removedLive=await purgeLiveObservations(retention);
+    const removedLive=await liveRepository.purgeExpired(retention);
     setNotice('Depuración completada: '+removed+' sesiones de escenarios y '+
      removedLive+' análisis de cámaras eliminados.');
    }else{
     const result=await repository.eraseAll();
-    const liveRemoved=await eraseLiveObservations();
+    const liveRemoved=await liveRepository.eraseAll();
     setNotice('Historial eliminado: '+result.sessions+' sesiones, '+
      liveRemoved+' análisis de cámaras y '+result.reviews+
      ' revisiones. Las descargas permanecen en tu dispositivo.');
