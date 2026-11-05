@@ -1,44 +1,52 @@
-# Inferencia real de YOLO para simulaciones en tiempo real
+# Backend Render Free — VISION-AI
 
-**Alcance piloto**: videos locales en bucle o cámara autorizada del navegador; cada fotograma JPEG se envía al servidor local, que ejecuta YOLO26n real en CPU y devuelve detecciones. No se guardan video ni capturas; sin audio. **No hay reconocimiento simulado**.
+**Alcance vigente, Fase 16:** API pública **solo de estado**
+para el laboratorio de cuatro simulaciones 3D. La inferencia real
+YOLOv8n COCO y YOLOv8s EPP se realiza con ONNX Runtime Web/WASM
+**directamente en el navegador**. Render no recibe fotogramas,
+no importa datasets ni ejecuta PyTorch.
 
-## Requisitos
+## Despliegue (sin plan de pago)
 
-Python 3.11/3.12, 16 GB RAM recomendados, conexión a internet solo al descargar pesos la primera vez. Sin GPU ni servicio de pago obligatorio. Los paquetes y modelos se instalan localmente; pueden consumir espacio considerable. El entrenamiento de clases especiales no está incluido en este primer piloto.
+| Configuración | Valor |
+| --- | --- |
+| Tipo de servicio | Web Service |
+| Plan | Free (confirmar en consola Render) |
+| Rama | main |
+| Runtime | Python |
+| Build | `pip install -r backend/requirements-render-free.txt` |
+| Start | `uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT` |
+| CORS | `VISION_ALLOWED_ORIGINS=https://vision-ai-erosss.vercel.app` (agregar otros dominios solo si existen) |
+| Health | `GET /api/v1/health` |
 
-## Git Bash (Windows), en la raíz del repositorio
+El código de producción devuelve siempre:
+`mode=render-free-status-only`, `inferenceAvailable=false`,
+`source=four-3d-simulations-only`. El viejo endpoint
+`POST /api/v1/infer` devuelve **HTTP 503** y no recibe ni procesa
+imágenes. Ni siquiera `VISION_INFERENCE_ENABLED=1` activa
+inferencia en este perfil.
 
-Un único bloque, sin iniciar otras terminales. Abre Git Bash existente; deja los dos procesos en segundo plano **en esa misma terminal** (no se abre CMD/PowerShell):
+## Pruebas del servidor
 
-\`\`\`bash
-git pull origin main
-python -m venv .venv
-source .venv/Scripts/activate
-python -m pip install -r backend/requirements-local.txt
-python -c "from ultralytics import YOLO; YOLO('yolo26n.pt')"
-cp .env.example .env.local
-python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8015 > /tmp/vision-ai-yolo.log 2>&1 &
-npm ci --no-audit --no-fund
-npm run dev
-\`\`\`
+Los tests `tests/test_render_free_api.py` comprueban mediante
+TestClient el endpoint de salud, las cuatro claves de escenario,
+CORS, caché no persistente, encabezados y el rechazo de inferencia.
+Se ejecutan en GitHub Actions tras instalar dependencias mínimas
+de Render y `httpx`.
 
-En \`.env.local\`, usar \`VITE_VISION_MODE=real\` y \`VITE_VISION_API_BASE_URL=http://127.0.0.1:8015\` **antes** de ejecutar Vite. Los dos valores son públicos; no contienen secretos. Visita http://127.0.0.1:5173 y comprueba http://127.0.0.1:8015/api/v1/health. Al terminar, detén los procesos desde el mismo Git Bash; la cámara debe detenerse en la interfaz.
+## Seguridad y funcionamiento
 
-## Escenarios
+No hay base de datos, almacenamiento de archivos, cuentas ni
+proceso de visión remota en Render. La API está diseñada como servicio
+de estado efímero y debe limitar orígenes CORS con HTTPS. Render Free
+puede suspenderse al quedarse inactivo y no garantiza disponibilidad
+continua. La operación YOLO en el frontend es independiente del estado
+de Render.
 
-- **Seguridad industrial**: YOLO26n base detecta personas; casco y chaleco solo con pesos entrenados para esas clases y asociación de equipos. Nunca declarar incumplimiento con el modelo general.
-- **Almacén**: no se trata un camión como montacargas. Se requieren pesos con clase \`forklift\` y calibración de la zona.
-- **Calidad**: el checkpoint base no certifica defectos; se necesitan pesos para cada defecto y producto.
-- **Retail**: YOLO26n puede detectar personas visibles y actualizar su conteo por fotograma; no es aforo certificado ni seguimiento único entre sesiones.
+Para poner en servicio y recuperar código siga
+[la guía de despliegue](../docs/despliegue_gratuito.md) y
+[el manual técnico](../docs/manual/Manual_Tecnico_VISION_AI.md).
 
-Para usar pesos propios de cada escenario, definir variables de entorno del proceso Python con rutas locales a \`.pt\`: \`VISION_MODEL_SAFETY\`, \`VISION_MODEL_WAREHOUSE\`, \`VISION_MODEL_QUALITY\`, \`VISION_MODEL_RETAIL\`. Las clases que reconoce cada archivo se leen del propio modelo. Solo la cobertura declarada por esos pesos puede considerarse disponible; todavía faltan reglas temporales, calibración, validación y métricas.
-
-## Privacidad y límites
-
-Servidor atado a 127.0.0.1, CORS local, sin grabación ni almacenamiento. No publicar esta API directamente en internet: necesita autenticación, TLS, control de permisos y protección de consumo para despliegue remoto. Una única inferencia CPU concurrente; si el motor tarda, disminuye el FPS observado. La interfaz descarta resultados tardíos y detiene nuevas capturas al parar o cambiar de escena.
-
-**Licencia**: el paquete Ultralytics y pesos YOLO26 tienen licencia AGPL-3.0 o Enterprise. Revisar obligaciones antes de distribuir o prestar servicio. RF-DETR Nano/Small/Medium/Large (Apache 2.0) es alternativa futura sujeta a benchmarks en el hardware real.
-
-## Perfil Render Free
-
-El archivo `backend/requirements-render-free.txt` instala únicamente FastAPI y Uvicorn. Con `VISION_INFERENCE_ENABLED=0` la API responde salud, informa que YOLO está deshabilitado y rechaza inferencias con 503. Para el despliegue no instalar los pesos locales. Ver [guía de despliegue](../docs/despliegue_gratuito.md).
+**Nota histórica:** los ejemplos antiguos de YOLO26n, cámara y envío
+de JPEG correspondían a un prototipo ya descartado. No son parte
+de la arquitectura actual ni deben instalarse en Render Free.
