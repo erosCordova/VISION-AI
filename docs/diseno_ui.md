@@ -13,8 +13,8 @@ La navegación usa fragmentos URL, admite acceso directo, recarga y atrás/adela
 | Ruta | Vista | Acceso visual |
 | --- | --- | --- |
 | #Resumen | Indicadores de disponibilidad y cuatro escenarios | Todos |
-| #Análisis%20en%20vivo | Selector de escenario y cámara; panel Detecciones/Máscaras/Patrones | Todos; auditor sin cámara |
-| #Visión%20IA | Familia YOLO, tareas y disponibilidad | Todos |
+| #Análisis%20en%20vivo | Video público en directo y simulaciones 3D con reconocimiento de objetos | Todos |
+| #Visión%20IA | Laboratorio funcional: escenas 3D, cámaras públicas, reconocimiento y acceso a resultados guardados | Todos |
 | #Operaciones | Alertas, estado vacío y acceso a historial | Todos |
 | #Historial | Sesiones, estado vacío sin datos inventados | Todos |
 | #Configuración | Estado del entorno y destinos de datos | Administrador |
@@ -22,7 +22,11 @@ La navegación usa fragmentos URL, admite acceso directo, recarga y atrás/adela
 
 Una ruta restringida sigue comprobando el perfil aunque se escriba directamente. El cambio de perfil o escenario desmonta el visor; navegar fuera del análisis también libera la cámara. La API deberá aplicar permisos reales en Fase 13/15.
 
-## Cámara implementada
+## Entrada de cámaras y análisis
+
+La operación vigente emplea fuentes de video público autorizadas; no solicita la cámara del dispositivo. En «Visión IA» se pueden seleccionar escenas 3D o cámaras públicas y ejecutar reconocimiento en el navegador. Los resultados se guardan en el historial local únicamente cuando el usuario lo solicita. El apartado siguiente describe el controlador de cámara de etapas anteriores y se conserva como referencia histórica.
+
+## Cámara implementada (referencia histórica)
 
 Solicitud por botón, cámara predeterminada y enumeración tras permiso; selección de otra cámara con la sesión detenida. Sin audio, envíos a servidores, grabaciones ni almacenamiento. Pausa deshabilita las pistas de video; reanudar las habilita. Detener libera todas las pistas y desvincula el elemento video. Ocultar la pestaña detiene la cámara para evitar captura oculta. No existe reconexión automática.
 

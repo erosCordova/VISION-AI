@@ -34,7 +34,8 @@ const blankLayers:Record<LayerName,boolean>={boxes:true,labels:true,masks:false,
 const secondsText=(seconds:number)=>Math.floor(seconds/60).toString().padStart(2,'0')+
  ':'+Math.floor(seconds%60).toString().padStart(2,'0');
 
-export function InteractiveSimulator({scenarioId,onScenarioChange,sessionRepository}:{
+export function InteractiveSimulator({scenarioId,onScenarioChange,sessionRepository,initialMode='synthetic'}:{
+ initialMode?:'synthetic'|'yolo';
  sessionRepository:SimulationSessionRepository;
  scenarioId:ScenarioKey;
  onScenarioChange:(id:ScenarioKey)=>void;
@@ -47,7 +48,7 @@ export function InteractiveSimulator({scenarioId,onScenarioChange,sessionReposit
  const [showScore,setShowScore]=useState(true);
  const [view,setView]=useState<CameraView>('isometric');
  const [graphics,setGraphics]=useState<'human'|'light'>('human');
- const [analysisMode,setAnalysisMode]=useState<'synthetic'|'yolo'>('synthetic');
+ const [analysisMode,setAnalysisMode]=useState<'synthetic'|'yolo'>(initialMode);
  const [renderFps,setRenderFps]=useState(0);
  const [yoloTelemetry,setYoloTelemetry]=useState<YoloTelemetry>(INITIAL_YOLO_TELEMETRY);
  const onYoloTelemetry=useCallback((event:YoloTelemetryEvent)=>{

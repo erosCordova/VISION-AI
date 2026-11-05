@@ -411,9 +411,43 @@ try {
             });
             return r.result?.value?.replace(/\\s+/g,'')===title.replace(/\\s+/g,'');
           },'UI01 '+title);
+        if(title==='Visión IA'){
+          await eventually(async()=>{
+            const r=await cdp.send('Runtime.evaluate',{
+              expression:'(() => ({active:!!document.querySelector(".vision-workspace"),'
+                +'model:!!document.querySelector(".vision-workspace .browser-yolo-panel"),'
+                +'selected:document.querySelector(".vision-workspace .simulator-ai-switch button:nth-child(2)")?.getAttribute("aria-pressed")'
+                +'}))()',returnByValue:true
+            });
+            return r.result?.value?.active&&r.result.value.model&&r.result.value.selected==='true';
+          },'Visión IA inicia con el reconocimiento 3D listo');
+          await cdp.send('Runtime.evaluate',{
+            expression:'Array.from(document.querySelectorAll(".vision-workspace-source"))'
+             +'.find(button=>button.textContent?.includes("Cámaras públicas"))?.click()'
+          });
+          await eventually(async()=>{
+            const r=await cdp.send('Runtime.evaluate',{
+              expression:'!!document.querySelector(".vision-workspace .live-traffic-lab")',
+              returnByValue:true
+            });
+            return r.result?.value===true;
+          },'Visión IA muestra cámara real al seleccionar fuente');
+          await cdp.send('Runtime.evaluate',{
+            expression:'Array.from(document.querySelectorAll(".vision-workspace-source"))'
+             +'.find(button=>button.textContent?.includes("Escenarios 3D"))?.click()'
+          });
+          await eventually(async()=>{
+            const r=await cdp.send('Runtime.evaluate',{
+              expression:'!!document.querySelector(".vision-workspace .browser-yolo-panel")',
+              returnByValue:true
+            });
+            return r.result?.value===true;
+          },'Visión IA puede volver a reconocimiento 3D');
+          console.log('Visión IA OK: motor 3D y fuentes de cámaras funcionales');
+        }
         }
         await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Resumen'});
-        console.log('UI01 OK: siete rutas comprobadas; Análisis en vivo se verifica en los recorridos');
+        console.log('UI01 OK: siete rutas comprobadas; Visión IA usa fuentes y reconocimiento reales');
       }
       if (name === 'analisis' && width === 1440) {
         // DA01: guardar una sesión 3D, navegar y recargar; debe persistir.
@@ -1456,23 +1490,25 @@ try {
   console.log('PR04/PR05/PR07: borrado total atómico y confirmación exacta; IndexedDB vacío tras recarga');
 
 
-  // RF01: la guía final se presenta en la aplicación publicada.
+  // RF01: laboratorio de reconocimiento en lugar de la antigua guía informativa.
   await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Visi%C3%B3n%20IA'});
-  const releaseGuide=await eventually(async()=>{
+  const workspace=await eventually(async()=>{
     const x=await cdp.send('Runtime.evaluate',{
-      expression:'(() => ({guide:document.querySelector(".vision-guide")?.textContent||"",'
-       +'steps:document.querySelectorAll(".vision-guide-flow article").length,'
-       +'link:document.querySelector(".vision-guide-actions a[target=_blank]")?.href,'
-       +'input:!!document.querySelector(".vision-guide input[type=file]")}))()',
-      returnByValue:true
+      expression:'(() => ({'
+       +'lab:!!document.querySelector(".vision-workspace"),'
+       +'scene:!!document.querySelector(".vision-workspace .simulator-shell"),'
+       +'sources:document.querySelectorAll(".vision-workspace-source").length,'
+       +'recognition:document.querySelector(".vision-workspace .simulator-ai-switch button:nth-child(2)")?.getAttribute("aria-pressed"),'
+       +'history:!!document.querySelector(".vision-workspace-history"),'
+       +'input:!!document.querySelector(".vision-workspace input[type=file]")'
+       +'}))()',returnByValue:true
     });
-    const a=x.result?.value;
-    return a?.steps===3&&a.guide?.includes('reconocimiento')&&
-      a.guide?.includes('escenas 3D')&&!a.input&&
-      a.link?.includes('Manual_Usuario_VISION_AI.md')?a:null;
-  },'RF01 guía integrada con tres pasos y manual del repositorio');
-  console.log('RF01: guía rápida de VISION-AI accesible en la propia interfaz');
-
+    const state=x.result?.value;
+    return state?.lab&&state.scene&&state.sources===2&&
+     state.recognition==='true'&&state.history&&!state.input?state:null;
+  },'RF01 laboratorio interactivo con reconocimiento y acceso a historial');
+  console.log('RF01: Visión IA activa en escena 3D y controles de cámara disponibles');
+  
   // A11Y02: sistema con movimiento reducido; render y fotogramas
   // deben detenerse al entrar en la simulación, sin ocultar controles.
   await cdp.send('Emulation.setEmulatedMedia',{

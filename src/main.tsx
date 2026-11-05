@@ -12,6 +12,7 @@ import './styles/experience.css';
 import './styles/studio.css';
 import './styles/public-cameras.css';
 import './styles/live-traffic.css';
+import './styles/vision-workspace.css';
 const root = document.getElementById('root');
 if (!root) throw new Error('No se encontró el punto de entrada de VISION AI.');
 try {

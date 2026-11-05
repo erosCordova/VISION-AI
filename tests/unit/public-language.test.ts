@@ -3,6 +3,7 @@ import ts from 'typescript';
 import {readFileSync} from 'node:fs';
 const files=[
  'src/app/App.tsx',
+ 'src/modules/detections/pages/VisionWorkspace.tsx',
  'src/modules/experience/StudioLanding.tsx',
  'src/modules/experience/StudioCommandPalette.tsx',
  'src/modules/experience/ImmersiveHero.tsx',
