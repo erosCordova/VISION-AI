@@ -183,23 +183,31 @@ try {
           });
           return typeof r.result?.value==='number'&&r.result.value<=1;
         },'UX25 portada sin scroll residual');
-        const design=await cdp.send('Runtime.evaluate',{
-          expression:'(() => ({hero:!!document.querySelector(".experience-hero"),'
-           +'canvas:document.querySelector(".experience-hero-canvas")?.width,'
-           +'title:document.querySelector(".experience-hero h1")?.textContent,'
-           +'buttons:document.querySelectorAll(".experience-hero-actions button").length,'
-           +'cards:document.querySelectorAll(".experience-scenario-grid .scenario-card").length,'
-           +'arts:document.querySelectorAll(".experience-scenario-grid .experience-scenario-art").length,'
-           +'motion:document.querySelector(".experience-motion-toggle")?.textContent?.trim(),'
-           +'artLabels:Array.from(document.querySelectorAll(".experience-scenario-grid .scenario-card"))'
-           +'.map(x=>x.getAttribute("aria-label"))}))()',
-          returnByValue:true
-        });
-        const d=design.result?.value;
-        if(!d?.hero||!d.canvas||d.title!=='Una visión clara de tu operación'||
-         d.buttons!==2||d.cards!==4||d.arts!==4||!d.motion||
-         d.artLabels?.some(x=>!x?.startsWith('Abrir simulación:')))
-          throw Error('UX25: portada inmersiva incompleta a '+width+' px: '+JSON.stringify(d));
+        const design=await eventually(async()=>{
+          const response=await cdp.send('Runtime.evaluate',{
+            expression:'(() => ({hero:!!document.querySelector(".studio-experience"),'
+             +'canvas:document.querySelector(".studio-world-canvas")?.width,'
+             +'webgl:!!document.querySelector(".studio-world-canvas")?.getContext("webgl2"),'
+             +'status:document.querySelector(".studio-world-status")?.textContent?.trim(),'
+             +'title:document.querySelector(".studio-display-title")?.textContent?.trim(),'
+             +'tabs:document.querySelectorAll(".studio-scene-choice").length,'
+             +'selected:document.querySelectorAll(".studio-scene-choice[aria-selected=true]").length,'
+             +'cards:document.querySelectorAll(".experience-scenario-grid .scenario-card").length,'
+             +'icons:document.querySelectorAll(".sidebar nav svg").length,'
+             +'search:!!document.querySelector(".studio-top-search"),'
+             +'sceneAction:!!document.querySelector(".studio-enter"),'
+             +'fallback:!!document.querySelector(".studio-world-fallback")}))()',
+            returnByValue:true
+          });
+          const value=response.result?.value;
+          return value?.canvas>100&&value?.status?.length?value:null;
+        },'UX25 entorno industrial con postprocesado WebGL');
+        const d=design;
+        if(!d?.hero||!d.webgl||!d.title?.includes('La visión')||
+           !d.status?.includes('ESCENA 3D ACTIVA')||d.tabs!==4||
+           d.selected!==1||d.cards!==4||d.icons<5||
+           !d.search||!d.sceneAction||!d.fallback)
+          throw Error('UX25: Studio V2 incompleto a '+width+' px: '+JSON.stringify(d));
         if(width===360){
           const signature=await cdp.send('Runtime.evaluate',{
             expression:'document.querySelector(".experience-mobile-brand")?.textContent?.trim()',
@@ -229,7 +237,42 @@ try {
             return check.result?.value==='false';
           },'UX25 cierre de menú móvil sin bloquear interfaz');
         }
-        console.log('UX25: portada WebGL, 4 tarjetas originales y navegación responsive a '+width+' px');
+        // Cambiar de mundo reconstruye SOLO la exhibición, no el motor YOLO.
+        const scenarioChange=await cdp.send('Runtime.evaluate',{
+          expression:'(() => {const tabs=document.querySelectorAll(".studio-scene-choice");'
+           +'tabs[2]?.click();return tabs.length;})()',
+          returnByValue:true
+        });
+        if(scenarioChange.result?.value!==4)throw Error('UX25: selector de mundos incompleto');
+        await eventually(async()=>{
+          const r=await cdp.send('Runtime.evaluate',{
+            expression:'document.querySelectorAll(".studio-scene-choice[aria-selected=true]")[0]?.textContent',
+            returnByValue:true
+          });
+          return r.result?.value?.includes('Logística');
+        },'UX25 cambiar mundo 3D sin romper interfaz');
+        await cdp.send('Runtime.evaluate',{
+          expression:'document.querySelectorAll(".studio-scene-choice")[0]?.click()'
+        });
+        if(width===1440){
+          await cdp.send('Runtime.evaluate',{
+           expression:'document.querySelector(".studio-top-search")?.click()'
+          });
+          const command=await eventually(async()=>{
+           const r=await cdp.send('Runtime.evaluate',{
+            expression:'(() => ({open:!!document.querySelector("[role=dialog].studio-command-dialog"),'
+             +'input:!!document.querySelector(".studio-command-search input"),'
+             +'entries:document.querySelectorAll(".studio-command-item").length}))()',
+            returnByValue:true
+           });
+           return r.result?.value?.open&&r.result.value.entries>=10?r.result.value:null;
+          },'UX25 panel Ctrl K accesible');
+          await cdp.send('Runtime.evaluate',{
+           expression:'document.querySelector(".studio-command-search button")?.click()'
+          });
+          console.log('UX25: búsqueda global, iconos Lucide y 4 mundos reales comprobados');
+        }
+        console.log('UX25: estudio 3D cinematográfico y controles responsive a '+width+' px');
       }
       const metrics=await cdp.send('Performance.getMetrics');
       const rawHeap=metrics.metrics?.find(x=>x.name==='JSHeapUsedSize')?.value;
@@ -246,11 +289,11 @@ try {
       if(name==='resumen'&&width>760){
         await eventually(async()=>{
           const x=await cdp.send('Runtime.evaluate',{
-            expression:'Number(getComputedStyle(document.querySelector(".experience-hero")).opacity)',
+            expression:'Number(getComputedStyle(document.querySelector(".studio-experience")).opacity)',
             returnByValue:true
           });
           return x.result?.value>=.999;
-        },'UX25 portada totalmente visible tras entrada animada');
+        },'UX25 escena cinematográfica completa');
       }
       const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
       fs.writeFileSync(path.join(artifacts, name + '-' + width + '.png'), Buffer.from(capture.data, 'base64'));
@@ -348,7 +391,7 @@ try {
         console.log('UI02/UI04 OK: navegación por teclado y movimiento reducido');
         // UI01: rutas directas, títulos y estados iniciales comprobados en el navegador.
         for(const [hash,title] of [
-          ['#Resumen','Una visión clara de tu operación'],
+          ['#Resumen','La visiónse transforma.'],
           ['#Visi%C3%B3n%20IA','Visión IA'],
           ['#Operaciones','Operaciones'],
           ['#Historial','Historial'],
@@ -362,7 +405,7 @@ try {
               expression:'document.querySelector("main h1")?.textContent',
               returnByValue:true
             });
-            return r.result?.value===title;
+            return r.result?.value?.replace(/\\s+/g,'')===title.replace(/\\s+/g,'');
           },'UI01 '+title);
         }
         await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Resumen'});
