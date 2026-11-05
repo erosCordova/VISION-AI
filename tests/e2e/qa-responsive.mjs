@@ -411,9 +411,43 @@ try {
             });
             return r.result?.value?.replace(/\\s+/g,'')===title.replace(/\\s+/g,'');
           },'UI01 '+title);
+        if(title==='Visión IA'){
+          await eventually(async()=>{
+            const r=await cdp.send('Runtime.evaluate',{
+              expression:'(() => ({active:!!document.querySelector(".vision-workspace"),'
+                +'model:!!document.querySelector(".vision-workspace .browser-yolo-panel"),'
+                +'selected:document.querySelector(".vision-workspace .simulator-ai-switch button:nth-child(2)")?.getAttribute("aria-pressed")'
+                +'}))()',returnByValue:true
+            });
+            return r.result?.value?.active&&r.result.value.model&&r.result.value.selected==='true';
+          },'Visión IA inicia con el reconocimiento 3D listo');
+          await cdp.send('Runtime.evaluate',{
+            expression:'Array.from(document.querySelectorAll(".vision-workspace-source"))'
+             +'.find(button=>button.textContent?.includes("Cámaras públicas"))?.click()'
+          });
+          await eventually(async()=>{
+            const r=await cdp.send('Runtime.evaluate',{
+              expression:'!!document.querySelector(".vision-workspace .live-traffic-lab")',
+              returnByValue:true
+            });
+            return r.result?.value===true;
+          },'Visión IA muestra cámara real al seleccionar fuente');
+          await cdp.send('Runtime.evaluate',{
+            expression:'Array.from(document.querySelectorAll(".vision-workspace-source"))'
+             +'.find(button=>button.textContent?.includes("Escenarios 3D"))?.click()'
+          });
+          await eventually(async()=>{
+            const r=await cdp.send('Runtime.evaluate',{
+              expression:'!!document.querySelector(".vision-workspace .browser-yolo-panel")',
+              returnByValue:true
+            });
+            return r.result?.value===true;
+          },'Visión IA puede volver a reconocimiento 3D');
+          console.log('Visión IA OK: motor 3D y fuentes de cámaras funcionales');
+        }
         }
         await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Resumen'});
-        console.log('UI01 OK: siete rutas comprobadas; Análisis en vivo se verifica en los recorridos');
+        console.log('UI01 OK: siete rutas comprobadas; Visión IA usa fuentes y reconocimiento reales');
       }
       if (name === 'analisis' && width === 1440) {
         // DA01: guardar una sesión 3D, navegar y recargar; debe persistir.
