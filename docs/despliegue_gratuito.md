@@ -3,29 +3,33 @@
 **Versión vigente:** dos fuentes en Análisis en vivo: cámaras públicas
 TfL (fotografías JPEG periódicas) y cuatro simulaciones 3D; ambas con
 YOLO ONNX/WASM en navegador. Sin cámara personal ni datasets.
-El frontend React/Vite está en Vercel; Render sirve una API de
-estado sin ejecutar ningún modelo.
+El frontend React/Vite está en Vercel, que también realiza dos
+reescrituras HTTPS controladas hacia fotografías TfL. Render conserva
+una API opcional de estado, sin modelo ni dependencia para las cámaras.
 
 ## Separación real de responsabilidades
 
 | Pieza | Proveedor | Tarea | Persistencia |
 | --- | --- | --- | --- |
-| Frontend | Vercel Hobby | Interfaz, simulación 3D, inferencia ONNX local, informes | No guarda sesiones en servidor |
-| API FastAPI | Render Free | `GET /api/v1/health`, catálogo/fotograma TfL; `POST /api/v1/infer` → 503 | Ninguna |
+| Frontend | Vercel Hobby | Interfaz, proxy de dos JPEG TfL, simulación 3D, inferencia ONNX local, informes | No guarda sesiones en servidor |
+| API FastAPI | Render Free (opcional) | `GET /api/v1/health`; el catálogo antiguo puede existir, pero ya no lo consume el frontend | Ninguna |
 | Sesiones | IndexedDB del usuario | Resultados y decisiones guardados explícitamente | Solo navegador y perfil actuales |
 | Pesos de IA | CDN/modelos externos, bajo demanda | ONNX verificados con SHA-256 | Caché del dispositivo |
 | Evidencias | Descarga local del usuario | PNG/CSV/JSON solicitados | Fuera de la aplicación |
 
 La API no procesa imágenes ni contiene dependencias PyTorch/OpenCV.
-Para **cámaras públicas**, configurar `VITE_VISION_API_BASE_URL`
-en Vercel apuntando a la URL Render real, y `VISION_ALLOWED_ORIGINS`
-en Render con los dominios frontend verificados. El servidor solo hace
-proxy de cuatro rutas JPEG TfL predefinidas, con caché en memoria de
-120 segundos; no acepta URLs arbitrarias. Se recomienda registrar el
-uso de los datos en TfL y cumplir su licencia y atribución.
-El backend Render no es imprescindible para ejecutar el **simulador** o
-YOLO sobre 3D, porque ese análisis se hace dentro del navegador. No confundir el
-estado `ok` del backend con disponibilidad del detector ni precisión.
+Las **cámaras públicas no dependen de Render**. Sus IDs están limitados
+a dos JPEG publicados por TfL; `vercel.json` define las dos reescrituras
+exactas, con caché CDN de 90 segundos. El navegador recibe las fotos por
+el mismo origen, por lo que puede leer píxeles y procesarlos localmente
+mediante ONNX/WASM sin restricciones CORS externas ni cámara del equipo.
+
+Una cámara puede no estar disponible o entregar una fotografía antigua.
+La aplicación consulta cada tres minutos, pero **no garantiza video
+continuo ni una actualización real por consulta**. Se deben mantener
+las atribuciones de TfL y OS/Geomni y cumplir las condiciones de uso:
+https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service .
+La licencia TfL requiere registro apropiado para su utilización.
 
 ## Frontend Vercel Hobby
 
@@ -49,7 +53,8 @@ comerciales: https://vercel.com/docs/plans/hobby .
 
 ## Backend Render Free
 
-El único servicio necesario es **Web Service · Python · Free**, enlazado
+El backend es **opcional para esta funcionalidad**. Si se desea usar,
+se mantiene el Web Service · Python · Free enlazado
 al mismo repositorio y rama `main`. Configuración prevista:
 
 - Build: `pip install -r backend/requirements-render-free.txt`

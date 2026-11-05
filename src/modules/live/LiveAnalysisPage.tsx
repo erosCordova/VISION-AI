@@ -37,7 +37,7 @@ export function LiveAnalysisPage({scenarioId,onScenarioChange,sessionRepository,
     los resultados geométricos simulados se identifican por separado.</span>
   </div>}
   {source==='public'?
-   <PublicCameraLab apiBaseUrl={apiBaseUrl}/>:
+   <PublicCameraLab/>:
    <InteractiveSimulator sessionRepository={sessionRepository}
     scenarioId={validScenario(scenarioId)?scenarioId:'safety'}
     onScenarioChange={onScenarioChange}/>}
