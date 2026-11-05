@@ -10,7 +10,7 @@ import {validateReproducibility} from '../modules/scenarios/services/simulation-
 import {SessionsDashboard} from '../modules/dashboard/pages/SessionsDashboard';
 import {LiveObservationsDashboard} from '../modules/dashboard/components/LiveObservationsDashboard';
 import {AppProviders} from './providers/AppProviders';
-import {pages,currentPage} from './router/navigation';
+import {currentPage} from './router/navigation';
 import type {Page} from './router/navigation';
 import {Sidebar} from './layout/Sidebar';
 import {AppHeader} from './layout/AppHeader';
