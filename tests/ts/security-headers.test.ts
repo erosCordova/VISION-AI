@@ -8,7 +8,8 @@ describe('Fase 13 — cabeceras HTTP declaradas de seguridad en Vercel',()=>{
  const header=(name:string)=>entry.headers.find(x=>x.key===name)?.value;
  it('aplica las mismas cabeceras a todas las rutas',()=>{
   expect(entry.source).toBe('/(.*)');
-  expect(config.headers).toHaveLength(1);
+  expect(config.headers.length).toBeGreaterThanOrEqual(1);
+  expect(config.headers.slice(1).every(item=>item.source.startsWith('/camaras-tfl/'))).toBe(true);
  });
  it('evita detección insegura de contenido',()=>{
   expect(header('X-Content-Type-Options')).toBe('nosniff');
