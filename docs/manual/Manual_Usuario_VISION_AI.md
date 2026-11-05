@@ -176,3 +176,24 @@ fotograma; no es control de cumplimiento industrial ni biométrico.
 Ver las condiciones del operador antes de distribuir comercialmente
 el sistema. La disponibilidad pública para ver tráfico no equivale a
 un permiso universal para redistribuir el video.
+
+## Recuperación de transmisiones en vivo
+
+Si un servidor SDOT deja de entregar segmentos HLS o el navegador informa
+**«Failed to load because no supported source was found»**, VISION-AI
+intenta recuperar la decodificación o la red y puede reinicializar el
+reproductor hasta tres veces, con pausas de 1,2 s, 3 s y 6,5 s.
+Si el navegador rechaza el formato HLS nativo, el siguiente intento
+utiliza Hls.js cuando el navegador lo admite.
+
+Mientras no llegan fotogramas nuevos, el estado no se etiqueta como
+**DIRECTO** y YOLO no puede generar detecciones adicionales.
+Si antes estaba activado, YOLO vuelve a analizar fotogramas nuevos
+cuando la transmisión se recupera. Si se agotan los intentos,
+puede pulsarse **Reintentar cámara** o **Otra cámara**, sin
+actualizar toda la página.
+
+Ningún mecanismo puede garantizar que una cámara externa
+esté siempre encendida o que permita lectura de píxeles por CORS.
+Las pruebas de compilación no sustituyen una prueba real del
+proveedor y el navegador.
