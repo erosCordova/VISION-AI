@@ -195,16 +195,27 @@ try {
          d.artLabels?.some(x=>!x?.startsWith('Abrir simulación:')))
           throw Error('UX25: portada inmersiva incompleta a '+width+' px: '+JSON.stringify(d));
         if(width===360){
-          const checkMenu=await cdp.send('Runtime.evaluate',{
-            expression:'(() => {const m=document.querySelector(".menu-button");'
-             +'if(!m)return null;m.click();'
-             +'const open=m.getAttribute("aria-expanded");'
-             +'const scrim=document.querySelector(".experience-nav-scrim");'
-             +'scrim?.click();return {open,after:m.getAttribute("aria-expanded"),scrim:!!scrim};})()',
-            returnByValue:true
+          await cdp.send('Runtime.evaluate',{
+            expression:'document.querySelector(".menu-button")?.click()'
           });
-          if(checkMenu.result?.value?.open!=='true'||!checkMenu.result.value.scrim)
-           throw Error('UX25: menú móvil sin capa de cierre');
+          await eventually(async()=>{
+            const check=await cdp.send('Runtime.evaluate',{
+              expression:'(() => ({open:document.querySelector(".menu-button")?.getAttribute("aria-expanded"),'
+               +'scrim:!!document.querySelector(".experience-nav-scrim")}))()',
+              returnByValue:true
+            });
+            return check.result?.value?.open==='true'&&check.result.value.scrim;
+          },'UX25 menú móvil con fondo de cierre');
+          await cdp.send('Runtime.evaluate',{
+            expression:'document.querySelector(".experience-nav-scrim")?.click()'
+          });
+          await eventually(async()=>{
+            const check=await cdp.send('Runtime.evaluate',{
+              expression:'document.querySelector(".menu-button")?.getAttribute("aria-expanded")',
+              returnByValue:true
+            });
+            return check.result?.value==='false';
+          },'UX25 cierre de menú móvil sin bloquear interfaz');
         }
         console.log('UX25: portada WebGL, 4 tarjetas originales y navegación responsive a '+width+' px');
       }
