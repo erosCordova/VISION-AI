@@ -21,7 +21,7 @@ export function LiveAnalysisPage({scenarioId,onScenarioChange,sessionRepository,
  return <>
   <section className="vision-source-selector" aria-label="Origen de imágenes para análisis">
    <div><strong>Seleccionar origen visual</strong>
-    <p>Transmisión HLS continua o simulador 3D. Nunca se solicita la cámara del dispositivo.</p></div>
+    <p>Video público en directo o escenarios 3D. No se utiliza la cámara de tu dispositivo.</p></div>
    <div role="group" aria-label="Origen de fotogramas">
     <button type="button" aria-pressed={source==='live'} onClick={()=>setSource('live')}>
      Video público en directo
@@ -32,9 +32,8 @@ export function LiveAnalysisPage({scenarioId,onScenarioChange,sessionRepository,
    </div>
   </section>
   {source==='simulated'&&<div className="simulation-only-notice" role="note">
-   <strong>SIMULACIÓN INDUSTRIAL 3D</strong>
-   <span>Cuatro escenarios virtuales. YOLO procesa sus fotogramas;
-    los resultados geométricos simulados se identifican por separado.</span>
+   <strong>ESCENARIOS VIRTUALES</strong>
+   <span>Explora cuatro escenarios y observa qué objetos puede reconocer YOLO.</span>
   </div>}
   {source==='live'?
    <LiveTrafficAnalysis/>:

@@ -19,4 +19,4 @@ La interfaz corresponde a Fase 6 y el plan contiene 16 fases.
 La referencia definitiva del porcentaje y criterios aprobados
 es [Estado del proyecto](../estado.md). No confundir documentación
 antigua de cámara, video o datasets con la decisión actual:
-**únicamente simulaciones 3D**.
+**videos públicos en directo y simulaciones 3D**. El documento Word original es una referencia histórica; la funcionalidad vigente se describe en el manual de usuario.

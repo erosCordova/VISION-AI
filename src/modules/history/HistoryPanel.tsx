@@ -1,4 +1,5 @@
 import {useEffect,useMemo,useState} from 'react';
+import {LiveObservationsHistory} from './LiveObservationsHistory';
 import type {SimulationSessionRepository} from '../../core/ports/simulation-session-repository';
 import {validateReproducibility} from '../live/simulation-session-model';
 import type {SimulationSession} from '../../core/domain/simulation-session';
@@ -104,7 +105,7 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
  }
  function clearFilters(){setQuery('');setScenario('');setMode('');
   setPeriod('all');setReviewStatus('all');setPage(1);}
- return <section className="panel history-panel" aria-label="Historial persistente de simulaciones">
+ return <><LiveObservationsHistory onAnalyze={onAnalyze}/><section className="panel history-panel" aria-label="Historial persistente de simulaciones">
   <div className="panel-heading"><div><h2>Sesiones guardadas de las simulaciones</h2>
    <p>IndexedDB local · sin videos ni fotogramas almacenados</p></div>
    <span className="status">{loading?'Cargando':records.length+' registros'}</span>
@@ -148,7 +149,7 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
   {notice&&<p className="session-history-notice" role="status">{notice}</p>}
   <section className="history-report-summary" aria-label="Informe del historial filtrado">
    <div className="history-report-heading"><div>
-    <span>FASE 12 · INFORME LOCAL</span><h3>Informe de sesiones y evidencias</h3>
+    <span>INFORMES GUARDADOS</span><h3>Informe de sesiones y evidencias</h3>
     <p>Registros válidos de IndexedDB · sin imágenes ni datasets</p>
    </div><small>{filtered.length} de {records.length} sesiones visibles</small></div>
    <div className="history-report-stats" aria-live="polite">
@@ -291,5 +292,5 @@ export function HistoryPanel({onAnalyze,sessionRepository}:{onAnalyze:()=>void;s
    <button type="button" className="session-history-delete"
     onClick={()=>void remove(pendingDelete)}>Confirmar eliminación</button>
   </div>}
- </section>;
+ </section></>;
 }

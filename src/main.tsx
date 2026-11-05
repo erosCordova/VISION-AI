@@ -15,8 +15,8 @@ import './styles/live-traffic.css';
 const root = document.getElementById('root');
 if (!root) throw new Error('No se encontró el punto de entrada de VISION AI.');
 try {
-  const { config, sessionRepository } = createFoundation(import.meta.env);
-  createRoot(root).render(<StrictMode><App origin={config.origin} apiBaseUrl={config.apiBaseUrl} sessionRepository={sessionRepository} /></StrictMode>);
+  const { config, sessionRepository, liveObservationRepository } = createFoundation(import.meta.env);
+  createRoot(root).render(<StrictMode><App origin={config.origin} apiBaseUrl={config.apiBaseUrl} sessionRepository={sessionRepository} liveObservationRepository={liveObservationRepository} /></StrictMode>);
 } catch {
   const message = document.createElement('p');
   message.textContent = 'No se pudo iniciar la aplicación. Revisa la configuración del entorno.';

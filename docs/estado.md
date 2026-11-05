@@ -434,3 +434,17 @@ Hasta aprobar RF04, mantener 15/16 = 93,75 %, sin declarar 100 %.
 Ver [Acta de entrega F16](fase16_operacion_entrega.md),
 [Manual de usuario](manual/Manual_Usuario_VISION_AI.md) y
 [Manual técnico](manual/Manual_Tecnico_VISION_AI.md).
+
+## Ampliación funcional — cámaras públicas e historial local
+
+Se incorporó al flujo de video en directo la selección automática de
+otra fuente pública tras agotarse los reintentos, filtros por clase y
+confianza, exportación PNG y guardado **voluntario** de detecciones en
+historial local separado de las simulaciones 3D. El Resumen y Privacidad
+incluyen las observaciones de cámaras y las preferencias del monitor
+modifican de forma efectiva la cadencia de inferencia, la confianza y
+el cambio automático. Solo se guardan metadatos de análisis; no video.
+
+Esta ampliación requiere CI y verificación en navegador sobre señales
+reales antes de considerar validada su operación sostenida. No altera
+los porcentajes administrativos de las fases del plan original.

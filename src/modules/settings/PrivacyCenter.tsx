@@ -4,12 +4,16 @@ import type {ReviewClosure} from '../../core/domain/review-closure';
 import {expiredSessionIds,PRIVACY_CONFIRM_PURGE,PRIVACY_CONFIRM_ERASE,
  RETENTION_DAYS,formatLocalDataSummary} from '../../core/domain/local-data-policy';
 import type {RetentionDays} from '../../core/domain/local-data-policy';
+import type {LiveObservation} from '../../core/domain/live-observation';
+import {useLiveObservationRepository} from '../../shared/live-observation-context';
 
 type DeleteTarget='expired'|'all';
 /** Privacidad utilizable sin cambiar roles de prueba; no promete autenticación. */
 export function PrivacyCenter({repository}:{repository:SimulationSessionRepository}){
+ const liveRepository=useLiveObservationRepository();
  const [inspection,setInspection]=useState<SimulationSessionInspection|null>(null);
  const [closures,setClosures]=useState<readonly ReviewClosure[]>([]);
+ const [liveRows,setLiveRows]=useState<readonly LiveObservation[]>([]);
  const [loading,setLoading]=useState(true);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
@@ -22,8 +26,8 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
   let alive=true;
   const refresh=async()=>{
    try{
-    const [next,reviews]=await Promise.all([repository.inspect(),repository.listReviewClosures()]);
-    if(alive){setInspection(next);setClosures(reviews);setError('');}
+    const [next,reviews,live]=await Promise.all([repository.inspect(),repository.listReviewClosures(),liveRepository.list()]);
+    if(alive){setInspection(next);setClosures(reviews);setLiveRows(live);setError('');}
    }catch(e){if(alive)setError(e instanceof Error?e.message:String(e));}
    finally{if(alive)setLoading(false);}
   };
@@ -31,18 +35,25 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
   const onUpdate=()=>{void refresh();};
   window.addEventListener('vision-ai-sessions-updated',onUpdate);
   window.addEventListener('vision-ai-reviews-updated',onUpdate);
+  window.addEventListener('vision-ai-live-updated',onUpdate);
   return()=>{alive=false;
    window.removeEventListener('vision-ai-sessions-updated',onUpdate);
    window.removeEventListener('vision-ai-reviews-updated',onUpdate);
+   window.removeEventListener('vision-ai-live-updated',onUpdate);
   };
- },[repository,refreshKey]);
+ },[repository,liveRepository,refreshKey]);
  const expired=useMemo(()=>inspection?
   expiredSessionIds(inspection.records,retention):[],[inspection,retention]);
  const summary=inspection?formatLocalDataSummary(inspection.records.length,
   inspection.corruptIds.length,closures.length,expired.length):null;
+ const liveExpired=useMemo(()=>liveRows.filter(r=>Date.parse(r.savedAt)<
+  Date.now()-retention*86400000).length,[liveRows,retention]);
+ const totalExpired=(summary?.expired??0)+liveExpired;
+ const totalLocal=(summary?.sessions??0)+(summary?.corrupt??0)+
+  (summary?.reviews??0)+liveRows.length;
  const expected=target==='expired'?PRIVACY_CONFIRM_PURGE:PRIVACY_CONFIRM_ERASE;
  const canConfirm=Boolean(target&&phrase===expected&&summary&&!busy&&!loading&&
-  (target==='all'?(summary.sessions+summary.corrupt+summary.reviews)>0:summary.expired>0));
+  (target==='all'?totalLocal>0:totalExpired>0));
  const resetConfirm=()=>{setTarget(null);setPhrase('');};
  async function applyDeletion(){
   if(!canConfirm||!target)return;
@@ -50,11 +61,15 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
   try{
    if(target==='expired'){
     const removed=await repository.purgeExpired(retention);
-    setNotice('Depuración confirmada: '+removed+' sesiones antiguas eliminadas con sus revisiones vinculadas.');
+    const removedLive=await liveRepository.purgeExpired(retention);
+    setNotice('Depuración confirmada: '+removed+' sesiones de escenarios y '+
+     removedLive+' análisis de cámaras eliminados.');
    }else{
     const result=await repository.eraseAll();
-    setNotice('Historial local eliminado: '+result.sessions+' sesiones y '+
-     result.reviews+' revisiones. Los archivos que descargaste permanecen fuera de la aplicación.');
+    const liveRemoved=await liveRepository.eraseAll();
+    setNotice('Historial local eliminado: '+result.sessions+' sesiones, '+
+     liveRemoved+' análisis de cámaras y '+result.reviews+
+     ' revisiones. Las descargas permanecen en tu dispositivo.');
    }
    resetConfirm();
    window.dispatchEvent(new Event('vision-ai-sessions-updated'));
@@ -65,10 +80,10 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
  }
  return <section className="panel privacy-center" aria-label="Gobierno y privacidad de datos locales">
   <header className="privacy-header">
-   <span>FASE 13 · GOBIERNO DE DATOS</span>
+   <span>CONTROL DE DATOS</span>
    <h2>Privacidad y control del historial</h2>
-   <p>Estas opciones se aplican a IndexedDB de este navegador. No
-    necesitas subir imágenes, videos ni datasets para usar las simulaciones 3D.</p>
+   <p>Controla y elimina los resultados que guardaste en este navegador.
+    Los videos públicos no se graban.</p>
   </header>
   <div className="privacy-metrics" aria-live="polite">
    <div><span>Sesiones válidas</span><strong>{loading?'—':summary?.sessions??'—'}</strong></div>
@@ -76,6 +91,8 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
    <div><span>Registros incompatibles</span><strong>{loading?'—':summary?.corrupt??'—'}</strong></div>
    <div><span>Fuera de retención</span><strong>{loading?'—':summary?.expired??'—'}</strong></div>
   </div>
+  <p className="privacy-live-count"><strong>{loading?'—':liveRows.length}</strong>
+   {' '}análisis guardados de cámaras en directo, incluidos en las opciones de borrado.</p>
   {error&&<p role="alert" className="session-history-error">{error}</p>}
   {notice&&<p role="status" className="session-history-notice">{notice}</p>}
   <section className="privacy-policy">
@@ -83,6 +100,7 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
    <dl>
     <dt>Sesiones 3D</dt><dd>Escenario, fecha, estado reproducible, huella local y duración.</dd>
     <dt>Detecciones YOLO</dt><dd>Modelo, fotograma, cajas, clases y confianzas de los análisis que guardes.</dd>
+    <dt>Cámaras públicas</dt><dd>Fecha de análisis, nombre de la cámara y detecciones guardadas de forma voluntaria. No se conserva el video.</dd>
     <dt>Revisión humana</dt><dd>Decisión, hora y nota opcional vinculadas a cada indicio EPP.</dd>
     <dt>Imágenes y videos</dt><dd>El historial no conserva capturas, grabaciones ni imágenes subidas.</dd>
     <dt>Protección y límites</dt><dd>IndexedDB depende de la seguridad del navegador y del sistema operativo.
@@ -106,20 +124,20 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
      {RETENTION_DAYS.map(days=><option key={days} value={days}>{days} días</option>)}
     </select>
    </label>
-   <p className="privacy-retention-count"><strong>{summary?.expired??'—'}</strong>
-    {' '}sesiones antiguas elegibles para depuración. Se borrarán también
-    sus decisiones asociadas, no las sesiones recientes.</p>
-   <button type="button" disabled={loading||busy||!summary?.expired}
+   <p className="privacy-retention-count"><strong>{loading?'—':totalExpired}</strong>
+    {' '}registros antiguos elegibles para eliminar, tanto de simulaciones
+    como de cámaras en directo.</p>
+   <button type="button" disabled={loading||busy||!totalExpired}
     onClick={()=>{setTarget('expired');setPhrase('');}}>
     Revisar depuración</button>
   </section>
   <section className="privacy-erase">
    <h3>Eliminar todos los datos guardados</h3>
-   <p>Se eliminarán conjuntamente las sesiones y revisiones de IndexedDB, incluidos
-    registros incompatibles. Esta operación no se puede deshacer.</p>
+   <p>Se eliminarán sesiones, revisiones y análisis de cámaras guardados,
+    incluidos registros incompatibles. Esta acción no se puede deshacer.</p>
    <button type="button" className="privacy-danger"
     disabled={loading||busy||!summary||
-     summary.sessions+summary.corrupt+summary.reviews===0}
+     totalLocal===0}
     onClick={()=>{setTarget('all');setPhrase('');}}>Revisar borrado total</button>
    <button type="button" className="privacy-history-link"
     onClick={()=>{location.hash='Historial';}}>Ver historial y exportar antes</button>
@@ -128,8 +146,8 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
    aria-label="Confirmación explícita de eliminación">
    <h3>{target==='expired'?'Confirmar depuración por antigüedad':'Confirmar borrado de todo el historial'}</h3>
    <p>{target==='expired'?
-    'Se eliminarán '+(summary?.expired??0)+' sesiones antiguas y sus revisiones.':
-    'Se eliminarán todas las sesiones, revisiones e incluso registros incompatibles de este navegador.'}</p>
+    'Se eliminarán '+totalExpired+' registros antiguos y sus revisiones.':
+    'Se eliminarán sesiones, análisis de cámaras, revisiones y registros incompatibles de este navegador.'}</p>
    <label htmlFor="privacy-confirm-phrase">Escribe exactamente <strong>{expected}</strong>
     <input id="privacy-confirm-phrase" autoComplete="off" spellCheck={false}
      value={phrase} onChange={e=>setPhrase(e.target.value)}
@@ -143,9 +161,8 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
     </button>
    </div>
   </section>}
-  <p className="privacy-footnote">Las operaciones de borrado son atómicas: una
-   revisión vinculada no queda separada de una sesión eliminada. Para retirar
-   información de otras pestañas, dispositivos, descargas o copias de seguridad,
-   debes actuar por separado en esos lugares.</p>
+  <p className="privacy-footnote">Los datos de este navegador se eliminan según
+   la acción confirmada. Las imágenes y archivos ya descargados, así como los
+   registros de otros dispositivos, deben eliminarse por separado.</p>
  </section>;
 }

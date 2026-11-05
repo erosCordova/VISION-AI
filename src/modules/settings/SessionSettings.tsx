@@ -1,26 +1,65 @@
-import { useState } from 'react';
-import { Modal } from '../../shared/ui/Modal';
-import { defaultPreviewSettings, validatePreviewSettings } from './preview-settings';
-import type { PreviewSettings } from './preview-settings';
-export function SessionSettings() {
-  const [settings, setSettings] = useState(defaultPreviewSettings);
-  const [draft, setDraft] = useState({ confidence: '0.5', targetFps: '5', overlayAgeMs: '1000' });
-  const [errors, setErrors] = useState<Partial<Record<keyof PreviewSettings, string>>>({});
-  const [confirm, setConfirm] = useState(false);
-  const [notice, setNotice] = useState('');
-  const fields = [{ key: 'confidence', label: 'Confianza mínima', unit: 'De 0.01 a 1', step: '0.01' }, { key: 'targetFps', label: 'Objetivo de inferencia', unit: 'De 1 a 30 FPS', step: '1' }, { key: 'overlayAgeMs', label: 'Caducidad de resultados', unit: 'De 100 a 5000 ms', step: '1' }] as const;
-  const dirty = fields.some(f => Number(draft[f.key]) !== settings[f.key]);
-  return <section className="panel session-settings"><span className="eyebrow">PREPARACIÓN DEL MOTOR</span><h2>Parámetros de análisis</h2><p>Configuración de referencia para pruebas. YOLO ONNX funciona desde Análisis en vivo, pero estos parámetros de ejemplo no controlan su motor ni se conservan al recargar.</p>
-    <form noValidate onSubmit={e => {
-      e.preventDefault(); const next = { confidence: Number(draft.confidence), targetFps: Number(draft.targetFps), overlayAgeMs: Number(draft.overlayAgeMs) };
-      const invalid = validatePreviewSettings(next); setErrors(invalid); setNotice('');
-      if (Object.keys(invalid).length) { document.getElementById('setting-' + Object.keys(invalid)[0])?.focus(); return; }
-      setSettings(next); setNotice('Propuesta actualizada en esta vista. El motor YOLO real se configura desde Análisis en vivo.');
-    }}>
-      <div className="settings-fields">{fields.map(f => <label key={f.key} htmlFor={'setting-'+f.key}>{f.label}<input id={'setting-'+f.key} type="number" inputMode="decimal" step={f.step} value={draft[f.key]} aria-invalid={!!errors[f.key]} aria-describedby={'help-'+f.key} onChange={e => { setDraft({ ...draft, [f.key]: e.target.value }); setErrors({ ...errors, [f.key]: undefined }); setNotice(''); }} /><small id={'help-'+f.key} className={errors[f.key] ? 'field-error' : ''}>{errors[f.key] || f.unit}</small></label>)}</div>
-      <div className="settings-actions"><button type="submit" className="primary" disabled={!dirty}>Aplicar propuesta</button><button type="button" onClick={() => setConfirm(true)}>Restablecer valores</button></div>
-    </form>
-    <p role="status" className="notice">{notice}</p>
-    {confirm && <Modal title="Restablecer la propuesta" onClose={() => setConfirm(false)}><p>Se reemplazarán los valores de esta vista por confianza 0.5, objetivo 5 FPS y caducidad 1000 ms.</p><div className="settings-actions"><button onClick={() => setConfirm(false)}>Cancelar</button><button className="primary" onClick={() => { setSettings(defaultPreviewSettings); setDraft({confidence:'0.5',targetFps:'5',overlayAgeMs:'1000'}); setErrors({}); setConfirm(false); setNotice('Valores iniciales restablecidos en esta vista.'); }}>Restablecer</button></div></Modal>}
-  </section>;
+import {useState} from 'react';
+import {LIVE_PREFERENCES_DEFAULT,readLivePreferences,
+ saveLivePreferences,validateLivePreferences} from './live-preferences';
+import type {LivePreferences} from './live-preferences';
+/** Controles reales del monitor de cámaras, no valores de demostración. */
+export function SessionSettings(){
+ const [saved,setSaved]=useState<LivePreferences>(()=>readLivePreferences());
+ const [confidence,setConfidence]=useState(()=>String(Math.round(readLivePreferences().threshold*100)));
+ const [interval,setInterval]=useState(()=>String(readLivePreferences().analysisIntervalMs));
+ const [auto,setAuto]=useState(()=>readLivePreferences().autoSwitch);
+ const [notice,setNotice]=useState('');
+ const [error,setError]=useState('');
+ const apply=(value:LivePreferences)=>{
+  if(!validateLivePreferences(value)){
+   setError('Usa una confianza de 10 a 90 % y una pausa de 250 a 2000 ms.');return;
+  }
+  try{
+   saveLivePreferences(value);
+   setSaved(value);setError('');
+   setNotice('Cambios aplicados al monitor de cámaras.');
+  }catch(e){setError(e instanceof Error?e.message:String(e));}
+ };
+ const current={threshold:Number(confidence)/100,analysisIntervalMs:Number(interval),autoSwitch:auto};
+ const dirty=!validateLivePreferences(current)||
+  current.threshold!==saved.threshold||
+  current.analysisIntervalMs!==saved.analysisIntervalMs||
+  current.autoSwitch!==saved.autoSwitch;
+ return <section className="panel session-settings" aria-label="Preferencias reales de cámaras">
+  <span className="eyebrow">PERSONALIZACIÓN DEL ANÁLISIS</span>
+  <h2>Preferencias de cámaras en directo</h2>
+  <p>Estos controles cambian cómo se analizan los videos en tu navegador.
+   No modifican las cámaras públicas ni los modelos ya entrenados.</p>
+  <form onSubmit={e=>{e.preventDefault();apply(current);}}>
+   <div className="settings-fields">
+    <label htmlFor="setting-confidence">Confianza mínima (%)
+     <input type="number" id="setting-confidence" min="10" max="90" step="1"
+      value={confidence} onChange={e=>{setConfidence(e.target.value);setNotice('');}}/>
+     <small>Se muestran solo las detecciones que alcancen este nivel.</small>
+    </label>
+    <label htmlFor="setting-interval">Pausa entre análisis (milisegundos)
+     <input type="number" id="setting-interval" min="250" max="2000" step="50"
+      value={interval} onChange={e=>{setInterval(e.target.value);setNotice('');}}/>
+     <small>Un intervalo mayor reduce el uso de CPU; no cambia la velocidad del video.</small>
+    </label>
+    <label htmlFor="setting-auto-switch">Cambio de cámara
+     <span className="live-settings-checkbox"><input type="checkbox" id="setting-auto-switch"
+      checked={auto} onChange={e=>setAuto(e.target.checked)}/>
+      Buscar otra cámara si se pierde la señal</span>
+    </label>
+   </div>
+   <div className="settings-actions">
+    <button className="primary" type="submit" disabled={!dirty}>Guardar preferencias</button>
+    <button type="button" onClick={()=>{
+     const defaults=LIVE_PREFERENCES_DEFAULT;
+     setConfidence(String(Math.round(defaults.threshold*100)));
+     setInterval(String(defaults.analysisIntervalMs));setAuto(defaults.autoSwitch);
+     apply(defaults);
+    }}>Restablecer valores</button>
+   </div>
+  </form>
+  {error&&<p role="alert" className="field-error">{error}</p>}
+  {notice&&<p role="status" className="notice">{notice}</p>}
+  <p>Las preferencias quedan guardadas únicamente en este navegador.</p>
+ </section>;
 }

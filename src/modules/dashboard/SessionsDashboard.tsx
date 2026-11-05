@@ -48,8 +48,8 @@ export function SessionsDashboard({repository,onHistory,onOperations}:{
  return <section className="saved-dashboard" aria-label="Indicadores de sesiones guardadas">
   <div className="section-heading">
    <div><h2>Indicadores del historial</h2>
-    <p>Datos confirmados de IndexedDB · solo sesiones que guardaste explícitamente</p></div>
-   <span>FASE 08 · VALIDADA</span>
+    <p>Solo se incluyen las sesiones que guardaste en este navegador</p></div>
+   <span>HISTORIAL LOCAL</span>
   </div>
   <div className="saved-dashboard-filters">
    <label>Escenario

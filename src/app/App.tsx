@@ -8,6 +8,9 @@ import { LiveAnalysisPage } from '../modules/live/LiveAnalysisPage';
 import type {SimulationSessionRepository} from '../core/ports/simulation-session-repository';
 import {validateReproducibility} from '../modules/live/simulation-session-model';
 import {SessionsDashboard} from '../modules/dashboard/SessionsDashboard';
+import {LiveObservationsDashboard} from '../modules/dashboard/LiveObservationsDashboard';
+import {LiveObservationContext} from '../shared/live-observation-context';
+import type {LiveObservationRepository} from '../core/ports/live-observation-repository';
 import {OperationsPanel} from '../modules/operations/OperationsPanel';
 import {StudioLanding} from '../modules/experience/StudioLanding';
 import {StudioCommandPalette} from '../modules/experience/StudioCommandPalette';
@@ -30,7 +33,7 @@ const scenarios = [
   { id: 'retail', name: 'Retail', icon: '▥', text: 'Conteo y ocupación de espacios', rule: 'Conteo de personas dentro de una zona', classes: 'Persona · Estante · Producto' },
 ];
 function currentPage(): Page { let value = ''; try { value = decodeURIComponent(location.hash.slice(1)); } catch { return 'Resumen'; } return pages.find(p => p === value) ?? 'Resumen'; }
-export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin; apiBaseUrl: string | null; sessionRepository:SimulationSessionRepository }) {
+export function App({ origin, apiBaseUrl, sessionRepository, liveObservationRepository }: { origin: Origin; apiBaseUrl: string | null; sessionRepository:SimulationSessionRepository; liveObservationRepository:LiveObservationRepository }) {
   const [page, setPage] = useState<Page>(currentPage);
   const [scenarioId, setScenarioId] = useState('safety');
   const [menu, setMenu] = useState(false);
@@ -62,7 +65,7 @@ export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin;
    document.addEventListener('vision-ai:open-command',open);
    return()=>document.removeEventListener('vision-ai:open-command',open);
   },[]);
-  return <div className="app-shell experience-shell studio-shell">
+  return <LiveObservationContext.Provider value={liveObservationRepository}><div className="app-shell experience-shell studio-shell">
     <a className="skip" href="#contenido" onClick={e => { e.preventDefault(); document.getElementById('contenido')?.focus(); }}>Saltar al contenido</a>
     {menu&&<button type="button" className="experience-nav-scrim"
      aria-label="Cerrar navegación" onClick={()=>setMenu(false)}/>}
@@ -86,7 +89,7 @@ export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin;
         <div><strong>MOTOR DE VISIÓN</strong><small>ONNX · EJECUCIÓN LOCAL</small></div>
         <span aria-hidden="true">↗</span>
        </div>
-       <p>Modelos bajo demanda. Resultados reales de YOLO, sin cámaras ni datasets.</p>
+       <p>Analiza cámaras públicas y escenarios 3D con reconocimiento visual.</p>
        <div className="user"><b>AI</b><div>Laboratorio de pruebas
         <small>Sin cuenta autenticada</small></div></div>
       </div>
@@ -98,8 +101,8 @@ export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin;
   aria-label="Abrir búsqueda global de páginas y escenarios" onClick={()=>setCommandOpen(true)}>
   <ScanSearch size={17}/><span>Buscar cualquier función</span><kbd>Ctrl K</kbd>
  </button><label className="profile-control">Perfil de prueba<select aria-label="Perfil de prueba" value={role} onChange={e => setRole(e.target.value)}>{['operador','supervisor','administrador','auditor'].map(r => <option key={r} value={r}>{r[0].toUpperCase()+r.slice(1)}</option>)}</select></label><span className="mode-badge"><span aria-hidden="true" className="experience-status-dot"/>
- 4 ESCENARIOS · YOLO EN NAVEGADOR</span></header>
-      <main id="contenido" tabIndex={-1}>{page !== 'Resumen'&&<div className="page-heading"><div><span className="eyebrow">VISIÓN COMPUTACIONAL</span><h1>{page}</h1><p>{page === 'Análisis en vivo' ? 'Cuatro simulaciones industriales 3D con análisis YOLO real de sus fotogramas.' : page === 'Historial' ? 'Sesiones y evidencias de tus análisis.' : 'Estado del entorno y capacidades disponibles.'}</p></div></div>}
+CÁMARAS EN VIVO · YOLO</span></header>
+      <main id="contenido" tabIndex={-1}>{page !== 'Resumen'&&<div className="page-heading"><div><span className="eyebrow">VISIÓN COMPUTACIONAL</span><h1>{page}</h1><p>{page === 'Análisis en vivo' ? 'Cámaras públicas en directo y simulaciones con reconocimiento de objetos.' : page === 'Historial' ? 'Sesiones y evidencias de tus análisis.' : 'Estado del entorno y capacidades disponibles.'}</p></div></div>}
       <ErrorBoundary key={page + role}>
       {page === 'Resumen' && <>
        <StudioLanding onExplore={openScene}
@@ -107,8 +110,9 @@ export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin;
        <div className="experience-dashboard-label studio-insights-label studio-scroll-reveal">
         <span>01 / CENTRO DE CONTROL</span><p>DATOS VERIFICABLES · INDEXEDDB LOCAL</p>
        </div>
-       <div className="stats studio-scroll-reveal">{[['Escenarios','04','Simulaciones 3D'],['Motor de visión','YOLO','ONNX en navegador'],['Sesiones guardadas',savedStats?savedStats.total.toString():'—','IndexedDB local'],['Indicios conservados',savedStats?savedStats.indicios.toString():'—','Señales YOLO guardadas']].map(([title,value,detail]) => <section className="stat" key={title}><span>{title}</span><strong>{value}</strong><small>{detail}</small></section>)}</div><div className="experience-saved-dashboard studio-scroll-reveal"><SessionsDashboard repository={sessionRepository}
+       <div className="stats studio-scroll-reveal">{[['Escenarios','04','Simulaciones 3D'],['Motor de visión','YOLO','ONNX en navegador'],['Sesiones 3D',savedStats?savedStats.total.toString():'—','Guardadas en este navegador'],['Indicios conservados',savedStats?savedStats.indicios.toString():'—','Señales YOLO guardadas']].map(([title,value,detail]) => <section className="stat" key={title}><span>{title}</span><strong>{value}</strong><small>{detail}</small></section>)}</div><div className="experience-saved-dashboard studio-scroll-reveal"><SessionsDashboard repository={sessionRepository}
    onHistory={()=>navigate('Historial')} onOperations={()=>navigate('Operaciones')} /></div>
+   <LiveObservationsDashboard onHistory={()=>navigate('Historial')} onAnalyze={()=>navigate('Análisis en vivo')}/>
    <section className="section-heading experience-scenarios-heading studio-scroll-reveal"><div><h2>Elige tu escenario</h2><p>Un flujo de trabajo adaptado a cada operación.</p></div><span>01 — 04</span></section><div className="scenario-grid experience-scenario-grid studio-scroll-reveal">{scenarios.map((s,i) =>
     <button className={'scenario-card scenario-'+i} key={s.id}
      aria-label={'Abrir simulación: '+s.name}
@@ -124,46 +128,45 @@ export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin;
       {page === 'Análisis en vivo' && <LiveAnalysisPage scenarios={scenarios} scenarioId={scenarioId} onScenarioChange={setScenarioId} sessionRepository={sessionRepository} role={role} apiBaseUrl={apiBaseUrl} />}
       {page === 'Historial' && <HistoryPanel onAnalyze={() => navigate('Análisis en vivo')} sessionRepository={sessionRepository} />}
       {page === 'Privacidad' && <PrivacyCenter repository={sessionRepository} />}
-      {page === 'Visión IA' && <><section className="panel settings"><h2>Detección sobre simulaciones</h2>
-   <dl><dt>Tecnología</dt><dd>YOLOv8n general y YOLOv8s EPP</dd>
-   <dt>Motor</dt><dd>ONNX Runtime Web / WebAssembly en el navegador</dd>
-   <dt>Fuente</dt><dd>Únicamente fotogramas renderizados de los cuatro escenarios 3D</dd>
-   <dt>Detección</dt><dd>Cajas, clases y confianza de inferencia; no equivale a precisión medida</dd>
-   <dt>Limitaciones</dt><dd>Sin segmentación real ni seguimiento de identidades. Defectos y montacargas requieren modelos especializados.</dd>
-   <dt>Persistencia</dt><dd>Resúmenes de sesiones guardados explícitamente en IndexedDB; sin video almacenado</dd></dl></section>
-      <section className="panel vision-guide" aria-label="Guía rápida de uso de VISION-AI">
-       <div className="vision-guide-heading"><span>MANUAL DE USO · FASE 16</span>
-        <h2>Cómo funciona VISION-AI</h2>
-        <p>Del escenario virtual a la evidencia. Solo simulaciones 3D; YOLO procesa sus píxeles en este navegador.</p>
-       </div>
-       <div className="vision-guide-flow">
-        <article><b>01</b><h3>Selecciona un escenario</h3><p>Seguridad, Manufactura, Retail o Logística.
-         Elige una cámara 3D y ajusta movimiento y visualización.</p></article>
-        <article><b>02</b><h3>Ejecuta YOLO real</h3><p>Presiona Iniciar YOLO. Observa el
-         fotograma analizado, detecciones ONNX, confianza y tiempos medidos.
-         Una lectura vacía no certifica ausencia de objetos.</p></article>
-        <article><b>03</b><h3>Conserva y revisa</h3><p>Guarda los resultados de la sesión.
-         Consulta Historial y, si hay indicios EPP, registra una revisión
-         humana en Operaciones. Descarga CSV/JSON desde el navegador.</p></article>
-       </div>
-       <div className="vision-guide-actions">
-        <a href="#Análisis en vivo">Abrir simulaciones 3D</a>
-        <a href="#Historial">Ver historial local</a>
-        <a href="https://github.com/erosCordova/VISION-AI/blob/main/docs/manual/Manual_Usuario_VISION_AI.md"
-         target="_blank" rel="noopener noreferrer">Manual de usuario completo</a>
-       </div>
-       <p className="vision-guide-note">Sin cámaras, imágenes cargadas ni datasets.
-        Los perfiles del menú no son cuentas autenticadas; Render no procesa
-        imágenes. Las detecciones no equivalen a conformidad industrial.</p>
-      </section></>}
+      {page === 'Visión IA' && <>
+       <section className="panel settings">
+        <h2>Reconocimiento de objetos</h2>
+        <p>VISION-AI analiza fotogramas de cámaras públicas y simulaciones 3D con modelos de detección reales.</p>
+        <dl><dt>Cámaras en directo</dt><dd>Personas, vehículos y otras clases generales reconocibles; la señal depende del proveedor.</dd>
+         <dt>Simulaciones 3D</dt><dd>Seguridad, manufactura, almacén y retail, con detecciones sobre sus fotogramas.</dd>
+         <dt>Resultados</dt><dd>Cajas sobre el fotograma analizado, clases, confianza y tiempo de procesamiento.</dd>
+         <dt>Guardado</dt><dd>Solo por decisión del usuario. Los videos públicos no se graban.</dd>
+         <dt>Limitaciones</dt><dd>No identifica rostros o matrículas ni certifica infracciones, defectos o medidas de seguridad.</dd>
+        </dl>
+       </section>
+       <section className="panel vision-guide" aria-label="Funciones de VISION-AI">
+        <div className="vision-guide-heading">
+         <span>EXPLORA LAS FUNCIONES</span><h2>Todo en un espacio de análisis</h2>
+         <p>Combina cámaras reales, simulaciones 3D y YOLO real sin instalar programas adicionales.</p>
+        </div>
+        <div className="vision-guide-flow">
+         <article><b>01</b><h3>Cámaras en directo</h3><p>Video en movimiento, cambio automático de cámara y reconocimiento de personas o vehículos.</p></article>
+         <article><b>02</b><h3>Simulaciones 3D</h3><p>Cuatro entornos para explorar detecciones visuales de seguridad, calidad, almacén y retail.</p></article>
+         <article><b>03</b><h3>Historial y resultados</h3><p>Guarda análisis cuando lo necesites. Consulta detecciones, estadísticas y exporta informes CSV.</p></article>
+        </div>
+        <div className="vision-guide-actions">
+         <a href="#Análisis en vivo">Abrir análisis</a>
+         <a href="#Historial">Ver historial</a>
+         <a href="https://github.com/erosCordova/VISION-AI/blob/main/docs/manual/Manual_Usuario_VISION_AI.md"
+          target="_blank" rel="noopener noreferrer">Manual de usuario completo</a>
+        </div>
+        <p className="vision-guide-note">Las cámaras públicas no están disponibles permanentemente.
+         Las detecciones son orientativas y los datos solo se guardan por decisión del usuario.</p>
+       </section>
+      </>}
       {page === 'Operaciones' && <OperationsPanel repository={sessionRepository}
    onHistory={() => navigate('Historial')} />}
       {(page === 'Administración' || page === 'Configuración') && role !== 'administrador' && <section className="panel empty-page"><h2>Vista restringida</h2><p>Esta vista está reservada al perfil administrador de prueba.</p><button onClick={() => navigate('Resumen')}>Volver al resumen</button></section>}
       {page === 'Administración' && role === 'administrador' && <section className="panel settings"><h2>Administración del espacio</h2><p>Perfil de prueba. No constituye autenticación de servidor.</p><dl><dt>Usuarios</dt><dd>Gestión pendiente de integración con identidad real.</dd><dt>Escenarios</dt><dd>Cuatro escenarios versionados y reproducibles; administración avanzada pendiente.</dd><dt>Auditoría</dt><dd>Sin registros productivos.</dd></dl></section>}
-      {page === 'Configuración' && role === 'administrador' && <><SessionSettings /><section className="panel settings"><h2>Estado del entorno</h2><dl><dt>Origen configurado</dt><dd>{origin.toUpperCase()} · sin inferencia activa</dd><dt>Fuente disponible</dt><dd>Cuatro simulaciones industriales 3D, sin cámaras externas</dd><dt>Motor disponible</dt><dd>YOLO ONNX descargado bajo demanda en el navegador</dd><dt>Destino de fotogramas</dt><dd>Procesados localmente por WebAssembly; no enviados a Render</dd><dt>Almacenamiento</dt><dd>IndexedDB local para resúmenes guardados manualmente; sin videos ni imágenes</dd><dt>Identidad y permisos</dt><dd>Sin autenticación de servidor</dd><dt>Red</dt><dd>Vercel aloja el frontend y Render la API ligera; sin cámaras IP o RTSP</dd></dl></section></>}
-      </ErrorBoundary><footer className="workspace-footer"><span>VISION AI / Visión computacional aplicada</span><span>Fase 16 · Manuales y operación</span></footer></main>
+      {page === 'Configuración' && role === 'administrador' && <><SessionSettings /><section className="panel settings"><h2>Estado del entorno</h2><dl><dt>Origen configurado</dt><dd>{origin.toUpperCase()} · sin inferencia activa</dd><dt>Fuentes de video</dt><dd>Cámaras públicas en directo y cuatro escenarios de simulación 3D</dd><dt>Reconocimiento</dt><dd>YOLO para personas y vehículos en directo; modelos de objetos y protección en las simulaciones</dd><dt>Destino de fotogramas</dt><dd>Procesados localmente por WebAssembly; no enviados a Render</dd><dt>Almacenamiento</dt><dd>Resultados guardados voluntariamente en este navegador; sin grabaciones</dd><dt>Identidad y permisos</dt><dd>Sin autenticación de servidor</dd><dt>Conectividad</dt><dd>La página se aloja en Vercel; las transmisiones públicas dependen de sus operadores</dd></dl></section></>}
+      </ErrorBoundary><footer className="workspace-footer"><span>VISION AI / Visión computacional aplicada</span><span>Cámaras públicas · Detección · Historial</span></footer></main>
     </div>
     <StudioCommandPalette open={commandOpen} onClose={()=>setCommandOpen(false)}
      onNavigate={name=>navigate(name as Page)} onScenario={openScene}/>
-  </div>;
+  </div></LiveObservationContext.Provider>;
 }
