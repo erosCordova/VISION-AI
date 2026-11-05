@@ -36,7 +36,14 @@ export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin;
    reload();window.addEventListener('vision-ai-sessions-updated',reload);
    return()=>{active=false;window.removeEventListener('vision-ai-sessions-updated',reload);};
   },[page,sessionRepository]);
-  useEffect(() => { const update = () => { setPage(currentPage()); setMenu(false); }; window.addEventListener('hashchange', update); return () => window.removeEventListener('hashchange', update); }, []);
+  useEffect(() => {
+   // SPA con navegación hash: cada vista empieza arriba; evita revelar
+   // la portada a mitad de scroll después de visitar Historial/YOLO.
+   const update=()=>{setPage(currentPage());setMenu(false);window.scrollTo(0,0);};
+   window.addEventListener('hashchange',update);
+   window.scrollTo(0,0);
+   return()=>window.removeEventListener('hashchange',update);
+  },[]);
   const navigate = (p: Page) => { location.hash = p; setPage(p); setMenu(false); };
   return <div className="app-shell experience-shell">
     <a className="skip" href="#contenido" onClick={e => { e.preventDefault(); document.getElementById('contenido')?.focus(); }}>Saltar al contenido</a>

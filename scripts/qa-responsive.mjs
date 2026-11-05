@@ -177,6 +177,12 @@ try {
         throw Error('QA falló (' + width + ' px, ' + name + '): ' + JSON.stringify(view));
       }
       if(name==='resumen'){
+        await eventually(async()=>{
+          const r=await cdp.send('Runtime.evaluate',{
+            expression:'window.scrollY',returnByValue:true
+          });
+          return typeof r.result?.value==='number'&&r.result.value<=1;
+        },'UX25 portada sin scroll residual');
         const design=await cdp.send('Runtime.evaluate',{
           expression:'(() => ({hero:!!document.querySelector(".experience-hero"),'
            +'canvas:document.querySelector(".experience-hero-canvas")?.width,'

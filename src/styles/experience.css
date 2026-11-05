@@ -10,7 +10,7 @@
  --experience-border:#dce8e9;
  --experience-ease:cubic-bezier(.22,1,.36,1);
 }
-html{scroll-behavior:smooth}
+html{scroll-behavior:auto}
 body{background:#eaf1f3;color:#1d3440}
 .experience-shell{background:linear-gradient(158deg,#e9f1f3,#f8fafb 40%,#edf3f5)}
 .experience-shell .workspace{
