@@ -93,7 +93,7 @@ export function PrivacyCenter({repository}:{repository:SimulationSessionReposito
   </div>
   <p className="privacy-live-count"><strong>{loading?'—':liveRows.length}</strong>
    {' '}análisis guardados de cámaras en directo, incluidos en las opciones de borrado.</p>
-  {error&&<p role="alert" className="session-history-error">{error}</p>
+  {error&&<p role="alert" className="session-history-error">{error}</p>}
   {notice&&<p role="status" className="session-history-notice">{notice}</p>}
   <section className="privacy-policy">
    <h3>¿Qué datos conserva la aplicación?</h3>
