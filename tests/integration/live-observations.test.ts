@@ -14,7 +14,7 @@ const obs:LiveObservation={
  detections:[{id:'d1',classId:'car',label:'Automóvil',confidence:.87,
   box:{x:.1,y:.2,width:.3,height:.4}}]
 };
-const source=(path:string)=>readFileSync(new URL('../..'+path,import.meta.url),'utf8');
+const source=(path:string)=>readFileSync(new URL('../../'+path,import.meta.url),'utf8');
 describe('Historial y configuración de video en directo',()=>{
  it('guarda exclusivamente metadatos verificables, sin imágenes ni video',()=>{
   expect(()=>validateLiveObservation(obs)).not.toThrow();

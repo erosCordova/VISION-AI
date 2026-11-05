@@ -2,7 +2,7 @@ import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {PUBLIC_CAMERA_SOURCES} from '../../src/modules/analysis/services/public-camera-sources';
 
-const read=(p:string)=>readFileSync(new URL('../..'+p,import.meta.url),'utf8');
+const read=(p:string)=>readFileSync(new URL('../../'+p,import.meta.url),'utf8');
 
 describe('Cámaras públicas TfL: catálogo sin Render ni dispositivos locales',()=>{
  it('solo acepta dos rutas internas públicas con identidad verificada',()=>{

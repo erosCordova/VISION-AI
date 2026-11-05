@@ -1,7 +1,7 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {LIVE_TRAFFIC_SOURCES,isAuthorizedLiveTrafficUrl} from '../../src/modules/analysis/services/live-traffic-sources';
-const code=(path:string)=>readFileSync(new URL('../..'+path,import.meta.url),'utf8');
+const code=(path:string)=>readFileSync(new URL('../../'+path,import.meta.url),'utf8');
 
 describe('Video en directo con análisis YOLO y fuente HLS autorizada',()=>{
  it('presenta cuatro transmisiones HLS SDOT, no JPEG ni VOD',()=>{

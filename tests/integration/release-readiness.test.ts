@@ -1,12 +1,12 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync,existsSync} from 'node:fs';
-const get=(file:string)=>readFileSync(new URL('../..'+file,import.meta.url),'utf8');
+const get=(file:string)=>readFileSync(new URL('../../'+file,import.meta.url),'utf8');
 describe('Fase 16 — integridad de entrega y límites de producción',()=>{
  it('incluye manuales y acta referenciables',()=>{
   for(const f of ['docs/manual/Manual_Usuario_VISION_AI.md',
    'docs/manual/Manual_Tecnico_VISION_AI.md','docs/fase16_operacion_entrega.md',
    'docs/despliegue_gratuito.md'])
-   expect(existsSync(new URL('../..'+f,import.meta.url))).toBe(true);
+   expect(existsSync(new URL('../../'+f,import.meta.url))).toBe(true);
  });
  it('no transforma la API remota gratuita en motor de inferencia',()=>{
   const code=get('backend/app/main.py');

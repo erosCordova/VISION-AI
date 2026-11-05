@@ -22,7 +22,7 @@ const files=[
  'src/modules/history/pages/HistoryPanel.tsx',
  'src/modules/settings/pages/PrivacyCenter.tsx'
 ] as const;
-const code=(path:string)=>readFileSync(new URL('../..'+path,import.meta.url),'utf8');
+const code=(path:string)=>readFileSync(new URL('../../'+path,import.meta.url),'utf8');
 // Los nombres de módulos, clases CSS e identificadores técnicos NO son textos de interfaz.
 const forbidden=/(?:YOLO|ONNX|WASM|HLS|IndexedDB|WebGL|COCO|CORS|\bAPI\b|\bbackend\b)/;
 const visibleAttribute=new Set(['aria-label','title','placeholder','alt','label']);
