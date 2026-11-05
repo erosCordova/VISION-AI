@@ -1,8 +1,8 @@
 # VISION-AI
 
 Plataforma educativa y experimental de visión computacional con
-**cuatro escenarios empresariales simulados en 3D** y detecciones
-YOLO ONNX reales sobre sus fotogramas. Interfaz en español.
+**video público de tráfico en directo** y **cuatro escenarios 3D**.
+El reconocimiento de objetos se ejecuta en el navegador; la interfaz está en español.
 
 ## Estado del proyecto
 
@@ -19,8 +19,8 @@ no a precisión ni rendimiento de la red neuronal.
   cargas de imágenes, PyTorch ni base de datos.
 - **Persistencia:** IndexedDB del navegador, con guardado explícito,
   revisiones humanas, exportaciones CSV/JSON y privacidad local.
-- **Entradas:** únicamente los fotogramas renderizados por las
-  simulaciones 3D. **No hay webcam, videos, fotos subidas o datasets**.
+- **Entradas:** fotogramas de cámaras públicas HLS o escenas 3D.
+  **No utiliza la cámara del dispositivo ni requiere datasets**.
 - **Limitaciones:** ni la confianza YOLO ni las cajas constituyen
   verificación de seguridad, precisión mAP, inspección certificada
   de defectos o identificación personal.
@@ -72,6 +72,27 @@ python3 -m unittest discover -s tests
 Para explorar en local, ejecutar `npm run dev` en la terminal
 existente. No es necesario instalar YOLO en Python, crear una base
 de datos ni configurar variables para la inferencia ONNX del navegador.
+
+### Backend local aislado con Docker (opcional)
+
+Si tienes Docker Desktop ejecutándose en Windows 11, desde el Git Bash
+existente y la raíz del proyecto:
+
+```bash
+docker compose -f compose.yaml up --build -d api
+docker compose -f compose.yaml ps
+curl -fsS http://127.0.0.1:8010/api/v1/health
+```
+
+La API local se publica únicamente en `127.0.0.1:8010`, sin base de datos,
+ni modelos de visión en el contenedor. El frontend y las cámaras funcionan
+de forma independiente de Docker. Detenerla con
+`docker compose -f compose.yaml down`.
+
+**Pruebas Python dentro de la imagen:** `docker build --target test
+-f backend/Dockerfile .`. Instrucciones, seguridad y límites en la
+[guía de Docker local](docs/docker_local.md). GitHub Actions verifica la
+imagen de producción y la API sin trasladar el despliegue Render Free a Docker.
 Los tests de Chromium de extremo a extremo se ejecutan en
 [GitHub Actions](https://github.com/erosCordova/VISION-AI/actions).
 
@@ -80,6 +101,7 @@ Los tests de Chromium de extremo a extremo se ejecutan en
 - [Manual de usuario](docs/manual/Manual_Usuario_VISION_AI.md).
 - [Manual técnico](docs/manual/Manual_Tecnico_VISION_AI.md).
 - [Despliegue gratuito, seguridad y rollback](docs/despliegue_gratuito.md).
+- [Docker local y pruebas aisladas](docs/docker_local.md).
 - [Acta de entrega de Fase 16](docs/fase16_operacion_entrega.md).
 - [Estado verificable y evidencias de las 16 fases](docs/estado.md).
 - [Backlog](docs/backlog.md).

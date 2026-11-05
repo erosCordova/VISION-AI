@@ -1,0 +1,26 @@
+name: vision-ai-local
+
+services:
+  api:
+    image: vision-ai-backend:local
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: runtime
+    ports:
+      - "127.0.0.1:${VISION_LOCAL_API_PORT:-8010}:8010"
+    environment:
+      PORT: "8010"
+      VISION_ALLOWED_ORIGINS: "${VISION_ALLOWED_ORIGINS:-}"
+      VISION_INFERENCE_ENABLED: "0"
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 64
+    mem_limit: 256m
+    cpus: 1.0
+    restart: "no"
