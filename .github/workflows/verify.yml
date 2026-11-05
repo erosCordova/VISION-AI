@@ -33,6 +33,43 @@ jobs:
         run: python3 -m pip install -r backend/requirements-render-free.txt "httpx>=0.28,<1"
       - name: Comprobar referencias Python y API gratuita
         run: python3 -m unittest discover -s tests
+      - name: Smoke test HTTP Render Free en producción
+        run: |
+          python3 - <<'PY'
+          import json
+          import time
+          from urllib.request import Request, urlopen
+          from urllib.error import HTTPError
+          url = "https://vision-ai-api.onrender.com"
+          last_error = None
+          for attempt in range(5):
+              try:
+                  with urlopen(Request(url + "/api/v1/health", headers={"Accept":"application/json"}),timeout=40) as response:
+                      status,headers = response.status,response.headers
+                      payload = json.load(response)
+                  assert status == 200, f"HTTP {status}"
+                  assert payload["ok"] is True
+                  assert payload["mode"] == "render-free-status-only"
+                  assert payload["source"] == "four-3d-simulations-only"
+                  assert payload["inferenceAvailable"] is False
+                  assert payload["modelLoaded"] is False
+                  assert set(payload["configuredScenarios"]) == {"safety","quality","retail","warehouse"}
+                  assert headers.get("X-Content-Type-Options") == "nosniff"
+                  assert headers.get("Cache-Control") == "no-store"
+                  break
+              except Exception as exc:
+                  last_error = exc
+                  if attempt == 4:
+                      raise
+                  time.sleep(8)
+          print("RF04 LIVE: Render Free GET /api/v1/health = 200, cuatro escenas, inferencia remota desactivada")
+          try:
+              urlopen(Request(url + "/api/v1/infer",data=b"not-an-image",method="POST"),timeout=30)
+              raise AssertionError("RF05: inferencia remota habilitada por error")
+          except HTTPError as response:
+              assert response.code == 503, f"RF05: HTTP {response.code}, esperado 503"
+          print("RF05 LIVE: Render Free POST /api/v1/infer = 503; ningún fotograma enviado")
+          PY
       - name: Compilar aplicación
         run: npm run build
 
