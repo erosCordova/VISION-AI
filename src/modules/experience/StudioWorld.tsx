@@ -6,6 +6,9 @@ import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import {OutputPass} from 'three/examples/jsm/postprocessing/OutputPass.js';
 import {RoomEnvironment} from 'three/examples/jsm/environments/RoomEnvironment.js';
+import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+import {clone as cloneSkeleton} from 'three/examples/jsm/utils/SkeletonUtils.js';
+import {humanAssetFor,motionClipName} from '../live/human-assets';
 
 export const WORLD_KEYS=['safety','quality','warehouse','retail'] as const;
 export type WorldKey=typeof WORLD_KEYS[number];
@@ -49,7 +52,66 @@ export function StudioWorld({active,paused,onReady}:Props){
   const lookAt=new THREE.Vector3(0,0,0);
   const box=new THREE.BoxGeometry(1,1,1),sphere=new THREE.SphereGeometry(1,16,12);
   const cylinder=new THREE.CylinderGeometry(1,1,1,14);
-  const geometries=new Set<any>([box,sphere,cylinder]);
+  const anatomia=new THREE.SphereGeometry(1,28,18);
+  const taper=new THREE.CylinderGeometry(.31,.255,.78,20);
+  const cuff=new THREE.CylinderGeometry(1,1,1,16);
+  const geometries=new Set<any>([box,sphere,cylinder,anatomia,taper,cuff]);
+  const actorRigs:Array<{
+   world:WorldKey;root:any;fallback:any;armL:any;armR:any;
+   legL:any;legR:any;body:any;phase:number;homeX:number;homeZ:number;
+   url:string|null;requested:boolean;mixer:any|null;
+  }>=[];
+  const loadedGeometries=new Set<any>(),loadedMaterials=new Set<any>();
+  const gltfCache=new Map<string,Promise<any>>();
+  let buildingWorld:WorldKey='safety';
+  const loadAsset=(url:string):Promise<any>=>{
+   let task=gltfCache.get(url);
+   if(!task){
+    task=new Promise((resolve,reject)=>{
+     new GLTFLoader().load(url,(glb:any)=>resolve(glb),undefined,(error:unknown)=>reject(error));
+    });
+    gltfCache.set(url,task);
+    task.catch(()=>gltfCache.delete(url));
+   }
+   return task;
+  };
+  const loadCharacters=(world:WorldKey)=>{
+   for(const rig of actorRigs){
+    if(rig.world!==world||!rig.url||rig.requested)continue;
+    rig.requested=true;
+    void loadAsset(rig.url).then(asset=>{
+     if(disposed||!rig.root.parent)return;
+     const model=cloneSkeleton(asset.scene);
+     const bounds=new THREE.Box3().setFromObject(model);
+     const height=bounds.max.y-bounds.min.y;
+     if(!Number.isFinite(height)||height<.1)return;
+     const scale=Math.min(7,Math.max(.025,2.1/height));
+     model.scale.setScalar(scale);
+     model.position.y=-bounds.min.y*scale;
+     model.traverse((node:any)=>{
+      if(node.isMesh){
+       node.castShadow=true;node.receiveShadow=true;
+       if(node.geometry)loadedGeometries.add(node.geometry);
+       const mats=Array.isArray(node.material)?node.material:[node.material];
+       for(const m of mats)if(m)loadedMaterials.add(m);
+      }
+     });
+     rig.root.add(model);
+     rig.fallback.visible=false;
+     if(asset.animations?.length){
+      const names=asset.animations.map((clip:any)=>clip.name);
+      const moving=world==='retail'||world==='warehouse'||world==='safety';
+      const preferred=motionClipName(moving?'walking':'idle',names);
+      const clip=asset.animations.find((item:any)=>item.name===preferred)??asset.animations[0];
+      const mixer=new THREE.AnimationMixer(model);
+      mixer.clipAction(clip).play();
+      rig.mixer=mixer;
+     }
+    }).catch(()=>{
+     // La figura articulada local permanece disponible si el GLB remoto no carga.
+    });
+   }
+  };
   const materials=new Set<any>();
   const material=(color:number,metalness=.48,roughness=.38,emissive=0)=>{
    const m=new THREE.MeshStandardMaterial({
@@ -113,20 +175,61 @@ export function StudioWorld({active,paused,onReady}:Props){
   const neonLeft=new THREE.PointLight(0x56e8e0,33,20);neonLeft.position.set(-5,5,2);scene.add(neonLeft);
   const neonRight=new THREE.PointLight(0x9b8dff,26,18);neonRight.position.set(6,5,-3);scene.add(neonRight);
   const worlds={} as Record<WorldKey,{group:any;moving:any[];rotating:any[]}>;
-  function person(g:any,x:number,z:number,vest:any,helmet=true){
-   const p=new THREE.Group();p.position.set(x,0,z);g.add(p);
-   cylinderAt(p,dark,0,.48,0,.24,.9);
-   block(p,vest,0,1.28,0,.55,.84,.34);
-   block(p,white,0,1.92,0,.27,.27,.27);
+  function person(g:any,x:number,z:number,vest:any,helmet=true,roleId?:string){
+   // Figura anatómica articulada: proporciones humanas, cabeza, manos,
+   // cuello, EPP y pasos independientes. Siempre funciona sin conexión.
+   const root=new THREE.Group();root.position.set(x,0,z);g.add(root);
+   const visual=new THREE.Group();root.add(visual);
+   const tones=[0xd9a58d,0xa87a61,0xe5b99a,0x926c56];
+   const tone=material(tones[actorRigs.length%tones.length],.02,.83);
+   const jeans=material(helmet?0x344d5b:0x283b4a,.06,.87);
+   const hair=material(0x202c35,.03,.84);
+   const shoes=material(0x202b34,.18,.69);
+   const reflection=material(0xe9fff1,.16,.36);
+   const eye=material(0x1b3038,.02,.89);
+   const chest=create(visual,taper,vest,0,1.33,0);
+   chest.castShadow=true;
+   create(visual,anatomia,jeans,0,.93,0,.275,.16,.23);
+   const neck=cylinderAt(visual,tone,0,1.82,0,.115,.18);
+   neck.castShadow=true;
+   create(visual,anatomia,tone,0,2.015,0,.235,.295,.235);
+   create(visual,anatomia,tone,0,1.96,.224,.067,.078,.065);
+   for(const side of [-1,1]){
+    create(visual,anatomia,tone,side*.235,2.01,0,.048,.105,.074);
+    create(visual,anatomia,eye,side*.086,2.048,.22,.024,.029,.017);
+   }
    if(helmet){
-    cylinderAt(p,orange,0,2.08,0,.21,.15);
-    block(p,orange,0,2.11,.13,.48,.04,.29);
+    create(visual,anatomia,orange,0,2.226,-.008,.266,.128,.259);
+    block(visual,orange,0,2.16,.18,.52,.048,.26);
+    block(visual,reflection,0,2.214,.22,.21,.029,.055);
+    // Franjas reflectantes, visibles en giros y primeros planos.
+    block(visual,reflection,0,1.48,.282,.52,.055,.018);
+    block(visual,reflection,0,1.15,.277,.43,.047,.018);
+    for(const side of [-1,1]){
+     const strip=block(visual,reflection,side*.21,1.36,.235,.056,.69,.018);
+     strip.rotation.z=side*.17;
+    }
+   }else{
+    create(visual,anatomia,hair,0,2.26,-.048,.24,.095,.23);
    }
-   for(const sx of [-1,1]){
-    block(p,dark,sx*.16,.42,0,.20,.78,.2);
-    block(p,vest,sx*.36,1.22,0,.16,.64,.19);
+   const armL=new THREE.Group(),armR=new THREE.Group();
+   const legL=new THREE.Group(),legR=new THREE.Group();
+   for(const side of [-1,1]){
+    const arm=side<0?armL:armR;
+    arm.position.set(side*.395,1.645,0);visual.add(arm);
+    create(arm,anatomia,vest,0,-.23,0,.145,.315,.156);
+    create(arm,anatomia,tone,0,-.57,.015,.11,.17,.12);
+    create(arm,anatomia,tone,0,-.74,.028,.12,.12,.096);
+    const leg=side<0?legL:legR;
+    leg.position.set(side*.155,.93,0);visual.add(leg);
+    create(leg,anatomia,jeans,0,-.34,0,.157,.39,.16);
+    create(leg,anatomia,shoes,0,-.77,.095,.17,.13,.275);
    }
-   return p;
+   const phase=(actorRigs.length*1.831)%6.283;
+   actorRigs.push({world:buildingWorld,root,fallback:visual,armL,armR,
+    legL,legR,body:chest,phase,homeX:x,homeZ:z,
+    url:roleId?humanAssetFor(buildingWorld,roleId):null,requested:false,mixer:null});
+   return root;
   }
   function rack(g:any,x:number,z:number,count=3){
    const rackGroup=new THREE.Group();rackGroup.position.set(x,0,z);g.add(rackGroup);
@@ -176,14 +279,15 @@ export function StudioWorld({active,paused,onReady}:Props){
   }
   for(const key of WORLD_KEYS){
    const group=new THREE.Group();scene.add(group);
+   buildingWorld=key;
    const moving:any[]=[],rotating:any[]=[];
    if(key==='safety'){
     gantry(group,-1,-2.8);
     block(group,metal,-5,1,-3,.7,2.6,.65);
     for(let i=0;i<3;i++)block(group,orange,-4.3+i*.48,.35,-.9,.28,.7,.28);
-    moving.push(person(group,0,.8,cyan));
-    person(group,-3,1,orange);
-    person(group,3,-2,violet);
+    moving.push(person(group,0,.8,cyan,true,'w1'));
+    person(group,-3,1,orange,true,'w2');
+    person(group,3,-2,violet,true,'w3');
     rack(group,4.6,2,2);
     const radar=new THREE.Group();radar.position.set(0,2.8,.8);group.add(radar);
     const scanGeo=new THREE.TorusGeometry(1.45,.017,6,90);
@@ -199,7 +303,7 @@ export function StudioWorld({active,paused,onReady}:Props){
      const obj=block(group,orange,-1.9+i*1.7,1.05,.15,.65,.65,.7);
      moving.push(obj);
     }
-    person(group,4.8,-2.4,cyan);
+    person(group,4.8,-2.4,cyan,true,'inspector');
     block(group,metal,-5.5,1.35,2,1,2.6,.75);
     block(group,glass,-5.5,1.97,2.4,.7,.65,.08);
    }else if(key==='warehouse'){
@@ -214,7 +318,8 @@ export function StudioWorld({active,paused,onReady}:Props){
      const wheel=cylinderAt(lift,dark,xx,.22,zz,.33,.2);wheel.rotation.x=Math.PI/2;
     }
     block(lift,bright,1.06,.23,0,.12,.11,2.05);
-    person(group,3,1.1,cyan);
+    person(group,3,1.1,cyan,true,'a1');
+    lift.userData.industrialVehicle=true;
     moving.push(lift);
    }else{
     for(const x of [-5,0,5])rack(group,x,-2.7,3);
@@ -222,9 +327,9 @@ export function StudioWorld({active,paused,onReady}:Props){
      block(group,dark,x,.5,2,2.2,1,.9);
      block(group,glass,x,1.04,2,.8,.14,.7);
     }
-    person(group,-2,1.1,violet,false);
-    moving.push(person(group,1.6,.5,cyan,false));
-    person(group,4,1.8,orange,false);
+    person(group,-2,1.1,violet,false,'r0');
+    moving.push(person(group,1.6,.5,cyan,false,'r2'));
+    person(group,4,1.8,orange,false,'r3');
     for(let i=0;i<4;i++)block(group,crateColors[i],-3.5+i*1.95,.28,3.6,.5,.57,.4);
    }
    group.visible=key===activeKey;
@@ -261,7 +366,28 @@ export function StudioWorld({active,paused,onReady}:Props){
   materials.add(pm);
   const particles=new THREE.Points(particlesGeometry,pm);scene.add(particles);
   let mouseX=0,mouseY=0,cameraX=0,cameraY=0;
+  let orbitYaw=0,orbitPitch=0,zoom=1;
+  let dragging=false,dragX=0,dragY=0;
+  const down=(event:PointerEvent)=>{
+   if(event.button!==0)return;
+   dragging=true;dragX=event.clientX;dragY=event.clientY;
+   host.setPointerCapture?.(event.pointerId);
+  };
+  const up=(event:PointerEvent)=>{
+   dragging=false;
+   if(host.hasPointerCapture?.(event.pointerId))host.releasePointerCapture(event.pointerId);
+  };
+  const wheel=(event:WheelEvent)=>{
+   event.preventDefault();
+   zoom=Math.min(1.42,Math.max(.73,zoom+Math.sign(event.deltaY)*.07));
+   paint();
+  };
   const move=(event:PointerEvent)=>{
+   if(dragging){
+    orbitYaw=Math.min(.88,Math.max(-.88,orbitYaw+(event.clientX-dragX)*.0032));
+    orbitPitch=Math.min(.40,Math.max(-.36,orbitPitch+(event.clientY-dragY)*.0028));
+    dragX=event.clientX;dragY=event.clientY;
+   }
    const bounds=host.getBoundingClientRect();
    mouseX=Math.max(-1,Math.min(1,(event.clientX-bounds.left)/Math.max(1,bounds.width)*2-1));
    mouseY=Math.max(-1,Math.min(1,(event.clientY-bounds.top)/Math.max(1,bounds.height)*2-1));
@@ -273,23 +399,47 @@ export function StudioWorld({active,paused,onReady}:Props){
    const dt=Math.min(.06,(now-last)/1000||.033);
    last=now;
    const current=worlds[activeKey];
+   const t=now*.001;
    current.rotating.forEach((object,i)=>{
-    object.rotation.z+=dt*(i%2?-.11:.14);
+    object.rotation.z=Math.sin(t*(i%2?.57:.39)+i*.9)*.26;
+    object.rotation.y=Math.sin(t*.24+i)*.32;
    });
    current.moving.forEach((obj,i)=>{
-    // Movimiento determinista solo visual: NO es un resultado YOLO.
-    if(keyFor(obj)==='object'){obj.position.y=1.04+Math.sin(now*.001+i*1.1)*.035;}
+    // Exclusivamente coreografía visual; los resultados YOLO son independientes.
+    if(obj.userData?.industrialVehicle){
+     obj.position.x=-1.3+Math.sin(t*.29)*2.1;
+     obj.position.z=1.2+Math.cos(t*.21)*.72;
+     obj.rotation.y=Math.sin(t*.29)*.19;
+    }else if(obj.isMesh){
+     obj.position.x=-1.9+i*1.7+((t*.37+i*.73)%3.4)-1.7;
+     obj.position.y=1.05+Math.sin(t*1.3+i)*.026;
+    }
    });
+   for(const rig of actorRigs){
+    if(rig.world!==activeKey)continue;
+    const walking=current.moving.includes(rig.root);
+    const stride=walking?Math.sin(t*2.3+rig.phase):Math.sin(t*.57+rig.phase)*.075;
+    rig.legL.rotation.x=stride*.49;
+    rig.legR.rotation.x=-stride*.49;
+    rig.armL.rotation.x=-stride*.36+Math.sin(t*.49+rig.phase)*.038;
+    rig.armR.rotation.x=stride*.36-Math.sin(t*.43+rig.phase)*.038;
+    rig.body.rotation.z=Math.sin(t*.52+rig.phase)*.025;
+    rig.root.position.x=rig.homeX+(walking?Math.sin(t*.32+rig.phase)*.62:0);
+    rig.root.position.z=rig.homeZ+(walking?Math.sin(t*.27+rig.phase*.6)*.39:0);
+    rig.root.rotation.y=Math.sin(t*.35+rig.phase)*.22;
+    rig.mixer?.update(dt);
+   }
    cameraX+=(mouseX-cameraX)*Math.min(1,dt*1.6);
    cameraY+=(mouseY-cameraY)*Math.min(1,dt*1.6);
-   camera.position.x+=(targetCam.x+cameraX*.45-camera.position.x)*Math.min(1,dt*1.1);
-   camera.position.y+=(targetCam.y-cameraY*.25-camera.position.y)*Math.min(1,dt*1.1);
-   camera.position.z+=(targetCam.z-camera.position.z)*Math.min(1,dt*1.1);
+   const wantedX=(targetCam.x*Math.cos(orbitYaw)+targetCam.z*Math.sin(orbitYaw))*zoom+cameraX*.3;
+   const wantedZ=(targetCam.z*Math.cos(orbitYaw)-targetCam.x*Math.sin(orbitYaw))*zoom;
+   camera.position.x+=(wantedX-camera.position.x)*Math.min(1,dt*2.6);
+   camera.position.y+=(targetCam.y*zoom+orbitPitch*7-cameraY*.2-camera.position.y)*Math.min(1,dt*2.6);
+   camera.position.z+=(wantedZ-camera.position.z)*Math.min(1,dt*2.6);
    camera.lookAt(lookAt);
    particles.rotation.y+=dt*.004;
    if(composer)composer.render();else renderer?.render(scene,camera);
   };
-  function keyFor(object:any):string{return object.isMesh?'object':'group';}
   const paint=()=>{
    camera.lookAt(lookAt);
    if(composer)composer.render();else renderer?.render(scene,camera);
@@ -311,6 +461,8 @@ export function StudioWorld({active,paused,onReady}:Props){
    activeKey=key;
    for(const id of WORLD_KEYS)worlds[id].group.visible=id===key;
    const p=WORLD_PALETTES[key];
+   loadCharacters(key);
+   orbitYaw=0;orbitPitch=0;zoom=1;
    neonLeft.color.setHex(p.accent);
    neonRight.color.setHex(p.secondary);
    // Travelling suave entre instalaciones (GSAP gratuito). No afecta YOLO.
@@ -364,9 +516,13 @@ export function StudioWorld({active,paused,onReady}:Props){
     }catch{composer?.dispose();composer=null;}
    }
    host.addEventListener('pointermove',move,{passive:true});
+   host.addEventListener('pointerdown',down);
+   host.addEventListener('pointerup',up);
+   host.addEventListener('pointercancel',up);
+   host.addEventListener('wheel',wheel,{passive:false});
    prefer.addEventListener('change',motion);
    resize.observe(host);intersect.observe(host);
-   size();onReady?.(true);
+   size();loadCharacters(activeKey);onReady?.(true);
    raf=window.requestAnimationFrame(tick);
    engine.current={
     change:onChange,
@@ -380,6 +536,10 @@ export function StudioWorld({active,paused,onReady}:Props){
    disposed=true;engine.current=null;
    window.cancelAnimationFrame(raf);
    host.removeEventListener('pointermove',move);
+   host.removeEventListener('pointerdown',down);
+   host.removeEventListener('pointerup',up);
+   host.removeEventListener('pointercancel',up);
+   host.removeEventListener('wheel',wheel);
    prefer.removeEventListener('change',motion);
    resize.disconnect();intersect.disconnect();
    composer?.dispose();
@@ -387,13 +547,21 @@ export function StudioWorld({active,paused,onReady}:Props){
    gsap.killTweensOf(targetCam);
    environment?.dispose();room?.dispose();
    renderer?.dispose();
+   for(const rig of actorRigs)rig.mixer?.stopAllAction();
    for(const geo of geometries)geo.dispose();
    for(const mat of materials)mat.dispose();
+   for(const geo of loadedGeometries)geo.dispose();
+   for(const mat of loadedMaterials){
+    for(const field of ['map','normalMap','roughnessMap','metalnessMap','emissiveMap']){
+     mat[field]?.dispose?.();
+    }
+    mat.dispose();
+   }
   };
  },[]);
  return <div className="studio-world-stage" ref={stageRef}>
   <canvas ref={canvasRef} className="studio-world-canvas" aria-hidden="true"/>
   <div className="studio-world-fallback" aria-hidden="true"/>
-  <span className="studio-world-legend" aria-hidden="true">ESCENA 3D · REPRESENTACIÓN VIRTUAL</span>
+  <span className="studio-world-legend" aria-hidden="true">ENTORNO VIRTUAL · MOVER PARA ORBITAR · RUEDA PARA ACERCAR</span>
  </div>;
 }

@@ -526,3 +526,49 @@
 @media(max-width:385px){
  .studio-copy{padding-top:226px}
 }
+
+/* Studio V3: composición más abierta y visor 3D con interacción real. */
+.studio-world-stage{touch-action:pan-y;cursor:grab}
+.studio-world-stage:active{cursor:grabbing}
+.studio-world-legend{
+ top:103px;right:3.5%;max-width:300px;text-align:right;
+ color:#b9ffedc7;font-size:8px;line-height:1.7;
+ letter-spacing:.12em;
+}
+.studio-vignette{
+ background:
+  linear-gradient(90deg,#04111efb 0%,#04111ef0 23%,#051722d4 35%,#0624315c 56%,#05172409 80%),
+  linear-gradient(0deg,#04101ef5 0%,transparent 30%,transparent 72%,#06132185 100%);
+}
+.studio-scene-inspector{
+ position:absolute;z-index:3;right:4.6%;top:51%;
+ transform:translateY(-50%);width:212px;padding:19px 17px 17px;
+ display:flex;flex-direction:column;gap:10px;
+ border:1px solid #88fce057;border-radius:10px;
+ background:linear-gradient(145deg,#061b2dce,#102d3bb5);
+ box-shadow:0 20px 65px #020b1980,inset 0 1px #ffffff1b;
+ backdrop-filter:blur(14px);color:#a6ccd1;
+ font-size:9px;font-weight:700;letter-spacing:.05em;
+}
+.studio-scene-inspector strong{
+ font-size:17px;letter-spacing:-.025em;line-height:1.2;
+ color:#e8fff8;font-weight:800;
+}
+.studio-inspector-kicker{display:flex;align-items:center;gap:8px;
+ font-size:8px;letter-spacing:.11em;color:#95f4de}
+.studio-inspector-pulse{display:inline-block;width:6px;height:6px;
+ border-radius:50%;background:#84ffe0;box-shadow:0 0 14px #7bffd9}
+.studio-inspector-divider{height:1px;background:#8afbe244;margin:1px 0}
+.studio-scene-inspector small{margin-top:6px;font-size:9px;line-height:1.5;
+ color:#8da9b2;letter-spacing:0;font-weight:500}
+@media(max-width:1320px){.studio-scene-inspector{right:3%;width:184px;padding:14px}}
+@media(max-width:1100px){.studio-scene-inspector{display:none}}
+@media(max-width:760px){
+ .studio-vignette{background:
+ linear-gradient(90deg,#04111ef7,#051521e6 40%,#061d2c66),
+ linear-gradient(0deg,#04101efc,transparent 50%,#061321bd)}
+ .studio-world-legend{top:95px;right:5%;max-width:160px;font-size:7px}
+}
+@media(prefers-reduced-motion:reduce){
+ .studio-inspector-pulse{animation:none}
+}

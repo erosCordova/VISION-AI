@@ -123,6 +123,15 @@ export function StudioLanding({onExplore,onHistory,sessionCount}:Props){
     <span>SIN CÁMARAS NI DATASETS</span>
    </div>
   </div>
+  <div className="studio-scene-inspector" aria-hidden="true">
+   <span className="studio-inspector-kicker"><span className="studio-inspector-pulse"/> VISUALIZACIÓN EN TIEMPO REAL</span>
+   <strong>{worldName(active)}</strong>
+   <span className="studio-inspector-divider"/>
+   <span>ESCENARIO {current.serial} / 04</span>
+   <span>PERSONAJES 3D · LUCES PBR</span>
+   <span>ORBITAR / ACERCAR / EXPLORAR</span>
+   <small>Escena ilustrativa · Inferencia YOLO en Análisis</small>
+  </div>
   <div className="studio-vertical-label" aria-hidden="true">
    IMAGING SYSTEMS / INTERACTIVE ENVIRONMENTS / 2026
   </div>
