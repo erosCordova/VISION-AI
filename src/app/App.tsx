@@ -52,19 +52,44 @@ export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin;
       {page === 'Análisis en vivo' && <LiveAnalysisPage scenarios={scenarios} scenarioId={scenarioId} onScenarioChange={setScenarioId} sessionRepository={sessionRepository} role={role} apiBaseUrl={origin === 'real' ? apiBaseUrl : null} />}
       {page === 'Historial' && <HistoryPanel onAnalyze={() => navigate('Análisis en vivo')} sessionRepository={sessionRepository} />}
       {page === 'Privacidad' && <PrivacyCenter repository={sessionRepository} />}
-      {page === 'Visión IA' && <section className="panel settings"><h2>Detección sobre simulaciones</h2>
+      {page === 'Visión IA' && <><section className="panel settings"><h2>Detección sobre simulaciones</h2>
    <dl><dt>Tecnología</dt><dd>YOLOv8n general y YOLOv8s EPP</dd>
    <dt>Motor</dt><dd>ONNX Runtime Web / WebAssembly en el navegador</dd>
    <dt>Fuente</dt><dd>Únicamente fotogramas renderizados de los cuatro escenarios 3D</dd>
    <dt>Detección</dt><dd>Cajas, clases y confianza de inferencia; no equivale a precisión medida</dd>
    <dt>Limitaciones</dt><dd>Sin segmentación real ni seguimiento de identidades. Defectos y montacargas requieren modelos especializados.</dd>
-   <dt>Persistencia</dt><dd>Resúmenes de sesiones guardados explícitamente en IndexedDB; sin video almacenado</dd></dl></section>}
+   <dt>Persistencia</dt><dd>Resúmenes de sesiones guardados explícitamente en IndexedDB; sin video almacenado</dd></dl></section>
+      <section className="panel vision-guide" aria-label="Guía rápida de uso de VISION-AI">
+       <div className="vision-guide-heading"><span>MANUAL DE USO · FASE 16</span>
+        <h2>Cómo funciona VISION-AI</h2>
+        <p>Del escenario virtual a la evidencia. Solo simulaciones 3D; YOLO procesa sus píxeles en este navegador.</p>
+       </div>
+       <div className="vision-guide-flow">
+        <article><b>01</b><h3>Selecciona un escenario</h3><p>Seguridad, Manufactura, Retail o Logística.
+         Elige una cámara 3D y ajusta movimiento y visualización.</p></article>
+        <article><b>02</b><h3>Ejecuta YOLO real</h3><p>Presiona Iniciar YOLO. Observa el
+         fotograma analizado, detecciones ONNX, confianza y tiempos medidos.
+         Una lectura vacía no certifica ausencia de objetos.</p></article>
+        <article><b>03</b><h3>Conserva y revisa</h3><p>Guarda los resultados de la sesión.
+         Consulta Historial y, si hay indicios EPP, registra una revisión
+         humana en Operaciones. Descarga CSV/JSON desde el navegador.</p></article>
+       </div>
+       <div className="vision-guide-actions">
+        <a href="#Análisis en vivo">Abrir simulaciones 3D</a>
+        <a href="#Historial">Ver historial local</a>
+        <a href="https://github.com/erosCordova/VISION-AI/blob/main/docs/manual/Manual_Usuario_VISION_AI.md"
+         target="_blank" rel="noopener noreferrer">Manual de usuario completo</a>
+       </div>
+       <p className="vision-guide-note">Sin cámaras, imágenes cargadas ni datasets.
+        Los perfiles del menú no son cuentas autenticadas; Render no procesa
+        imágenes. Las detecciones no equivalen a conformidad industrial.</p>
+      </section></>}
       {page === 'Operaciones' && <OperationsPanel repository={sessionRepository}
    onHistory={() => navigate('Historial')} />}
       {(page === 'Administración' || page === 'Configuración') && role !== 'administrador' && <section className="panel empty-page"><h2>Vista restringida</h2><p>Esta vista está reservada al perfil administrador de prueba.</p><button onClick={() => navigate('Resumen')}>Volver al resumen</button></section>}
       {page === 'Administración' && role === 'administrador' && <section className="panel settings"><h2>Administración del espacio</h2><p>Perfil de prueba. No constituye autenticación de servidor.</p><dl><dt>Usuarios</dt><dd>Gestión pendiente de integración con identidad real.</dd><dt>Escenarios</dt><dd>Cuatro escenarios versionados y reproducibles; administración avanzada pendiente.</dd><dt>Auditoría</dt><dd>Sin registros productivos.</dd></dl></section>}
       {page === 'Configuración' && role === 'administrador' && <><SessionSettings /><section className="panel settings"><h2>Estado del entorno</h2><dl><dt>Origen configurado</dt><dd>{origin.toUpperCase()} · sin inferencia activa</dd><dt>Fuente disponible</dt><dd>Cuatro simulaciones industriales 3D, sin cámaras externas</dd><dt>Motor disponible</dt><dd>YOLO ONNX descargado bajo demanda en el navegador</dd><dt>Destino de fotogramas</dt><dd>Procesados localmente por WebAssembly; no enviados a Render</dd><dt>Almacenamiento</dt><dd>IndexedDB local para resúmenes guardados manualmente; sin videos ni imágenes</dd><dt>Identidad y permisos</dt><dd>Sin autenticación de servidor</dd><dt>Red</dt><dd>Vercel aloja el frontend y Render la API ligera; sin cámaras IP o RTSP</dd></dl></section></>}
-      </ErrorBoundary><footer className="workspace-footer"><span>VISION AI / Visión computacional aplicada</span><span>Fase 15 · Inferencia YOLO optimizada</span></footer></main>
+      </ErrorBoundary><footer className="workspace-footer"><span>VISION AI / Visión computacional aplicada</span><span>Fase 16 · Manuales y operación</span></footer></main>
     </div>
   </div>;
 }

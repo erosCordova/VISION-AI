@@ -29,7 +29,9 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Verificar arquitectura tipos y contratos
         run: npm run check
-      - name: Comprobar referencias Python
+      - name: Instalar dependencias mínimas de verificación de Render
+        run: python3 -m pip install -r backend/requirements-render-free.txt "httpx>=0.28,<1"
+      - name: Comprobar referencias Python y API gratuita
         run: python3 -m unittest discover -s tests
       - name: Compilar aplicación
         run: npm run build

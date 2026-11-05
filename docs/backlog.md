@@ -19,7 +19,7 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 | 13 | Seguridad, privacidad y gobierno de datos | Retención y borrado local confirmado, cabeceras y aviso de roles demo | Aprobada con CI integral |
 | 14 | Pruebas integradas, rendimiento y accesibilidad | WebGL optimizado, 12 mediciones CDP, teclado y movimiento reducido | Aprobada por CI integral |
 | 15 | Integración de inteligencia artificial real | Cadencia adaptativa, perfil por etapas, optimización de decodificador y cuatro mediciones ONNX | Aprobada con CI integral |
-| 16 | Despliegue, operación y cierre técnico | Versión entregada, restauración y manuales | Próxima fase |
+| 16 | Despliegue, operación y cierre técnico | Manuales, API status-only, QA y Vercel; comprobar Render real | En verificación operativa: CI aprobada, Render pendiente |
 
 ## Tareas actuales de Fase 1
 
@@ -33,7 +33,7 @@ Fuente: Manual avanzado de VISION AI 4.0. Los IDs son estables; la tabla no acre
 
 ## Siguiente incremento
 
-Fase 16: verificar frontend Vercel Hobby, API ligera Render Free, plan de reversión, manuales y entrega final sin servicios de pago. Ver [cierre Fase 15](fase15_optimizacion_yolo.md).
+Fase 16: CI técnica aprobada; verificar estado del servicio Render Free del workspace confirmado y salud pública /api/v1/health antes de cerrar 16/16. Consultar [acta F16](fase16_operacion_entrega.md).
 
 ## Ampliación D12: YOLO y tiempo real
 

@@ -1340,6 +1340,23 @@ try {
   console.log('PR04/PR05/PR07: borrado total atómico y confirmación exacta; IndexedDB vacío tras recarga');
 
 
+  // RF01: la guía final se presenta en la aplicación publicada.
+  await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Visi%C3%B3n%20IA'});
+  const releaseGuide=await eventually(async()=>{
+    const x=await cdp.send('Runtime.evaluate',{
+      expression:'(() => ({guide:document.querySelector(".vision-guide")?.textContent||"",'
+       +'steps:document.querySelectorAll(".vision-guide-flow article").length,'
+       +'link:document.querySelector(".vision-guide-actions a[target=_blank]")?.href,'
+       +'input:!!document.querySelector(".vision-guide input[type=file]")}))()',
+      returnByValue:true
+    });
+    const a=x.result?.value;
+    return a?.steps===3&&a.guide?.includes('YOLO real')&&
+      a.guide?.includes('simulaciones 3D')&&!a.input&&
+      a.link?.includes('Manual_Usuario_VISION_AI.md')?a:null;
+  },'RF01 guía integrada con tres pasos y manual del repositorio');
+  console.log('RF01: guía rápida de VISION-AI accesible en la propia interfaz');
+
   // A11Y02: sistema con movimiento reducido; render y fotogramas
   // deben detenerse al entrar en la simulación, sin ocultar controles.
   await cdp.send('Emulation.setEmulatedMedia',{
@@ -1401,6 +1418,19 @@ try {
       samples:onnxScenarioMeasurements
     },null,2)+'\n');
   console.log('IA15: cuatro escenarios ONNX medidos y auditables en JSON de CI');
+  // RF02: acta CI generada de recorridos reales; no certifica
+  // despliegue Render/Vercel hasta verificar ambos servicios.
+  fs.writeFileSync(path.join(artifacts,'fase16-acta-qa.json'),
+   JSON.stringify({
+    schemaVersion:'vision-ai-final-qa-v1',
+    inspectedAt:new Date().toISOString(),
+    gitCommit:process.env.GITHUB_SHA??null,
+    mode:'simulaciones-3d-yolo-onnx-browser',
+    routeChecks:checked,
+    guideConfirmed:true,
+    onnxScenarios:onnxScenarioMeasurements.map(x=>x.scenario),
+    deploymentEvidence:'PENDIENTE: comprobar Vercel y Render por separado'
+   },null,2)+'\n');
   console.log('QA terminado: ' + checked + ' recorridos; capturas en qa-artifacts/');
 } finally {
   cdp?.close();

@@ -2,7 +2,7 @@
 
 Última actualización: 2026-11-04. Referencia: manual avanzado de 16 fases y decisión vigente de utilizar exclusivamente simulaciones 3D.
 
-**ESTADO VIGENTE: 15 de 16 fases aprobadas = 93,75 %. Fase 16 pendiente.** Los registros de incrementos anteriores que aparecen más abajo son históricos y no sustituyen este cierre.
+**ESTADO VIGENTE: 15 de 16 fases aprobadas = 93,75 %. Fase 16 implementada y CI aprobada; falta confirmar Render Free en el workspace autorizado antes del cierre operativo.** Los registros de incrementos anteriores que aparecen más abajo son históricos y no sustituyen este cierre.
 
 | Fase | Alcance validado | Evidencia |
 | --- | --- | --- |
@@ -22,7 +22,7 @@
 | 14 | Optimización de WebGL, métricas CDP en 12 rutas y pruebas A11Y01–03 | [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41935480618) |
 | 15 | Cadencia adaptativa y perfil ONNX por etapas en cuatro escenas 3D, decodificador optimizado | [CI](https://github.com/erosCordova/VISION-AI/actions/runs/41936880222) |
 
-**Avance administrativo vigente: 93,75 % (15 de 16 fases aprobadas).** No mide precisión del modelo, mAP ni exactitud de los objetos estilizados.
+**Avance administrativo vigente: 93,75 % (15 de 16 fases aprobadas; verificación operativa de Fase 16 pendiente).** No mide precisión del modelo, mAP ni exactitud de los objetos estilizados.
 
 ## Verificación integral vigente
 
@@ -413,3 +413,24 @@ No se afirma un porcentaje de mejora ni precisión/mAP sin etiquetas
 de referencia, ni se interpreta ausencia de detecciones como conformidad.
 
 Próxima y última: **Fase 16 — despliegue, operación y cierre técnico**.
+
+## Fase 16 — Validación técnica, 4 de noviembre de 2026
+
+Código de entrega y manuales completados. Pruebas integrales:
+https://github.com/erosCordova/VISION-AI/actions/runs/41939143207 .
+
+**Resultado de CI:** 327 Vitest TypeScript, 72 unittest Python
+(incluida API FastAPI status-only), compilación Vite y 12 recorridos
+Chromium con ONNX real en los cuatro escenarios. La guía de usuario
+se verifica dentro de la aplicación; acta adicional
+`fase16-acta-qa.json` en artifacts GitHub Actions.
+
+**Criterio RF04 pendiente:** el servicio real Render Free no ha sido
+identificado y consultado en un workspace confirmado. No hay una URL
+`onrender.com` real verificada, así que no se inventa un health check.
+El despliegue frontend se confirma por separado mediante Vercel.
+Hasta aprobar RF04, mantener 15/16 = 93,75 %, sin declarar 100 %.
+
+Ver [Acta de entrega F16](fase16_operacion_entrega.md),
+[Manual de usuario](manual/Manual_Usuario_VISION_AI.md) y
+[Manual técnico](manual/Manual_Tecnico_VISION_AI.md).

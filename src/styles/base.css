@@ -372,3 +372,23 @@ dt{color:#586c7a}
  .privacy-policy dt{border-bottom:0;padding-bottom:0}
  .privacy-policy dd{padding-top:4px}
 }
+
+/* Fase 16: acceso al manual y recorrido de las simulaciones, responsive. */
+.vision-guide{display:grid;gap:17px}
+.vision-guide-heading>span{font-weight:800;font-size:10px;letter-spacing:.12em;color:#2b8b79}
+.vision-guide-heading h2{font-size:22px;margin:6px 0;color:#275a54}
+.vision-guide-heading p{font-size:12px;line-height:1.7;color:#516c68}
+.vision-guide-flow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+.vision-guide-flow article{min-width:0;padding:17px;border:1px solid #cce8dd;
+ border-radius:10px;background:linear-gradient(135deg,#f0faf5,#e9f5f2)}
+.vision-guide-flow b{display:block;font-size:21px;color:#167c68;font-weight:800}
+.vision-guide-flow h3{font-size:13px;margin:11px 0 7px;color:#225b51}
+.vision-guide-flow p,.vision-guide-note{font-size:11px;line-height:1.7;color:#586f67}
+.vision-guide-actions{display:flex;flex-wrap:wrap;gap:9px}
+.vision-guide-actions a{padding:11px 13px;border:1px solid #308b75;
+ color:#fff;background:#237d69;border-radius:7px;text-decoration:none;
+ font-size:11px;font-weight:750}
+.vision-guide-actions a:hover{background:#17604f}
+.vision-guide-actions a:focus-visible{outline:3px solid #329e8a;outline-offset:2px}
+.vision-guide-note{padding:12px;background:#f7faf9;border-left:3px solid #52a28c;margin:0}
+@media(max-width:850px){.vision-guide-flow{grid-template-columns:1fr}}
