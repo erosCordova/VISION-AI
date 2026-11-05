@@ -20,9 +20,9 @@ export function ImmersiveHero({onExplore,onHistory,sessionCount}:Props){
  useEffect(()=>{
   const canvas=canvasRef.current,stage=sceneRef.current;
   if(!canvas||!stage)return;
-  let renderer:THREE.WebGLRenderer|undefined;
-  const resources:THREE.BufferGeometry[]=[];
-  const materials:THREE.Material[]=[];
+  let renderer:any;
+  const resources:{dispose:()=>void}[]=[];
+  const materials:{dispose:()=>void}[]=[];
   let raf=0,active=true,visible=true,lastFrame=0;
   const pointer={x:0,y:0},smoothed={x:0,y:0};
   const reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -32,7 +32,7 @@ export function ImmersiveHero({onExplore,onHistory,sessionCount}:Props){
   const sculpture=new THREE.Group();
   sculpture.position.set(1.9,.1,0);
   scene.add(sculpture);
-  const addMesh=(geo:THREE.BufferGeometry,mat:THREE.Material)=>{
+  const addMesh=(geo:any,mat:any)=>{
    resources.push(geo);materials.push(mat);
    const mesh=new THREE.Mesh(geo,mat);sculpture.add(mesh);return mesh;
   };
