@@ -9,6 +9,8 @@ import type {SimulationSessionRepository} from '../core/ports/simulation-session
 import {validateReproducibility} from '../modules/live/simulation-session-model';
 import {SessionsDashboard} from '../modules/dashboard/SessionsDashboard';
 import {OperationsPanel} from '../modules/operations/OperationsPanel';
+import {ImmersiveHero} from '../modules/experience/ImmersiveHero';
+import {ScenarioArtwork} from '../modules/experience/ScenarioArtwork';
 const pages = ['Resumen', 'Análisis en vivo', 'Visión IA', 'Operaciones', 'Historial', 'Privacidad', 'Configuración', 'Administración'] as const;
 type Page = typeof pages[number];
 const scenarios = [
@@ -34,21 +36,61 @@ export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin;
    reload();window.addEventListener('vision-ai-sessions-updated',reload);
    return()=>{active=false;window.removeEventListener('vision-ai-sessions-updated',reload);};
   },[page,sessionRepository]);
-  useEffect(() => { const update = () => { setPage(currentPage()); setMenu(false); }; window.addEventListener('hashchange', update); return () => window.removeEventListener('hashchange', update); }, []);
+  useEffect(() => {
+   // SPA con navegación hash: cada vista empieza arriba; evita revelar
+   // la portada a mitad de scroll después de visitar Historial/YOLO.
+   const update=()=>{setPage(currentPage());setMenu(false);window.scrollTo(0,0);};
+   window.addEventListener('hashchange',update);
+   window.scrollTo(0,0);
+   return()=>window.removeEventListener('hashchange',update);
+  },[]);
   const navigate = (p: Page) => { location.hash = p; setPage(p); setMenu(false); };
-  return <div className="app-shell">
+  return <div className="app-shell experience-shell">
     <a className="skip" href="#contenido" onClick={e => { e.preventDefault(); document.getElementById('contenido')?.focus(); }}>Saltar al contenido</a>
+    {menu&&<button type="button" className="experience-nav-scrim"
+     aria-label="Cerrar navegación" onClick={()=>setMenu(false)}/>}
     <aside className={'sidebar ' + (menu ? 'open' : '')}>
-      <a className="logo" href="#Resumen"><span className="logo-mark">◉</span>VISION<span>AI</span></a>
-      <span className="nav-label">ESPACIO DE TRABAJO</span>
-      <nav aria-label="Navegación principal">{pages.filter(p => (p !== 'Administración' || role === 'administrador') && (p !== 'Configuración' || role === 'administrador')).map((p,i) => <a key={p} href={'#'+p} aria-current={page === p ? 'page' : undefined} onClick={() => setMenu(false)}><span aria-hidden="true">{['▦','◉','◎','◇','◷','◆','⚙','⌘'][i]}</span>{p}{p === 'Análisis en vivo' && <i className="nav-dot" />}</a>)}</nav>
-      <div className="sidebar-bottom"><div className="engine-light" />Integración YOLO<p>Estado verificable en Análisis en vivo</p><div className="user"><b>DE</b><div>Entorno de prueba<small>Sin cuenta autenticada</small></div></div></div>
+      <a className="logo" href="#Resumen" onClick={()=>setMenu(false)}
+       aria-label="VISION-AI, ir al resumen"><span className="logo-mark">⟡</span>
+       <span className="logo-wordmark">VISION<span>AI</span><small>INTELLIGENCE LAB</small></span></a>
+      <span className="nav-label">SISTEMA / NAVEGACIÓN</span>
+      <nav aria-label="Navegación principal">{pages.filter(p => (p !== 'Administración' || role === 'administrador') && (p !== 'Configuración' || role === 'administrador')).map(p => <a key={p} href={'#'+p} aria-current={page === p ? 'page' : undefined} onClick={() => setMenu(false)}><span aria-hidden="true">{['▦','◉','◎','◇','◷','◆','⚙','⌘'][pages.indexOf(p)]}</span>{p}{p === 'Análisis en vivo' && <i className="nav-dot" />}</a>)}</nav>
+      <div className="sidebar-bottom">
+       <div className="experience-sidebar-system"><span className="engine-light"/>
+        <div><strong>MOTOR DE VISIÓN</strong><small>ONNX · EJECUCIÓN LOCAL</small></div>
+        <span aria-hidden="true">↗</span>
+       </div>
+       <p>Modelos bajo demanda. Resultados reales de YOLO, sin cámaras ni datasets.</p>
+       <div className="user"><b>AI</b><div>Laboratorio de pruebas
+        <small>Sin cuenta autenticada</small></div></div>
+      </div>
     </aside>
-    <div className="workspace"><header className="topbar"><button className="menu-button" aria-label="Abrir navegación" aria-expanded={menu} onClick={() => setMenu(!menu)}>☰</button><span>Espacio de trabajo <span className="breadcrumb">/ {page}</span></span><label className="profile-control">Perfil de prueba<select aria-label="Perfil de prueba" value={role} onChange={e => setRole(e.target.value)}>{['operador','supervisor','administrador','auditor'].map(r => <option key={r} value={r}>{r[0].toUpperCase()+r.slice(1)}</option>)}</select></label><span className="mode-badge">SIMULACIONES 3D · YOLO EN NAVEGADOR</span></header>
-      <main id="contenido" tabIndex={-1}><div className="page-heading"><div><span className="eyebrow">VISIÓN COMPUTACIONAL</span><h1>{page === 'Resumen' ? 'Una visión clara de tu operación' : page}</h1><p>{page === 'Resumen' ? 'Cuatro escenarios. Un espacio para observar, analizar y revisar.' : page === 'Análisis en vivo' ? 'Cuatro simulaciones industriales 3D con análisis YOLO real de sus fotogramas.' : page === 'Historial' ? 'Sesiones y evidencias de tus análisis.' : 'Estado del entorno y capacidades disponibles.'}</p></div>{page === 'Resumen' && <button className="primary" onClick={() => navigate('Análisis en vivo')}>Abrir análisis <span aria-hidden="true">↗</span></button>}</div>
+    <div className="workspace"><header className="topbar"><button className="menu-button" aria-label={menu?'Cerrar navegación':'Abrir navegación'}
+ aria-expanded={menu} onClick={() => setMenu(!menu)}>{menu?'✕':'☰'}</button><span className="experience-mobile-brand" aria-label="VISION AI">
+ VISION<span>AI</span></span><span className="experience-breadcrumb">VISION AI <span className="breadcrumb">/ {page}</span></span><label className="profile-control">Perfil de prueba<select aria-label="Perfil de prueba" value={role} onChange={e => setRole(e.target.value)}>{['operador','supervisor','administrador','auditor'].map(r => <option key={r} value={r}>{r[0].toUpperCase()+r.slice(1)}</option>)}</select></label><span className="mode-badge"><span aria-hidden="true" className="experience-status-dot"/>
+ 4 ESCENARIOS · YOLO EN NAVEGADOR</span></header>
+      <main id="contenido" tabIndex={-1}>{page !== 'Resumen'&&<div className="page-heading"><div><span className="eyebrow">VISIÓN COMPUTACIONAL</span><h1>{page}</h1><p>{page === 'Análisis en vivo' ? 'Cuatro simulaciones industriales 3D con análisis YOLO real de sus fotogramas.' : page === 'Historial' ? 'Sesiones y evidencias de tus análisis.' : 'Estado del entorno y capacidades disponibles.'}</p></div></div>}
       <ErrorBoundary key={page + role}>
-      {page === 'Resumen' && <><div className="stats">{[['Escenarios','04','Simulaciones 3D'],['Motor de visión','YOLO','ONNX en navegador'],['Sesiones guardadas',savedStats?savedStats.total.toString():'—','IndexedDB local'],['Indicios conservados',savedStats?savedStats.indicios.toString():'—','Señales YOLO guardadas']].map(([title,value,detail]) => <section className="stat" key={title}><span>{title}</span><strong>{value}</strong><small>{detail}</small></section>)}</div><SessionsDashboard repository={sessionRepository}
-   onHistory={()=>navigate('Historial')} onOperations={()=>navigate('Operaciones')} /><section className="section-heading"><div><h2>Elige tu escenario</h2><p>Un flujo de trabajo adaptado a cada operación.</p></div><span>01 — 04</span></section><div className="scenario-grid">{scenarios.map((s,i) => <button className={'scenario-card scenario-'+i} key={s.id} onClick={() => { setScenarioId(s.id); navigate('Análisis en vivo'); }}><div className="card-top"><span className="scenario-icon">{s.icon}</span><span className="card-index">0{i+1} ↗</span></div><h3>{s.name}</h3><p>{s.text}</p><div className="card-footer">Abrir simulación <span>→</span></div></button>)}</div><section className="ready-banner"><div className="banner-icon">◉</div><div><h2>De la simulación a la evidencia</h2><p>Explora escenarios 3D, ejecuta YOLO sobre sus fotogramas y guarda los resultados en tu navegador.</p></div><button onClick={() => navigate('Análisis en vivo')}>Preparar sesión →</button></section></>}
+      {page === 'Resumen' && <>
+       <ImmersiveHero onExplore={()=>navigate('Análisis en vivo')}
+        onHistory={()=>navigate('Historial')} sessionCount={savedStats?.total??null}/>
+       <div className="experience-dashboard-label">
+        <span>01 / CENTRO DE CONTROL</span><p>DATOS VERIFICABLES · INDEXEDDB LOCAL</p>
+       </div>
+       <div className="stats">{[['Escenarios','04','Simulaciones 3D'],['Motor de visión','YOLO','ONNX en navegador'],['Sesiones guardadas',savedStats?savedStats.total.toString():'—','IndexedDB local'],['Indicios conservados',savedStats?savedStats.indicios.toString():'—','Señales YOLO guardadas']].map(([title,value,detail]) => <section className="stat" key={title}><span>{title}</span><strong>{value}</strong><small>{detail}</small></section>)}</div><div className="experience-saved-dashboard"><SessionsDashboard repository={sessionRepository}
+   onHistory={()=>navigate('Historial')} onOperations={()=>navigate('Operaciones')} /></div>
+   <section className="section-heading experience-scenarios-heading"><div><h2>Elige tu escenario</h2><p>Un flujo de trabajo adaptado a cada operación.</p></div><span>01 — 04</span></section><div className="scenario-grid experience-scenario-grid">{scenarios.map((s,i) =>
+    <button className={'scenario-card scenario-'+i} key={s.id}
+     aria-label={'Abrir simulación: '+s.name}
+     onClick={() => { setScenarioId(s.id); navigate('Análisis en vivo'); }}>
+     <ScenarioArtwork kind={s.id as 'safety'|'quality'|'retail'|'warehouse'}/>
+     <div className="experience-card-shade" aria-hidden="true"/>
+     <div className="card-top"><span className="scenario-icon">{s.icon}</span><span className="card-index">0{i+1} ↗</span></div><div className="experience-card-copy"><span className="experience-card-label">
+      SIMULACIÓN / 0{i+1}</span><h3>{s.name}</h3><p>{s.text}</p></div>
+     <div className="card-footer">Explorar entorno <span aria-hidden="true">↗</span></div>
+    </button>)}</div><section className="ready-banner experience-ready-banner"><div className="banner-icon">⟡</div>
+     <div><span className="experience-banner-eyebrow">02 / INTELIGENCIA OPERATIVA</span>
+      <h2>De la simulación a la evidencia</h2><p>Explora escenarios 3D, ejecuta YOLO sobre sus fotogramas y guarda los resultados en tu navegador.</p></div><button onClick={() => navigate('Análisis en vivo')}>Iniciar exploración ↗</button></section></>}
       {page === 'Análisis en vivo' && <LiveAnalysisPage scenarios={scenarios} scenarioId={scenarioId} onScenarioChange={setScenarioId} sessionRepository={sessionRepository} role={role} apiBaseUrl={origin === 'real' ? apiBaseUrl : null} />}
       {page === 'Historial' && <HistoryPanel onAnalyze={() => navigate('Análisis en vivo')} sessionRepository={sessionRepository} />}
       {page === 'Privacidad' && <PrivacyCenter repository={sessionRepository} />}

@@ -118,3 +118,25 @@ verifica por su SHA de producción. La API real de Render Free
 requiere identificar el workspace/servicio, verificar plan y
 consultar /api/v1/health; el código status-only no prueba por sí
 solo la disponibilidad externa de ese servidor.
+
+## Experiencia visual inmersiva — Edición 2026
+
+La portada incorpora una experiencia WebGL procedimental
+interactiva inspirada en los estándares de calidad de los estudios
+creativos digitales, con identidad original de VISION-AI:
+partículas, órbitas, luces y escultura 3D, cuatro ilustraciones
+SVG originales, navegación contrastada y dashboard legible.
+
+Herramientas: **Three.js (MIT)** ya incluido, SVG y CSS nativos,
+`ResizeObserver`, `IntersectionObserver` y preferencia del
+sistema `prefers-reduced-motion`. Sin SDK de pago ni assets
+propietarios. La escena decorativa no es un detector; se desactiva
+en páginas de análisis para dar prioridad a YOLO.
+
+El sistema limita el render decorativo a 30 FPS solicitados,
+DPR máximo 1.5, pausa fuera del viewport, se desmonta al
+cambiar de ruta y tiene fallback CSS sin WebGL. Respeta
+lectores de pantalla y teclado. El QA sigue comprobando 12
+rutas responsive y las cuatro escenas ONNX reales.
+
+Ver [diseño, fuentes y criterios de experiencia](docs/ux_inmersiva_active_theory.md).
