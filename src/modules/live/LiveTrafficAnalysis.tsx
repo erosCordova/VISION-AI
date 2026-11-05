@@ -6,6 +6,9 @@ import {frameBoxPixels} from './frame-analysis-cycle';
 import {loadHlsFactory} from './live-hls-loader';
 import type {HlsPlayer,HlsErrorData,HlsLevelData} from './live-hls-loader';
 import {LIVE_TRAFFIC_SOURCES,isAuthorizedLiveTrafficUrl} from './live-traffic-sources';
+import {saveLiveObservation} from '../../infrastructure/persistence/live-observation-store';
+import type {LiveObservation} from '../../core/domain/live-observation';
+import {readLivePreferences,saveLivePreferences} from '../settings/live-preferences';
 import {streamReconnectDelay,MAX_STREAM_RECONNECTS,chooseFatalHlsAction,
  conciseVideoError} from './live-hls-recovery';
 
@@ -17,14 +20,15 @@ const delay=(ms:number)=>new Promise<void>(resolve=>window.setTimeout(resolve,ms
  * no sobre el video que siguió avanzando durante la inferencia.
  */
 function renderEvidence(
- frame:YoloFrame,dest:HTMLCanvasElement,minConfidence:number
+ frame:YoloFrame,dest:HTMLCanvasElement,minConfidence:number,classFilter='all'
 ):void{
  dest.width=frame.width;dest.height=frame.height;
  const ctx=dest.getContext('2d');
  if(!ctx)throw Error('No se pudo dibujar el resultado.');
  ctx.drawImage(frame.source,0,0,frame.width,frame.height);
  for(const detection of frame.detections){
-  if(detection.confidence<minConfidence)continue;
+  if(detection.confidence<minConfidence||
+   (classFilter!=='all'&&detection.classId!==classFilter))continue;
   const box=frameBoxPixels(detection.box,frame.width,frame.height);
   const color=detection.classId==='person'?'#75f6d0':'#ffd283';
   ctx.lineWidth=Math.max(2,frame.width/400);
@@ -58,7 +62,11 @@ export function LiveTrafficAnalysis(){
  const [yoloError,setYoloError]=useState('');
  const [yoloMessage,setYoloMessage]=useState('YOLOv8n ONNX se carga al iniciar el análisis.');
  const [analyzing,setAnalyzing]=useState(false);
- const [threshold,setThreshold]=useState(.35);
+ const [threshold,setThreshold]=useState(()=>readLivePreferences().threshold);
+ const [classFilter,setClassFilter]=useState('all');
+ const [autoSwitch,setAutoSwitch]=useState(()=>readLivePreferences().autoSwitch);
+ const [saveNotice,setSaveNotice]=useState('');
+ const [saving,setSaving]=useState(false);
  const [detections,setDetections]=useState<readonly Detection[]>([]);
  const [analyzed,setAnalyzed]=useState(0);
  const [fps,setFps]=useState<number|null>(null);
@@ -72,12 +80,37 @@ export function LiveTrafficAnalysis(){
  const runGeneration=useRef(0);
  const reconnectAttempts=useRef(0);
  const wantsRecognition=useRef(false);
+ const failedCameras=useRef(new Set<string>());
+ const observedAtRef=useRef('');
+ const classFilterRef=useRef(classFilter);
+ classFilterRef.current=classFilter;
  const nativeHlsRejected=useRef(false);
  const thresholdRef=useRef(threshold);
  thresholdRef.current=threshold;
+ const analysisDelayRef=useRef(readLivePreferences().analysisIntervalMs);
+ const persist=(patch:{threshold?:number;autoSwitch?:boolean})=>{
+  try{saveLivePreferences({...readLivePreferences(),...patch});}
+  catch{/* seguir funcionando aunque el navegador rechace guardar preferencias */}
+ };
+ useEffect(()=>{
+  const onConfig=()=>{
+   const prefs=readLivePreferences();
+   setThreshold(prefs.threshold);setAutoSwitch(prefs.autoSwitch);
+   analysisDelayRef.current=prefs.analysisIntervalMs;
+  };
+  window.addEventListener('vision-ai-live-preferences-updated',onConfig);
+  window.addEventListener('storage',onConfig);
+  return()=>{
+   window.removeEventListener('vision-ai-live-preferences-updated',onConfig);
+   window.removeEventListener('storage',onConfig);
+  };
+ },[]);
  const [connectionEpoch,setConnectionEpoch]=useState(0);
  const readyForInference=videoPhase==='live'&&liveConfirmed;
- const visibleDetections=detections.filter(item=>item.confidence>=threshold);
+ const visibleDetections=detections.filter(item=>item.confidence>=threshold&&
+  (classFilter==='all'||item.classId===classFilter));
+ const classOptions=[...new Map(detections.map(d=>[d.classId,d.label])).entries()]
+  .sort((a,b)=>a[1].localeCompare(b[1],'es'));
 
  useEffect(()=>{
   if(!streaming)return;
@@ -242,6 +275,28 @@ export function LiveTrafficAnalysis(){
   };
  },[streaming,cameraId,camera.streamUrl,connectionEpoch]);
 
+ /** Selecciona otra cámara SOLO cuando fallaron los reintentos de la fuente.
+  * No se afirma disponibilidad hasta recibir video realmente en movimiento.
+  */
+ useEffect(()=>{
+  if(!autoSwitch||!streaming||videoPhase!=='error')return;
+  failedCameras.current.add(cameraId);
+  const alternative=LIVE_TRAFFIC_SOURCES.find(item=>!failedCameras.current.has(item.id));
+  if(!alternative){
+   setVideoMessage('No hay otra cámara sin probar. Puedes reintentar más tarde.');
+   return;
+  }
+  reconnectAttempts.current=0;
+  setLiveConfirmed(false);setVideoPhase('connecting');setVideoError('');
+  setVideoMessage('Buscando otra cámara en directo…');
+  setCameraId(alternative.id);
+  setDetections([]);setAnalyzed(0);setFps(null);setInferenceMs(null);
+  setSampleTime('');setClassFilter('all');setSaveNotice('');
+  observedAtRef.current='';lastResultRef.current=null;
+  const c=evidenceRef.current;
+  c?.getContext('2d')?.clearRect(0,0,c.width,c.height);
+ },[autoSwitch,streaming,videoPhase,cameraId]);
+
  useEffect(()=>{
   if(videoPhase!=='live'&&analyzing){
    setAnalyzing(false);runGeneration.current++;
@@ -256,8 +311,8 @@ export function LiveTrafficAnalysis(){
 
  useEffect(()=>{
   const frame=lastResultRef.current;
-  if(frame&&evidenceRef.current)renderEvidence(frame,evidenceRef.current,threshold);
- },[threshold]);
+  if(frame&&evidenceRef.current)renderEvidence(frame,evidenceRef.current,threshold,classFilter);
+ },[threshold,classFilter]);
 
  useEffect(()=>{
   if(!analyzing||!modelRef.current)return;
@@ -294,7 +349,8 @@ export function LiveTrafficAnalysis(){
      const result=await analyzeYoloFrame(model,canvas,.20,35);
      if(closed||token!==runGeneration.current)return;
      lastResultRef.current=result;
-     if(evidenceRef.current)renderEvidence(result,evidenceRef.current,thresholdRef.current);
+     observedAtRef.current=new Date().toISOString();
+     if(evidenceRef.current)renderEvidence(result,evidenceRef.current,thresholdRef.current,classFilterRef.current);
      setDetections(result.detections);
      setInferenceMs(Math.round(result.inferenceMs));
      setAnalyzed(n=>n+1);
@@ -316,7 +372,7 @@ export function LiveTrafficAnalysis(){
       'Error de inferencia: '+text.slice(0,180));
      return;
     }
-    await delay(250); // Una inferencia cada vez; no se acumulan fotogramas.
+    await delay(analysisDelayRef.current); // Sin acumulación de fotogramas atrasados.
    }
   };
   void pump();
@@ -332,6 +388,7 @@ export function LiveTrafficAnalysis(){
   setVideoError('');setVideoMessage('Transmisión detenida.');
  };
  const retryStream=()=>{
+  failedCameras.current.clear();
   reconnectAttempts.current=0;
   setVideoError('');setLiveConfirmed(false);setVideoPhase('connecting');
   if(streaming)setConnectionEpoch(n=>n+1);
@@ -339,10 +396,11 @@ export function LiveTrafficAnalysis(){
  };
  const changeCamera=(next:string)=>{
   if(!LIVE_TRAFFIC_SOURCES.some(x=>x.id===next))return;
-  stopStream();nativeHlsRejected.current=false;setCameraId(next);
+  stopStream();failedCameras.current.clear();
+  nativeHlsRejected.current=false;setCameraId(next);
   setDetections([]);setAnalyzed(0);setFps(null);
   setInferenceMs(null);setSampleTime('');setYoloError('');
-  lastResultRef.current=null;
+  lastResultRef.current=null;observedAtRef.current='';setClassFilter('all');setSaveNotice('');
   if(evidenceRef.current){
    const ctx=evidenceRef.current.getContext('2d');
    ctx?.clearRect(0,0,evidenceRef.current.width,evidenceRef.current.height);
@@ -378,12 +436,45 @@ export function LiveTrafficAnalysis(){
   setAnalyzing(false);setYoloPhase('idle');
   setYoloMessage('Análisis detenido. El video puede continuar reproduciéndose.');
  };
+ const saveCurrent=async()=>{
+  const frame=lastResultRef.current;
+  if(!frame||!observedAtRef.current||saving)return;
+  setSaving(true);setSaveNotice('');
+  try{
+   const now=new Date().toISOString();
+   const item:LiveObservation={
+    schemaVersion:1,id:crypto.randomUUID(),source:'public-live-video',
+    model:'yolov8n-coco',savedAt:now,observedAt:observedAtRef.current,
+    cameraId,cameraName:camera.name,inferenceMs:frame.inferenceMs,
+    frameWidth:frame.width,frameHeight:frame.height,
+    detections:frame.detections.map(d=>({...d,box:{...d.box}}))
+   };
+   await saveLiveObservation(item);
+   setSaveNotice('Análisis guardado. Puedes verlo en Historial.');
+  }catch(e){setSaveNotice(e instanceof Error?e.message:'No se pudo guardar el análisis.');}
+  finally{setSaving(false);}
+ };
+ const downloadEvidence=()=>{
+  const canvas=evidenceRef.current;
+  if(!lastResultRef.current||!canvas)return;
+  try{
+   canvas.toBlob(blob=>{
+    if(!blob){setSaveNotice('No se pudo generar la imagen de evidencia.');return;}
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download='vision-ai-camara-'+cameraId+'-'+Date.now()+'.png';
+    document.body.appendChild(a);a.click();a.remove();
+    window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+    setSaveNotice('Imagen descargada en tu dispositivo.');
+   },'image/png');
+  }catch{setSaveNotice('No se pudo descargar esta imagen.');}
+ };
  return <section className="live-traffic-lab" aria-label="Transmisión pública en tiempo real con YOLO">
   <header className="live-traffic-head">
-   <div><span className="live-traffic-eyebrow">VISION-AI · TRANSMISIÓN HLS REAL</span>
-    <h2>Video público en directo + YOLO</h2>
-    <p>Fuente SDOT de Seattle, Estados Unidos. Visor de tránsito con video continuo
-    y detecciones del modelo neuronal sobre los fotogramas recibidos.</p></div>
+   <div><span className="live-traffic-eyebrow">CÁMARAS PÚBLICAS EN DIRECTO</span>
+    <h2>Monitoreo de tráfico en directo</h2>
+    <p>Observa cámaras públicas de Seattle y reconoce personas y vehículos
+    mientras el video está en movimiento.</p></div>
    <span className={'live-traffic-status '+(readyForInference?'is-live':'')}>
     <i/>{readyForInference?'DIRECTO · VIDEO ACTIVO':videoPhase==='connecting'?'CONECTANDO':
      videoPhase==='buffering'?'BUFFERING':videoPhase==='error'?'SIN SEÑAL':'DETENIDO'}</span>
@@ -393,7 +484,12 @@ export function LiveTrafficAnalysis(){
     <select id="live-traffic-source" value={cameraId} onChange={event=>changeCamera(event.target.value)}>
      {LIVE_TRAFFIC_SOURCES.map(source=><option key={source.id} value={source.id}>{source.name}</option>)}
     </select></label>
-   <span>HLS directo · Sin claves API · Sin cámara del dispositivo</span>
+   <label className="live-traffic-auto">
+    <input type="checkbox" checked={autoSwitch} onChange={e=>{
+     setAutoSwitch(e.target.checked);persist({autoSwitch:e.target.checked});
+    }}/>
+    Cambiar automáticamente de cámara si falla
+   </label>
   </div>
   <div className="live-traffic-grid">
    <div className="live-traffic-stream-column">
@@ -406,7 +502,7 @@ export function LiveTrafficAnalysis(){
       <span>{videoPhase==='error'?'Selecciona otra fuente o reintenta.':
        'No se utilizan fotografías estáticas ni archivos simulados.'}</span>
      </div>}
-     {readyForInference&&<span className="live-traffic-video-label">● HLS EN DIRECTO · SDOT</span>}
+     {readyForInference&&<span className="live-traffic-video-label">● VIDEO EN DIRECTO</span>}
     </div>
     <div className="live-traffic-stream-controls">
      {!streaming?
@@ -424,19 +520,18 @@ export function LiveTrafficAnalysis(){
      <span role="status">{videoMessage}</span>
     </div>
     {videoError&&<p className="live-traffic-error" role="alert">{videoError}</p>}
-    <p className="live-traffic-source-note">Fuente: Seattle Department of Transportation (SDOT).
-     Uso limitado al monitoreo del tráfico. El proveedor entrega segmentos HLS con retraso
-     variable; el sistema no promete latencia cero. El video no se graba ni retransmite desde Render.</p>
+    <p className="live-traffic-source-note">Fuente pública: Departamento de Transporte de Seattle.
+     El video puede presentar retrasos o interrupciones y no se graba en VISION-AI.</p>
     <a href="https://web.seattle.gov/travelers" target="_blank" rel="noopener noreferrer">
      Consultar cámaras en el portal oficial de Seattle
     </a>
    </div>
    <aside className="live-traffic-inference">
     <div className="live-traffic-inference-head">
-     <span className="live-traffic-eyebrow">INFERENCIA DEL FOTOGRAMA CAPTURADO</span>
+     <span className="live-traffic-eyebrow">RESULTADOS DEL ÚLTIMO ANÁLISIS</span>
      <h3>Reconocimiento YOLO real</h3>
-     <p>La vista de resultados muestra exactamente la imagen que examinó YOLO,
-      mientras el video original continúa avanzando.</p>
+     <p>Las detecciones corresponden a la imagen analizada,
+      aunque el video siga avanzando.</p>
     </div>
     <div className="live-traffic-evidence">
      <canvas ref={evidenceRef} role="img" aria-label="Último fotograma analizado, con cajas YOLO reales"/>
@@ -454,12 +549,37 @@ export function LiveTrafficAnalysis(){
     </div>
     <p className="live-traffic-engine-note" role="status">{yoloMessage}</p>
     {yoloError&&<p role="alert" className="live-traffic-error">{yoloError}</p>}
-    <label htmlFor="live-traffic-threshold" className="live-traffic-threshold">
-     Umbral visual de confianza: {Math.round(threshold*100)} %
-     <input id="live-traffic-threshold" type="range" min="10" max="90"
-      value={Math.round(threshold*100)}
-      onChange={event=>setThreshold(Number(event.target.value)/100)}/>
-    </label>
+    <div className="live-traffic-visual-filters">
+     <label htmlFor="live-traffic-threshold" className="live-traffic-threshold">
+      Confianza mínima: {Math.round(threshold*100)} %
+      <input id="live-traffic-threshold" type="range" min="10" max="90"
+       value={Math.round(threshold*100)}
+       onChange={event=>{
+        const value=Number(event.target.value)/100;
+        setThreshold(value);persist({threshold:value});
+       }}/>
+     </label>
+     <label htmlFor="live-traffic-class-filter" className="live-traffic-class-label">
+      Mostrar objetos
+      <select id="live-traffic-class-filter" value={classFilter}
+       onChange={event=>setClassFilter(event.target.value)}>
+       <option value="all">Todas las clases</option>
+       {classOptions.map(([id,label])=><option key={id} value={id}>{label}</option>)}
+      </select>
+     </label>
+    </div>
+    <div className="live-traffic-result-actions">
+     <button type="button" disabled={!analyzed||saving} onClick={()=>void saveCurrent()}>
+      {saving?'Guardando…':'Guardar análisis'}
+     </button>
+     <button type="button" disabled={!analyzed} onClick={downloadEvidence}>
+      Descargar imagen
+     </button>
+     <button type="button" onClick={()=>{location.hash='Historial';}}>
+      Ver historial
+     </button>
+    </div>
+    {saveNotice&&<p className="live-history-notice" role="status">{saveNotice}</p>}
     <div className="live-traffic-metrics">
      <div><span>Fotogramas analizados</span><strong>{analyzed}</strong></div>
      <div><span>Objetos detectados</span><strong>{analyzed?visibleDetections.length:'—'}</strong></div>
@@ -476,9 +596,8 @@ export function LiveTrafficAnalysis(){
    </aside>
   </div>
   <footer className="live-traffic-footer">
-   Solo monitoreo vial: no identifica personas, matrículas ni infracciones.
-   Los resultados son predicciones de YOLO, no una certificación.
-   El video puede presentar segundos de latencia y algunas cámaras pueden dejar de transmitir.
+   Resultados orientativos de reconocimiento visual; no identifica rostros ni matrículas.
+   La transmisión depende de la disponibilidad de cada cámara pública.
   </footer>
  </section>;
 }

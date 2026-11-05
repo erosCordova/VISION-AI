@@ -136,7 +136,7 @@ roles **de prueba**, no cuentas autenticadas.
   Hobby/Free en límites aplicables. El usuario no necesita
   pagar un servicio externo para ejecutar las simulaciones.
 - **«¿Puedo subir imágenes?»** No. La fuente del análisis son
-  únicamente las simulaciones 3D del proyecto.
+  los videos de cámaras públicas y las simulaciones 3D.
 
 ## Cámaras públicas: condiciones y límites
 
@@ -197,3 +197,29 @@ Ningún mecanismo puede garantizar que una cámara externa
 esté siempre encendida o que permita lectura de píxeles por CORS.
 Las pruebas de compilación no sustituyen una prueba real del
 proveedor y el navegador.
+
+## Funciones ampliadas del análisis de video
+
+- **Cambio de cámara:** después de agotar tres reconexiones, el monitor
+  puede probar otra fuente pública, sin inventar disponibilidad. La opción
+  se puede desactivar en el propio monitor.
+- **Filtros:** confianza mínima y clase visible. Solo cambian la
+  representación; no modifican las detecciones originales.
+- **Guardar análisis:** guarda explícitamente fecha local de análisis,
+  cámara, modelo, tiempo y cajas/clases/confianzas en el navegador.
+  **No se almacena la imagen ni una grabación del video.**
+- **Descargar imagen:** descarga en el equipo una copia PNG del fotograma
+  previamente analizado, con las cajas que el usuario tenga visibles.
+- **Historial de cámaras:** búsqueda por cámara/clase, periodo, detalle,
+  eliminación confirmada y exportación CSV de los registros filtrados.
+- **Resumen:** indicadores y clases frecuentes provenientes exclusivamente
+  de observaciones guardadas, sin métricas inventadas.
+- **Preferencias:** confianza, cambio de cámara y pausa entre análisis
+  aplicados realmente al monitor; se conservan en este navegador.
+- **Privacidad:** depurar por antigüedad o borrar todo incluye los registros
+  guardados de cámaras, además de las sesiones 3D.
+
+El conteo por fotograma no identifica individuos, no es aforo único ni
+seguimiento de identidades. La confianza del modelo no es una medida
+de exactitud. Los registros de video muestran la **hora local de análisis**,
+no la hora de grabación certificada por el operador de la cámara.
