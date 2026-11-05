@@ -29,16 +29,17 @@ Los resultados de sesión se guardan en **IndexedDB del navegador**
 
 1. Acceder a https://vision-ai-erosss.vercel.app .
 2. Entrar en **Análisis en vivo**.
-3. La pestaña **Cámara pública TfL** muestra el catálogo de fotografías
-   de vías públicas; seleccionar una fuente y esperar al primer fotograma.
+3. La pestaña **Cámara pública TfL** muestra dos fuentes con URLs JPEG
+   públicas: Piccadilly Circus y Romford Road / Tennyson Road.
+   Seleccionar una cámara y esperar la fotografía.
 4. Pulsar **Iniciar YOLO** para descargar ONNX/WASM y obtener detecciones
    reales de vehículos y personas visibles en la imagen.
 5. Ajustar la confianza, actualizar la fotografía o descargar evidencia PNG.
 6. Para los escenarios industriales sintéticos, seleccionar **Simulaciones 3D**.
    Allí se conservan los cuatro escenarios y el detector de EPP.
-4. Si los humanos 3D resultan pesados, cambiar a la visualización
+7. Si los humanos 3D resultan pesados, cambiar a la visualización
    **ligera**, cuando el visor lo permita.
-5. Ajustar cámara (isométrica, frontal, superior o primer plano),
+8. Ajustar cámara (isométrica, frontal, superior o primer plano),
    velocidad, pausa y zonas según se necesite.
 
 ## 4. Los cuatro escenarios
@@ -134,7 +135,10 @@ roles **de prueba**, no cuentas autenticadas.
 
 ## Cámaras públicas: condiciones y límites
 
-La fuente procede de Transport for London (TfL) y se identifica
+La fuente procede de Transport for London (TfL). El frontend obtiene
+las imágenes por **rutas HTTPS del mismo dominio en Vercel**, mediante
+reescrituras exactas hacia dos JPEG de TfL; Render no interviene.
+La fuente se identifica
 visiblemente como **Powered by TfL Open Data**. La licencia gratuita
 incluye obligaciones de atribución, registro y límites de consulta:
 https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service
@@ -148,3 +152,7 @@ predicciones falsas ni se accede a ninguna cámara privada.
 Cámaras de calles **no permiten certificar EPP industrial ni defectos
 de fabricación**. Los resultados de YOLO COCO muestran únicamente
 clases reconocibles sobre los píxeles del fotograma de tráfico.
+
+**Nota sobre frescura:** aunque la aplicación consulte la fuente cada tres
+minutos, TfL puede conservar temporalmente una imagen anterior o suspender
+la transmisión; la hora de consulta no representa la hora real de captura.

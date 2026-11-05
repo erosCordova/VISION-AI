@@ -4,24 +4,11 @@ import {analyzeYoloFrame,captureRenderedFrame,loadYoloBrowser} from './yolo-brow
 import type {LoadedYolo} from './yolo-browser';
 import {frameBoxPixels} from './frame-analysis-cycle';
 
-interface PublicCamera {
- readonly id:string;readonly name:string;readonly context:string;readonly scenario:string;
-}
-interface Catalogue {
- readonly cameras:readonly PublicCamera[];readonly attribution:string;
- readonly licence:string;readonly minimumRefreshSeconds:number;
-}
+import {PUBLIC_CAMERA_SOURCES} from './public-camera-sources';
+import type {PublicCameraSource} from './public-camera-sources';
+
 type Phase='inactive'|'loading'|'ready'|'processing'|'failed';
 const POLL_INTERVAL=180_000;
-const MAX_CAMERAS=16;
-function safeCamera(camera:unknown):camera is PublicCamera{
- if(!camera||typeof camera!=='object')return false;
- const c=camera as PublicCamera;
- return typeof c.id==='string'&&/^[a-z0-9-]{3,50}$/.test(c.id)&&
-  typeof c.name==='string'&&c.name.length<120&&
-  typeof c.context==='string'&&c.context.length<160&&
-  typeof c.scenario==='string'&&c.scenario.length<100;
-}
 function annotate(source:HTMLCanvasElement,output:HTMLCanvasElement,items:readonly Detection[]){
  output.width=source.width;output.height=source.height;
  const ctx=output.getContext('2d');
@@ -45,10 +32,8 @@ async function sha256(blob:Blob):Promise<string>{
  const digest=await crypto.subtle.digest('SHA-256',await blob.arrayBuffer());
  return Array.from(new Uint8Array(digest)).map(n=>n.toString(16).padStart(2,'0')).join('');
 }
-export function PublicCameraLab({apiBaseUrl}: {readonly apiBaseUrl:string|null}){
- const [catalogue,setCatalogue]=useState<Catalogue|null>(null);
- const [cameraId,setCameraId]=useState('');
- const [catalogueError,setCatalogueError]=useState('');
+export function PublicCameraLab(){
+ const [cameraId,setCameraId]=useState(PUBLIC_CAMERA_SOURCES[0].id);
  const [frameError,setFrameError]=useState('');
  const [phase,setPhase]=useState<Phase>('inactive');
  const [lastRefresh,setLastRefresh]=useState('');
@@ -70,7 +55,7 @@ export function PublicCameraLab({apiBaseUrl}: {readonly apiBaseUrl:string|null})
  const requestGeneration=useRef(0);
  const runningRef=useRef(false);
  const alive=useRef(true);
- const camera= catalogue?.cameras.find(item=>item.id===cameraId);
+ const camera:PublicCameraSource|undefined=PUBLIC_CAMERA_SOURCES.find(item=>item.id===cameraId);
  useEffect(()=>{
   alive.current=true;
   return()=>{alive.current=false;requestGeneration.current++;};
@@ -99,32 +84,7 @@ export function PublicCameraLab({apiBaseUrl}: {readonly apiBaseUrl:string|null})
   }
  },[redraw]);
  useEffect(()=>{
-  if(!apiBaseUrl){
-   setCatalogueError('Falta conectar la API gratuita de Render. Configura VITE_VISION_API_BASE_URL en Vercel.');
-   return;
-  }
-  let alive=true;const abort=new AbortController();
-  void fetch(apiBaseUrl+'/api/v1/public-cameras',{signal:abort.signal,cache:'no-store'})
-   .then(async response=>{
-    if(!response.ok)throw Error('Render no devolvió el catálogo de cámaras.');
-    const value:unknown=await response.json();
-    if(!value||typeof value!=='object')throw Error('Catálogo de cámaras inválido.');
-    const data=value as Catalogue;
-    if(!Array.isArray(data.cameras)||data.cameras.length>MAX_CAMERAS||
-       data.cameras.length===0||!data.cameras.every(safeCamera))
-     throw Error('Las fuentes no cumplen el contrato del catálogo.');
-    if(alive){
-     setCatalogue(data);
-     setCameraId(id=>data.cameras.some(item=>item.id===id)?id:data.cameras[0].id);
-     setCatalogueError('');
-    }
-   }).catch(error=>{
-    if(alive)setCatalogueError(error instanceof Error?error.message:'No se pudo consultar Render.');
-   });
-  return()=>{alive=false;abort.abort();};
- },[apiBaseUrl]);
- useEffect(()=>{
-  if(!apiBaseUrl||!cameraId)return;
+  if(!camera)return;
   requestGeneration.current++;
   let live=true;const abort=new AbortController();
   const update=async()=>{
@@ -132,17 +92,16 @@ export function PublicCameraLab({apiBaseUrl}: {readonly apiBaseUrl:string|null})
    const token=++requestGeneration.current;
    setBusy(true);setFrameError('');setSourceStatus('Consultando fuente pública de TfL…');
    try{
-    const response=await fetch(apiBaseUrl+'/api/v1/public-cameras/'+cameraId+'/frame',{
+    const response=await fetch(camera.imagePath,{
      signal:abort.signal,cache:'no-store'});
     if(!response.ok){
-     const body:unknown=await response.json().catch(()=>null);
-     const detail=body&&typeof body==='object'&&'detail' in body&&typeof body.detail==='string'
-      ?body.detail:'La cámara pública no está disponible.';
-     throw Error(detail);
+     throw Error('La cámara no respondió (HTTP '+response.status+'). Selecciona otra fuente o reintenta.');
     }
     const blob=await response.blob();
-    if(!blob.type.includes('image/jpeg')||blob.size<100||blob.size>2_000_000)
-     throw Error('El fotograma descargado no es un JPEG válido.');
+    const signature=new Uint8Array(await blob.slice(0,3).arrayBuffer());
+    if(blob.size<100||blob.size>2_000_000||
+       signature[0]!==255||signature[1]!==216||signature[2]!==255)
+     throw Error('TfL no entregó una imagen JPEG válida.');
     const hash=await sha256(blob);
     if(!live||token!==requestGeneration.current)return;
     const changed=hash!==latestHash.current;
@@ -173,7 +132,7 @@ export function PublicCameraLab({apiBaseUrl}: {readonly apiBaseUrl:string|null})
   void update();
   const interval=window.setInterval(()=>{if(!document.hidden)void update();},POLL_INTERVAL);
   return()=>{live=false;abort.abort();window.clearInterval(interval);requestGeneration.current++;};
- },[apiBaseUrl,cameraId,refreshNonce,redraw,infer]);
+ },[cameraId,refreshNonce,redraw,infer]);
  useEffect(()=>{
   latestHash.current='';
   setDetections([]);setInferenceMs(null);setFrameCount(0);
@@ -219,20 +178,19 @@ export function PublicCameraLab({apiBaseUrl}: {readonly apiBaseUrl:string|null})
    <div><span className="public-camera-eyebrow">FUENTE REAL · CÁMARA PÚBLICA CON LICENCIA</span>
     <h2>Cámaras públicas + YOLO</h2>
     <p>Fotografías de vías urbanas de Transport for London. Detección local de vehículos
-    y personas; sin cámara del dispositivo y sin almacenar las imágenes en servidor.</p></div>
+    y personas; sin cámara del dispositivo, sin Render y sin inferencia en servidor.</p></div>
    <span className="public-camera-pill">TF LONDON / OPEN DATA</span>
   </div>
-  {catalogueError&&<p className="public-camera-alert" role="alert">{catalogueError}</p>}
-  {catalogue&&<div className="public-camera-toolbar">
+  <div className="public-camera-toolbar">
    <label htmlFor="public-camera-source">Seleccionar cámara pública
     <select id="public-camera-source" value={cameraId}
      onChange={event=>setCameraId(event.target.value)}>
-     {catalogue.cameras.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}
+     {PUBLIC_CAMERA_SOURCES.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}
     </select></label>
    <button type="button" onClick={()=>setRefreshNonce(n=>n+1)} disabled={busy||!cameraId}>
     {busy?'Consultando…':'Actualizar fotografía'}</button>
    <span className="public-camera-refresh">Actualización programada: cada 3 minutos</span>
-  </div>}
+  </div>
   <div className="public-camera-layout">
    <div className="public-camera-viewer">
     <div className="public-camera-frame-top">
@@ -243,17 +201,17 @@ export function PublicCameraLab({apiBaseUrl}: {readonly apiBaseUrl:string|null})
      <canvas ref={source} hidden aria-hidden="true"/>
      <canvas ref={result} role="img" aria-label="Fotograma público de tráfico con detecciones YOLO si se inició el modelo"/>
      {!lastRefresh&&<div className="public-camera-empty">
-      {catalogueError?'La fuente aún no está disponible':'Esperando el primer fotograma público…'}
+      {frameError?'La cámara seleccionada no está disponible':'Esperando el primer fotograma público…'}
      </div>}
     </div>
     {frameError&&<p className="public-camera-alert" role="alert">{frameError}</p>}
     <div className="public-camera-attribution">
-     <span>Powered by TfL Open Data</span>
+     <span>Powered by TfL Open Data · Contains OS data © Crown copyright and database rights 2016</span>
      <a href="https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service"
       target="_blank" rel="noopener noreferrer">Licencia y condiciones</a>
     </div>
     <p className="public-camera-disclaimer">No es transmisión continua: el proveedor actualiza
-     imágenes periódicamente y puede detenerlas. Hora mostrada: consulta a Render, no
+     imágenes periódicamente y puede detenerlas. Hora mostrada: última consulta a TfL, no
      hora certificada de captura. No usar para reconocimiento facial ni sanciones.</p>
    </div>
    <aside className="public-camera-analysis">
