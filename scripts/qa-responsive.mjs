@@ -286,14 +286,18 @@ try {
       // La cifra corresponde al tiempo observado por CDP en CI, no a Web Vitals.
       if(sample.pageReadyMs<=0||sample.pageReadyMs>30000)
         throw Error('PF01: navegación fuera de presupuesto de 30 s: '+JSON.stringify(sample));
-      if(name==='resumen'&&width>760){
+      if(name==='resumen'){
         await eventually(async()=>{
           const x=await cdp.send('Runtime.evaluate',{
-            expression:'Number(getComputedStyle(document.querySelector(".studio-experience")).opacity)',
+            expression:'(() => ({'
+             +'opacity:Number(getComputedStyle(document.querySelector(".studio-display-title")).opacity),'
+             +'visible:document.querySelector(".studio-world-status")?.textContent?.includes("ESCENA 3D ACTIVA"),'
+             +'title:document.querySelector(".studio-display-title")?.textContent||""}))()',
             returnByValue:true
           });
-          return x.result?.value>=.999;
-        },'UX25 escena cinematográfica completa');
+          return x.result?.value?.opacity>=.99&&x.result.value.visible&&
+            x.result.value.title.includes('La visión');
+        },'UX25 entrada GSAP completa, WebGL activo y texto visible');
       }
       const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
       fs.writeFileSync(path.join(artifacts, name + '-' + width + '.png'), Buffer.from(capture.data, 'base64'));

@@ -24,3 +24,9 @@ declare module 'three/examples/jsm/postprocessing/UnrealBloomPass.js' {
 declare module 'three/examples/jsm/postprocessing/OutputPass.js' {
  export class OutputPass { constructor(); }
 }
+
+declare module 'three/examples/jsm/environments/RoomEnvironment.js' {
+ export class RoomEnvironment {
+  constructor(renderer:any);dispose():void;
+ }
+}

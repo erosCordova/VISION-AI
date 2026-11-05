@@ -505,3 +505,24 @@
   transform:none!important
  }
 }
+
+/* Ajuste de dirección de arte tras revisión visual 1440 / 768 / 360 */
+@media(min-width:1300px) and (max-height:920px){
+ .studio-experience{min-height:740px}
+ .studio-copy{padding-top:139px}
+ .studio-display-title{font-size:clamp(52px,5vw,78px)}
+ .studio-copy .studio-trust{margin-top:23px}
+}
+@media(max-width:760px){
+ .studio-shell .experience-breadcrumb{display:none!important}
+ .studio-copy{padding-top:220px}
+ .studio-vignette{
+  background:linear-gradient(0deg,#04111bfd 0%,#061521fa 42%,#061522df 61%,#09182740 88%);
+ }
+ .studio-display-title{text-shadow:0 4px 18px #000e}
+ .studio-world-stage{height:60%;opacity:.94}
+ .studio-experience .studio-world-legend{opacity:.65}
+}
+@media(max-width:385px){
+ .studio-copy{padding-top:226px}
+}

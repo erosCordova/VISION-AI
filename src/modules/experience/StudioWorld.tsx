@@ -4,6 +4,7 @@ import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.j
 import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import {OutputPass} from 'three/examples/jsm/postprocessing/OutputPass.js';
+import {RoomEnvironment} from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 export const WORLD_KEYS=['safety','quality','warehouse','retail'] as const;
 export type WorldKey=typeof WORLD_KEYS[number];
@@ -35,12 +36,12 @@ export function StudioWorld({active,paused,onReady}:Props){
  useEffect(()=>{
   const canvas=canvasRef.current,host=stageRef.current;
   if(!canvas||!host)return;
-  let renderer:any=null,composer:any=null,raf=0,last=0,disposed=false,visible=true;
+  let renderer:any=null,composer:any=null,environment:any=null,room:any=null,raf=0,last=0,disposed=false,visible=true;
   let playing=!paused,activeKey:WorldKey=active;
   const prefer=window.matchMedia('(prefers-reduced-motion: reduce)');
   const scene=new THREE.Scene();
   scene.background=new THREE.Color(0x060f1d);
-  scene.fog=new THREE.FogExp2(0x06111d,.037);
+  scene.fog=new THREE.FogExp2(0x06111d,.029);
   const camera=new THREE.PerspectiveCamera(35,1,.1,100);
   camera.position.set(10.8,8.6,16.8);
   const targetCam=new THREE.Vector3(10.8,8.6,16.8);
@@ -55,16 +56,19 @@ export function StudioWorld({active,paused,onReady}:Props){
    });
    materials.add(m);return m;
   };
-  const asphalt=material(0x142c3b,.67,.35);
-  const metal=material(0x2c4b5c,.8,.23);
-  const dark=material(0x0c1f2b,.63,.28);
-  const bright=material(0x6b96a3,.76,.21);
-  const glass=material(0x4fa7b1,.58,.18);
+  const asphalt=material(0x1c3545,.25,.48);
+  const metal=material(0x4c7988,.42,.28);
+  const dark=material(0x193544,.34,.37);
+  const bright=material(0xb1d9df,.28,.29);
+  const glass=material(0x7dbcca,.26,.25);
   const orange=material(0xe7aa63,.55,.36,0xe7aa63);
   const cyan=material(0x56e7d2,.38,.25,0x56e7d2);
   const violet=material(0x91a3e9,.47,.31,0x6a7dca);
   const white=material(0xbed8df,.5,.28);
   const crateColors=[metal,glass,orange,violet,bright];
+  const emission=new THREE.MeshBasicMaterial({color:0x46e7cf,toneMapped:false});
+  const emissionViolet=new THREE.MeshBasicMaterial({color:0x8a99ff,toneMapped:false});
+  materials.add(emission);materials.add(emissionViolet);
   const create=(g:any,geo:any,mat:any,x:number,y:number,z:number,sx=1,sy=1,sz=1)=>{
    const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);
    m.scale.set(sx,sy,sz);m.castShadow=true;m.receiveShadow=true;
@@ -86,14 +90,27 @@ export function StudioWorld({active,paused,onReady}:Props){
   }
   // Líneas de guía, e iluminación de un centro industrial ficticio.
   for(const s of [-1,1]){
-   block(platform,cyan,s*8.5,-.44,0,.035,.035,13.3);
-   block(platform,cyan,0,-.44,s*6.55,17,.035,.035);
+   block(platform,emission,s*8.5,-.40,0,.028,.021,13.3);
+   block(platform,emissionViolet,0,-.40,s*6.55,17,.018,.025);
+  }
+  // Balizas de guiado y franjas de paso reflectantes.
+  for(let i=-5;i<=5;i++){
+   block(platform,bright,i*1.4,-.391,4,.53,.005,.065);
+   if(i%2===0){
+    block(platform,emission,i*1.4,-.383,-4.7,.20,.011,.04);
+   }
   }
   const ambience=new THREE.HemisphereLight(0x9bdaf0,0x0e1b2b,2.5);scene.add(ambience);
-  const key=new THREE.DirectionalLight(0xf8fff6,3.4);
-  key.position.set(-7,13,8);scene.add(key);
-  const neonLeft=new THREE.PointLight(0x56e8e0,63,18);neonLeft.position.set(-5,4,2);scene.add(neonLeft);
-  const neonRight=new THREE.PointLight(0x9b8dff,46,16);neonRight.position.set(6,4,-3);scene.add(neonRight);
+  const key=new THREE.DirectionalLight(0xf0faff,4.7);
+  key.position.set(-8,14,11);
+  key.castShadow=true;
+  key.shadow.mapSize.set(1024,1024);
+  key.shadow.camera.left=-13;key.shadow.camera.right=13;
+  key.shadow.camera.top=13;key.shadow.camera.bottom=-13;
+  key.shadow.camera.near=.5;key.shadow.camera.far=40;
+  key.shadow.bias=-.0007;scene.add(key);
+  const neonLeft=new THREE.PointLight(0x56e8e0,88,20);neonLeft.position.set(-5,5,2);scene.add(neonLeft);
+  const neonRight=new THREE.PointLight(0x9b8dff,72,18);neonRight.position.set(6,5,-3);scene.add(neonRight);
   const worlds={} as Record<WorldKey,{group:any;moving:any[];rotating:any[]}>;
   function person(g:any,x:number,z:number,vest:any,helmet=true){
    const p=new THREE.Group();p.position.set(x,0,z);g.add(p);
@@ -116,6 +133,7 @@ export function StudioWorld({active,paused,onReady}:Props){
     block(rackGroup,metal,xx,1.75,zz,.12,3.55,.12);
    for(let h=0;h<3;h++){
     block(rackGroup,bright,0,.68+h*1.08,0,3.2,.09,1.3);
+    block(rackGroup,h%2===0?emission:emissionViolet,0,.737+h*1.08,.69,2.9,.012,.014);
     for(let i=-count;i<=count;i++){
      const m=crateColors[(i+count+h)%crateColors.length];
      block(rackGroup,m,i*.38,.94+h*1.08,(i%2)*.16,.33,.45,.43);
@@ -125,6 +143,8 @@ export function StudioWorld({active,paused,onReady}:Props){
   function conveyor(g:any,x:number,z:number,length=6){
    block(g,metal,x,.42,z,length,.35,1.6);
    block(g,dark,x,.63,z,length,.09,1.25);
+   block(g,emission,x,.52,z-.78,length,.025,.035);
+   block(g,emissionViolet,x,.52,z+.78,length,.025,.035);
    for(let i=0;i<8;i++){
     const a=x-length*.43+i*length*.12;
     const roll=cylinderAt(g,bright,a,.71,z,.11,1.4);
@@ -149,6 +169,7 @@ export function StudioWorld({active,paused,onReady}:Props){
   function gantry(g:any,x:number,z:number){
    for(const xx of [-2,2])block(g,metal,x+xx,2.0,z,.21,4,.21);
    block(g,bright,x,4,z,4.45,.25,.29);
+   block(g,emission,x,3.83,z,3.85,.06,.08);
    block(g,cyan,x,3.85,z,.75,.08,.32);
    block(g,white,x,3.53,z,.34,.52,.25);
   }
@@ -305,7 +326,17 @@ export function StudioWorld({active,paused,onReady}:Props){
     powerPreference:'high-performance'
    });
    renderer.toneMapping=THREE.ACESFilmicToneMapping;
-   renderer.toneMappingExposure=1.6;
+   renderer.toneMappingExposure=1.85;
+   renderer.shadowMap.enabled=true;
+   renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+   try{
+    // Light probes procedimentales para que los metales no parezcan plástico.
+    const pmrem=new THREE.PMREMGenerator(renderer);
+    room=new RoomEnvironment(renderer);
+    environment=pmrem.fromScene(room,.035);
+    scene.environment=environment.texture;
+    pmrem.dispose();
+   }catch{/* Fallback PBR con luces y sombras sin environment map. */}
    renderer.outputColorSpace=THREE.SRGBColorSpace;
    // Bloom de Three.js; el renderer sigue siendo único. Fallback sin bloom.
    if(window.innerWidth>700){
@@ -335,7 +366,10 @@ export function StudioWorld({active,paused,onReady}:Props){
    host.removeEventListener('pointermove',move);
    prefer.removeEventListener('change',motion);
    resize.disconnect();intersect.disconnect();
-   composer?.dispose();renderer?.dispose();
+   composer?.dispose();
+   scene.environment=null;
+   environment?.dispose();room?.dispose();
+   renderer?.dispose();
    for(const geo of geometries)geo.dispose();
    for(const mat of materials)mat.dispose();
   };
