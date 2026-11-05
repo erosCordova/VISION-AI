@@ -1,0 +1,29 @@
+name: Preparar dependencias de experiencia (solo rama de diseño)
+on:
+  push:
+    branches: [ci-studio-v2]
+permissions:
+  contents: write
+jobs:
+  lock:
+    if: "!contains(github.event.head_commit.message, 'chore(ui-deps)')"
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version-file: .nvmrc
+      - name: Instalar tres herramientas gratuitas y fijar lockfile
+        run: |
+          npm install --save-exact --no-audit --no-fund gsap@3.15.0 lucide-react@1.60.0 lenis@1.3.26
+          npm ci --no-audit --no-fund
+      - name: Guardar package.json y lockfile en la rama aislada
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "chore(ui-deps): fijar GSAP, Lucide y Lenis gratuitos"
+          git push origin HEAD:ci-studio-v2
