@@ -391,10 +391,10 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
     <label htmlFor="yolo-capture-pace">Velocidad de análisis</label>
     <select id="yolo-capture-pace" value={capturePace}
      onChange={e=>setCapturePace(e.target.value as CapturePace)}>
-     <option value="balanced">Equilibrada (750 ms)</option>
-     <option value="auto">Adaptativa (según duración real)</option>
-     <option value="fast">Ágil (350 ms)</option>
-     <option value="efficient">Ahorro (1500 ms)</option>
+     <option value="balanced">Equilibrada</option>
+     <option value="auto">Automática</option>
+     <option value="fast">Rápida</option>
+     <option value="efficient">Ahorro de recursos</option>
     </select>
     {capturePace==='auto'&&<small className="browser-yolo-adaptive" role="status">
      Pausa entre análisis: {autoInterval??750} ms.
@@ -472,7 +472,7 @@ export function YoloBrowserPanel({getSource,getFrameSource,scenarioName,scenario
       <canvas ref={preview} width={960} height={550} role="img"
        aria-label={'Imagen de '+scenarioName+' con los objetos reconocidos'} />
       {sampleCount===0&&<p className="browser-yolo-placeholder">
-       {phase==='loading'?'Preparando red neuronal…':
+       {phase==='loading'?'Preparando el análisis…':
         'Inicia el reconocimiento para analizar la escena.'}
       </p>}
      </div>

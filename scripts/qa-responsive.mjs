@@ -1126,7 +1126,7 @@ try {
           return value?.summary&&!value.error?value:null;
         },'SG01 máscara sobre resultado ONNX');
         if(maskInfo.count!==afterRetry.frames||!maskInfo.summary.includes('píxeles')||
-           !maskInfo.source.includes('simulación 3D'))
+           !maskInfo.source.includes('Escena 3D'))
           throw Error('SG01: máscara no corresponde al fotograma YOLO');
         // Mantener la capa activa hasta concluir SG05 y SG06.
         // Las opciones de ruido y silueta transforman únicamente el render,
@@ -1297,7 +1297,7 @@ try {
         console.log('IA15: cadencia adaptativa en ejecución '+JSON.stringify(adaptiveReported));
         const stopClicked=await cdp.send('Runtime.evaluate',{
           expression:'(() => {const b=Array.from(document.querySelectorAll(".browser-yolo-actions button"))'
-           +'.find(x=>x.textContent.includes("Detener inferencia"));'
+           +'.find(x=>x.textContent.includes("Detener reconocimiento"));'
            +'b?.click();return Boolean(b);})()',returnByValue:true
         });
         if(!stopClicked.result?.value)throw Error('OB05: control Detener no disponible');
@@ -1309,7 +1309,7 @@ try {
             returnByValue:true
           });
           const s=result.result?.value;
-          return s?.panel?.includes('DETENIDO')&&s.monitor?.includes('DETENIDA')&&s.restart?true:null;
+          return s?.panel?.includes('DETENIDO')&&s.monitor?.includes('DETENIDO')&&s.restart?true:null;
         },'OB05 parar tras reanudar');
         console.log('OB05: inferencia YOLO se reanudó, produjo otro fotograma y se detuvo correctamente');
 

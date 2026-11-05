@@ -162,7 +162,16 @@ CÁMARAS EN VIVO · RECONOCIMIENTO</span></header>
       {page === 'Operaciones' && <OperationsPanel repository={sessionRepository}
    onHistory={() => navigate('Historial')} />}
       {(page === 'Administración' || page === 'Configuración') && role !== 'administrador' && <section className="panel empty-page"><h2>Vista restringida</h2><p>Esta vista está reservada al perfil administrador de prueba.</p><button onClick={() => navigate('Resumen')}>Volver al resumen</button></section>}
-      {page === 'Administración' && role === 'administrador' && <section className="panel settings"><h2>Administración del espacio</h2><p>Perfil de prueba. No constituye autenticación de servidor.</p><dl><dt>Usuarios</dt><dd>Gestión pendiente de integración con identidad real.</dd><dt>Escenarios</dt><dd>Cuatro escenarios versionados y reproducibles; administración avanzada pendiente.</dd><dt>Auditoría</dt><dd>Sin registros productivos.</dd></dl></section>}
+      {page === 'Administración' && role === 'administrador' && <section className="panel settings">
+       <h2>Herramientas del espacio</h2>
+       <p>Accede a las funciones de administración disponibles en esta página.</p>
+       <div className="settings-actions">
+        <button type="button" onClick={()=>navigate('Configuración')}>Ajustar análisis</button>
+        <button type="button" onClick={()=>navigate('Historial')}>Consultar historial</button>
+        <button type="button" onClick={()=>navigate('Privacidad')}>Gestionar datos</button>
+       </div>
+       <p>Los perfiles seleccionables son de prueba y no son cuentas personales.</p>
+      </section>}
       {page === 'Configuración' && role === 'administrador' && <><SessionSettings /><section className="panel settings"><h2>Estado de la aplicación</h2><dl><dt>Estado</dt><dd>Disponible para iniciar un análisis</dd><dt>Fuentes de video</dt><dd>Cámaras públicas en directo y cuatro escenarios de simulación 3D</dd><dt>Reconocimiento</dt><dd>Personas y vehículos en cámaras; objetos y protección personal en escenas 3D</dd><dt>Privacidad</dt><dd>Los videos no se graban ni se guardan en la aplicación</dd><dt>Historial</dt><dd>Solo conserva los resultados que decidas guardar</dd><dt>Cuenta</dt><dd>Se usa sin iniciar sesión</dd><dt>Videos públicos</dt><dd>La disponibilidad depende de cada cámara</dd></dl></section></>}
       </ErrorBoundary><footer className="workspace-footer"><span>VISION AI / Visión computacional aplicada</span><span>Cámaras públicas · Detección · Historial</span></footer></main>
     </div>
