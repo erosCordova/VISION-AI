@@ -1,0 +1,89 @@
+/* VISION-AI / Cámara pública con licencia: prioridad funcional y legibilidad. */
+.vision-source-selector{margin:22px 0 18px;display:flex;align-items:center;justify-content:space-between;
+ gap:18px;flex-wrap:wrap;padding:18px 23px;border-radius:14px;background:#102b3a;color:#f0fffb;
+ border:1px solid #2e6470;box-shadow:0 15px 32px #0b29331c}
+.vision-source-selector strong{font:800 17px/1.3 Manrope,sans-serif}
+.vision-source-selector p{margin:6px 0 0;color:#a6c4cb;font-size:12px}
+.vision-source-selector>div:last-child{display:flex;gap:8px;flex-wrap:wrap}
+.vision-source-selector button{border:1px solid #51727d;background:#153544;color:#bdd9de;
+ border-radius:9px;padding:12px 18px;font-size:12px;font-weight:800;cursor:pointer}
+.vision-source-selector button[aria-pressed=true]{background:#80e6c9;color:#092d35;border-color:#8bf5d7}
+.vision-source-selector button:focus-visible,.public-camera-lab button:focus-visible,
+.public-camera-lab select:focus-visible{outline:3px solid #31b9a9;outline-offset:3px}
+.public-camera-lab{margin:0 0 36px;overflow:hidden;border:1px solid #2f6370;
+ border-radius:18px;color:#e7f7f8;background:#071b29;box-shadow:0 25px 60px #061c2b36}
+.public-camera-header{padding:29px clamp(18px,3vw,36px);display:flex;justify-content:space-between;
+ gap:20px;align-items:flex-start;background:linear-gradient(115deg,#123745,#0b283b 62%,#102b32);
+ border-bottom:1px solid #2e5663}
+.public-camera-header h2{font:850 clamp(25px,3vw,37px)/1.14 Manrope,sans-serif;
+ letter-spacing:-.045em;margin:8px 0 10px}
+.public-camera-header p{max-width:680px;color:#a4c5cb;font-size:13px;line-height:1.7;margin:0}
+.public-camera-eyebrow{color:#7df0ce;font-size:10px;font-weight:850;letter-spacing:.12em}
+.public-camera-pill{white-space:nowrap;border:1px solid #6ba8a066;color:#ace3d5;background:#19514655;
+ border-radius:25px;padding:10px 14px;font-size:10px;font-weight:900;letter-spacing:.05em}
+.public-camera-toolbar{display:flex;align-items:end;flex-wrap:wrap;gap:12px;
+ background:#102939;padding:18px clamp(18px,3vw,36px);border-bottom:1px solid #2c4f5d}
+.public-camera-toolbar label{display:grid;gap:7px;min-width:min(390px,100%);flex:0 1 440px;
+ color:#a2d5cf;font-size:11px;font-weight:750}
+.public-camera-toolbar select{background:#081f2d;color:#ecfffb;padding:13px 14px;
+ border:1px solid #46707e;border-radius:9px;font-size:13px;max-width:100%}
+.public-camera-toolbar button,.public-camera-actions button{border-radius:9px;padding:12px 15px;
+ min-height:43px;border:1px solid #577984;background:#1c4251;color:#d6efeb;font-weight:800;font-size:12px}
+.public-camera-toolbar button:hover,.public-camera-actions button:hover{border-color:#90e6cf}
+.public-camera-toolbar button:disabled,.public-camera-actions button:disabled{opacity:.48;cursor:not-allowed}
+.public-camera-refresh{color:#84aab2;font-size:11px;margin-left:auto;padding-bottom:13px}
+.public-camera-layout{display:grid;grid-template-columns:minmax(0,1.85fr) minmax(310px,1fr);
+ gap:0;align-items:stretch}
+.public-camera-viewer{min-width:0;background:#0a1b27;padding:18px}
+.public-camera-frame-top{display:flex;justify-content:space-between;flex-wrap:wrap;
+ align-items:center;gap:6px 12px;margin:0 0 13px;font-size:12px}
+.public-camera-frame-top strong{color:#ecfcf9}
+.public-camera-frame-top span{color:#77cbb7;font-size:10px}
+.public-camera-frame{position:relative;min-height:260px;display:grid;place-items:center;
+ background:#050e19;border:1px solid #2e5664;border-radius:12px;overflow:hidden;aspect-ratio:16/10}
+.public-camera-frame canvas:not([hidden]){width:100%;height:100%;object-fit:contain;display:block}
+.public-camera-frame canvas[hidden]{display:none!important}
+.public-camera-empty{position:absolute;inset:0;display:grid;place-items:center;
+ text-align:center;padding:24px;color:#92b7bf;background:linear-gradient(145deg,#092236,#06111e)}
+.public-camera-attribution{display:flex;align-items:center;justify-content:space-between;
+ flex-wrap:wrap;gap:10px;font-size:10px;font-weight:900;color:#a4eddb;padding:15px 3px 8px}
+.public-camera-attribution a{color:#98d8e6;text-decoration:underline}
+.public-camera-disclaimer{color:#8faeb9;font-size:11px;line-height:1.65;margin:8px 3px}
+.public-camera-analysis{padding:23px;background:linear-gradient(155deg,#103241,#0b2736);
+ border-left:1px solid #2d5b68;min-width:0}
+.public-camera-analysis h3{font:800 22px/1.3 Manrope,sans-serif;margin:6px 0 10px}
+.public-camera-analysis>p{color:#9cc0c5;font-size:12px;line-height:1.65}
+.public-camera-actions{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.public-camera-actions button.primary{background:#85efd1;color:#0b2933;border-color:#95fbe0}
+.public-camera-analysis .public-camera-engine-state{min-height:36px;color:#b1d2d7;
+ font-size:11px;margin:9px 0 14px}
+.public-camera-range{display:grid;gap:9px;color:#d4eee9;font-size:12px;font-weight:750}
+.public-camera-range input{width:100%;accent-color:#72e4c1}
+.public-camera-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:9px;margin:18px 0;padding-bottom:12px;border-bottom:1px solid #2a5963}
+.public-camera-metrics>div{display:grid;gap:8px;min-width:0;padding:12px 11px;
+ background:#092633;border:1px solid #315765;border-radius:10px}
+.public-camera-metrics span{font-size:10px;color:#96bac3;line-height:1.35}
+.public-camera-metrics strong{font:800 19px/1.2 Manrope,sans-serif;color:#e2fff5}
+.public-camera-analysis h4{font-size:13px;letter-spacing:0;margin:13px 0 10px}
+.public-camera-detections{list-style:none;padding:0;margin:0;max-height:250px;overflow:auto}
+.public-camera-detections li{display:flex;justify-content:space-between;gap:10px;
+ padding:9px 4px;border-bottom:1px solid #285260;font-size:12px}
+.public-camera-detections li strong{color:#9af5d3}
+.public-camera-analysis .public-camera-muted{color:#92b3bd;font-size:11px}
+.public-camera-analysis .public-camera-limits{margin-top:18px;border-top:1px solid #325a67;
+ padding-top:15px;font-size:10px;line-height:1.6;color:#b9bbab}
+.public-camera-alert{margin:12px!important;border-left:3px solid #f9b98a;
+ color:#ffdcc5!important;background:#58362f66;padding:11px 14px;font-size:12px!important}
+@media(max-width:1060px){.public-camera-layout{grid-template-columns:1fr}
+ .public-camera-analysis{border-left:0;border-top:1px solid #2d5b68}
+ .public-camera-refresh{margin-left:0}}
+@media(max-width:600px){.vision-source-selector{padding:16px}
+ .vision-source-selector>div:last-child{width:100%}
+ .vision-source-selector button{flex:1;padding:12px 8px}
+ .public-camera-header{padding:20px}.public-camera-pill{display:none}
+ .public-camera-toolbar{padding:15px}.public-camera-toolbar label{min-width:100%}
+ .public-camera-frame{min-height:210px}
+ .public-camera-viewer{padding:12px}
+ .public-camera-analysis{padding:17px}}
+@media(prefers-reduced-motion:reduce){.public-camera-lab *{scroll-behavior:auto!important}}

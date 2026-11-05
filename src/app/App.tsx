@@ -121,7 +121,7 @@ export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin;
     </button>)}</div><section className="ready-banner experience-ready-banner studio-scroll-reveal"><div className="banner-icon">⟡</div>
      <div><span className="experience-banner-eyebrow">02 / INTELIGENCIA OPERATIVA</span>
       <h2>De la simulación a la evidencia</h2><p>Explora escenarios 3D, ejecuta YOLO sobre sus fotogramas y guarda los resultados en tu navegador.</p></div><button onClick={() => navigate('Análisis en vivo')}>Iniciar exploración ↗</button></section></>}
-      {page === 'Análisis en vivo' && <LiveAnalysisPage scenarios={scenarios} scenarioId={scenarioId} onScenarioChange={setScenarioId} sessionRepository={sessionRepository} role={role} apiBaseUrl={origin === 'real' ? apiBaseUrl : null} />}
+      {page === 'Análisis en vivo' && <LiveAnalysisPage scenarios={scenarios} scenarioId={scenarioId} onScenarioChange={setScenarioId} sessionRepository={sessionRepository} role={role} apiBaseUrl={apiBaseUrl} />}
       {page === 'Historial' && <HistoryPanel onAnalyze={() => navigate('Análisis en vivo')} sessionRepository={sessionRepository} />}
       {page === 'Privacidad' && <PrivacyCenter repository={sessionRepository} />}
       {page === 'Visión IA' && <><section className="panel settings"><h2>Detección sobre simulaciones</h2>

@@ -16,7 +16,7 @@ class PublicApiContractTests(unittest.TestCase):
         value = response.json()
         self.assertEqual(value["mode"], "render-free-status-only")
         self.assertEqual(value["engine"], "ONNX Runtime Web en navegador")
-        self.assertEqual(value["source"], "four-3d-simulations-only")
+        self.assertEqual(value["source"], "simulations-and-licensed-public-photos")
         self.assertEqual(set(value["configuredScenarios"]),
                          {"safety", "quality", "retail", "warehouse"})
         self.assertTrue(value["ok"])
