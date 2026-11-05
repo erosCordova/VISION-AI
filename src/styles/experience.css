@@ -517,3 +517,15 @@ body{background:#eaf1f3;color:#1d3440}
  .experience-hero-actions button:hover{transform:none!important}
  .experience-scenario-art{transition:none!important}
 }
+
+/* Firma legible para el modo móvil sin abrir el menú lateral. */
+.experience-mobile-brand{display:none}
+@media(max-width:760px){
+ .experience-shell .experience-mobile-brand{
+  display:inline-flex!important;flex:1;align-items:baseline;
+  gap:2px;font-family:Manrope,sans-serif;font-weight:850;
+  font-size:17px;letter-spacing:-.06em;color:#143c4c;
+ }
+ .experience-shell .experience-mobile-brand span{color:#159c87}
+ .experience-shell .topbar .profile-control{margin-left:auto;flex:0 0 auto}
+}

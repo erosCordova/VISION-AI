@@ -201,6 +201,12 @@ try {
          d.artLabels?.some(x=>!x?.startsWith('Abrir simulación:')))
           throw Error('UX25: portada inmersiva incompleta a '+width+' px: '+JSON.stringify(d));
         if(width===360){
+          const signature=await cdp.send('Runtime.evaluate',{
+            expression:'document.querySelector(".experience-mobile-brand")?.textContent?.trim()',
+            returnByValue:true
+          });
+          if(!signature.result?.value?.includes('VISION'))
+            throw Error('UX25: falta marca visible en navegación móvil');
           await cdp.send('Runtime.evaluate',{
             expression:'document.querySelector(".menu-button")?.click()'
           });
@@ -237,6 +243,15 @@ try {
       // La cifra corresponde al tiempo observado por CDP en CI, no a Web Vitals.
       if(sample.pageReadyMs<=0||sample.pageReadyMs>30000)
         throw Error('PF01: navegación fuera de presupuesto de 30 s: '+JSON.stringify(sample));
+      if(name==='resumen'&&width>760){
+        await eventually(async()=>{
+          const x=await cdp.send('Runtime.evaluate',{
+            expression:'Number(getComputedStyle(document.querySelector(".experience-hero")).opacity)',
+            returnByValue:true
+          });
+          return x.result?.value>=.999;
+        },'UX25 portada totalmente visible tras entrada animada');
+      }
       const capture = await cdp.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false });
       fs.writeFileSync(path.join(artifacts, name + '-' + width + '.png'), Buffer.from(capture.data, 'base64'));
       if (name === 'analisis') {

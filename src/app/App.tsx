@@ -66,7 +66,8 @@ export function App({ origin, apiBaseUrl, sessionRepository }: { origin: Origin;
       </div>
     </aside>
     <div className="workspace"><header className="topbar"><button className="menu-button" aria-label={menu?'Cerrar navegación':'Abrir navegación'}
- aria-expanded={menu} onClick={() => setMenu(!menu)}>{menu?'✕':'☰'}</button><span className="experience-breadcrumb">VISION AI <span className="breadcrumb">/ {page}</span></span><label className="profile-control">Perfil de prueba<select aria-label="Perfil de prueba" value={role} onChange={e => setRole(e.target.value)}>{['operador','supervisor','administrador','auditor'].map(r => <option key={r} value={r}>{r[0].toUpperCase()+r.slice(1)}</option>)}</select></label><span className="mode-badge"><span aria-hidden="true" className="experience-status-dot"/>
+ aria-expanded={menu} onClick={() => setMenu(!menu)}>{menu?'✕':'☰'}</button><span className="experience-mobile-brand" aria-label="VISION AI">
+ VISION<span>AI</span></span><span className="experience-breadcrumb">VISION AI <span className="breadcrumb">/ {page}</span></span><label className="profile-control">Perfil de prueba<select aria-label="Perfil de prueba" value={role} onChange={e => setRole(e.target.value)}>{['operador','supervisor','administrador','auditor'].map(r => <option key={r} value={r}>{r[0].toUpperCase()+r.slice(1)}</option>)}</select></label><span className="mode-badge"><span aria-hidden="true" className="experience-status-dot"/>
  4 ESCENARIOS · YOLO EN NAVEGADOR</span></header>
       <main id="contenido" tabIndex={-1}>{page !== 'Resumen'&&<div className="page-heading"><div><span className="eyebrow">VISIÓN COMPUTACIONAL</span><h1>{page}</h1><p>{page === 'Análisis en vivo' ? 'Cuatro simulaciones industriales 3D con análisis YOLO real de sus fotogramas.' : page === 'Historial' ? 'Sesiones y evidencias de tus análisis.' : 'Estado del entorno y capacidades disponibles.'}</p></div></div>}
       <ErrorBoundary key={page + role}>
