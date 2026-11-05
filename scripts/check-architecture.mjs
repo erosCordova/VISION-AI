@@ -34,5 +34,27 @@ for (const file of walk(root)) {
   }
   inspect(source);
 }
+// Evitar que una refactorización vuelva a concentrar la lógica en carpetas heredadas.
+const requiredPaths=[
+ 'app/router/navigation.ts','app/layout/Sidebar.tsx','app/layout/AppHeader.tsx',
+ 'app/providers/AppProviders.tsx','modules/analysis/pages/LiveAnalysisPage.tsx',
+ 'modules/analysis/pages/LiveTrafficAnalysis.tsx',
+ 'modules/detections/components/YoloBrowserPanel.tsx',
+ 'modules/segmentation/services/chromatic-segmentation.ts',
+ 'modules/patterns/services/operational-rule-engine.ts',
+ 'modules/alerts/pages/OperationsPanel.tsx',
+ 'modules/history/pages/HistoryPanel.tsx',
+ 'modules/scenarios/pages/InteractiveSimulator.tsx',
+ 'modules/dashboard/pages/SessionsDashboard.tsx',
+ 'modules/settings/pages/SessionSettings.tsx',
+ 'core/contracts/live-observation-contract.ts',
+ 'infrastructure/persistence/LocalAnalysisRepository.ts',
+ 'shared/hooks/useLiveObservationRepository.ts'
+];
+for(const file of requiredPaths)if(!fs.existsSync(path.join(root,file)))
+ failures.push('Falta pieza real de la arquitectura 5.2: src/'+file);
+for(const legacy of ['modules/live','modules/camera','modules/operations','types'])
+ if(fs.existsSync(path.join(root,legacy)))failures.push('Directorio heredado: src/'+legacy);
+
 if (failures.length) { console.error(failures.join('\n')); process.exitCode = 1; }
 else console.log('Arquitectura: contratos y núcleo independientes; composición de adaptadores centralizada.');

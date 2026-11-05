@@ -19,7 +19,7 @@ no a precisión ni rendimiento de la red neuronal.
   cargas de imágenes, PyTorch ni base de datos.
 - **Persistencia:** IndexedDB del navegador, con guardado explícito,
   revisiones humanas, exportaciones CSV/JSON y privacidad local.
-- **Entradas:** fotogramas de cámaras públicas HLS o escenas 3D.
+- **Entradas:** videos de cámaras públicas autorizadas y escenas 3D.
   **No utiliza la cámara del dispositivo ni requiere datasets**.
 - **Limitaciones:** ni la confianza YOLO ni las cajas constituyen
   verificación de seguridad, precisión mAP, inspección certificada
@@ -40,19 +40,30 @@ no a precisión ni rendimiento de la red neuronal.
 
 ### Recorrido principal
 
-1. Abrir **Análisis en vivo**, elegir escenario y cámara 3D.
-2. Entrar en **YOLO real** y pulsar **Iniciar YOLO real**.
-3. Observar cajas, etiquetas, confianza y tiempos medidos por
-   preparación → ONNX → posprocesamiento.
-4. Ajustar filtros **visuales** o cadencia adaptativa/manual sin
-   modificar los resultados originales.
-5. Guardar sesión; consultar **Historial**, revisar indicios en
-   **Operaciones**, exportar CSV/JSON o informe A4.
-6. Consultar **Privacidad** para gestión de IndexedDB y borrado
-   voluntario con confirmación explícita.
+1. Abrir **Análisis en vivo** y elegir una cámara pública o un escenario 3D.
+2. Iniciar el reconocimiento visual y comprobar resultados sobre la imagen.
+3. Ajustar los filtros visibles y detener el reconocimiento cuando sea necesario.
+4. Guardar voluntariamente los resultados; consultar **Historial**, **Operaciones**
+   y **Resumen**, y exportar los informes correspondientes.
+5. Revisar preferencias y privacidad de los datos guardados en el navegador.
 
-Los modelos pueden devolver cero detecciones sobre geometría
-estilizada. Nunca se generan cajas falsas para ocultarlo.
+Los modelos pueden no reconocer todos los elementos de una escena; la
+aplicación no inventa detecciones para ocultar resultados vacíos.
+
+## Organización del código
+
+El proyecto sigue la [arquitectura funcional de la sección 5.2](docs/arquitectura.md).
+Las vistas, servicios, reglas y pruebas se encuentran distribuidos por
+responsabilidad: `app/router`, `app/providers`, `app/layout`;
+`modules/analysis`, `detections`, `segmentation`, `patterns`,
+`alerts`, `history`, `scenarios`, `dashboard`, `settings`;
+`core/domain|application|ports|contracts`;
+`infrastructure/vision|persistence`, `shared/ui|hooks|utils|types`
+y `tests/unit|integration|e2e`.
+La portada inmersiva conserva el módulo `experience`.
+
+`server/api/app.py` expone la misma instancia FastAPI para Docker,
+sin alterar el despliegue Python gratuito de Render.
 
 ## Instalación y pruebas
 
@@ -100,6 +111,7 @@ Los tests de Chromium de extremo a extremo se ejecutan en
 
 - [Manual de usuario](docs/manual/Manual_Usuario_VISION_AI.md).
 - [Manual técnico](docs/manual/Manual_Tecnico_VISION_AI.md).
+- [Arquitectura modular vigente (sección 5.2)](docs/arquitectura.md).
 - [Despliegue gratuito, seguridad y rollback](docs/despliegue_gratuito.md).
 - [Docker local y pruebas aisladas](docs/docker_local.md).
 - [Acta de entrega de Fase 16](docs/fase16_operacion_entrega.md).

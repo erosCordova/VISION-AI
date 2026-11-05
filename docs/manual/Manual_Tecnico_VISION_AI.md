@@ -1,28 +1,37 @@
 # Manual técnico y de mantenimiento — VISION-AI
 
-**Arquitectura vigente:** Vite + React + TypeScript + Three.js/WebGL,
-ONNX Runtime Web/WASM y FastAPI mínimo de estado. Se trabaja sin
-datasets, webcam, archivos subidos o inferencia pagada.
+**Arquitectura vigente:** React, TypeScript, Vite, escenas 3D,
+reconocimiento local en navegador y FastAPI de estado.
+Admite video público de tráfico en directo y simulaciones 3D, sin
+cámara personal ni servicios de inferencia pagados.
 
-## Estructura de la solución
+## Estructura de la solución — sección 5.2
 
-- `src/modules/live/`: simulación 3D, escena humana, captura del
-  mismo fotograma renderizado, análisis ONNX, NMS y telemetría.
-- `src/modules/live/YoloBrowserPanel.tsx`: selector de modelos,
-  pausa/reintento/cadencia, evidencia PNG, resultados y perfil ONNX.
-- `src/modules/live/yolo-browser.ts`: carga bajo demanda y
-  SHA-256 de pesos, preprocesamiento letterbox, canal CHW y WASM.
-- `src/modules/live/yolo-postprocess.ts`: decodificación
-  [1,4+C,N] / [1,N,4+C] y NMS por clase.
-- `src/infrastructure/persistence/simulation-session-store.ts`:
-  sesiones y revisiones persistentes en IndexedDB.
-- `src/modules/history/session-reports.ts`: CSV/JSON derivados de
-  registros locales válidos.
-- `backend/app/main.py`: API status-only, sin motores IA, almacenamiento
-  ni endpoints para subir archivos.
-- `tests/`, `tests/ts/`, `scripts/qa-responsive.mjs`:
-  pruebas de dominio, backend, navegador, cuatro escenarios y
-  métricas medidas, con capturas/artifacts del runner.
+La implementación vigente se encuentra documentada en
+[Arquitectura funcional](../arquitectura.md).
+
+- `src/app/router`: rutas, navegación y estado de vista.
+- `src/app/layout`: sidebar y barra superior.
+- `src/app/providers` y `bootstrap.ts`: provisión de repositorios
+  y composición de dependencias.
+- `src/modules/analysis`: origen de video, recuperación, análisis y validación.
+- `src/modules/detections`: ejecución del modelo en navegador y postprocesamiento.
+- `src/modules/segmentation`: máscaras reales por contraste.
+- `src/modules/patterns` y `src/modules/alerts`: análisis de observaciones
+  repetidas y revisión humana.
+- `src/modules/scenarios`: simulaciones 3D, geometría y movimiento.
+- `src/modules/dashboard`, `history`, `settings`:
+  indicadores, informes, configuración y privacidad.
+- `src/core/domain|application|ports|contracts`:
+  núcleo, casos de uso, abstracciones y validadores.
+- `src/infrastructure/persistence`: almacenamiento local versionado.
+- `src/shared/ui|hooks|utils|types` y `src/styles`: recursos comunes.
+- `tests/unit|integration|e2e`: validación automatizada.
+- `server/api/app.py`: entrada Docker hacia el backend FastAPI real.
+  Render Free conserva su ruta Python actual.
+
+Se mantiene `src/modules/experience` por la portada inmersiva.
+No se crean módulos vacíos de visión remota que hoy no se ejecutan.
 
 ## Flujo de inferencia
 

@@ -37,7 +37,7 @@ jobs:
         run: npm run build
 
       - name: QA responsive en Chromium (360, 768 y 1440 px)
-        run: node scripts/qa-responsive.mjs
+        run: node tests/e2e/qa-responsive.mjs
       - name: Guardar capturas del QA
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

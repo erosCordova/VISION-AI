@@ -8,7 +8,7 @@ import {OutputPass} from 'three/examples/jsm/postprocessing/OutputPass.js';
 import {RoomEnvironment} from 'three/examples/jsm/environments/RoomEnvironment.js';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
 import {clone as cloneSkeleton} from 'three/examples/jsm/utils/SkeletonUtils.js';
-import {humanAssetFor,motionClipName} from '../live/human-assets';
+import {humanAssetFor,motionClipName} from '../scenarios/data/human-assets';
 
 export const WORLD_KEYS=['safety','quality','warehouse','retail'] as const;
 export type WorldKey=typeof WORLD_KEYS[number];

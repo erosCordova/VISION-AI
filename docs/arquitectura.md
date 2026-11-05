@@ -1,70 +1,109 @@
-# Fase 5 — Arquitectura modular y base técnica
+# Arquitectura funcional de VISION-AI — adecuación a la sección 5.2
 
-Versión: 0.5.0. Fecha: 2026-11-03. Alcance: frontend compilable, contratos y adaptadores de referencia; sin despliegue ni inferencia conectada.
+**Base:** «Especificación funcional y arquitectura | Visión Computacional IA»,
+sección 5.2 «Estructura de carpetas sugerida» (noviembre de 2026).
 
-## Dependencias y composición
+Esta estructura refleja el **código efectivamente ejecutado**, no
+carpetas vacías ni funcionalidades simuladas como operativas.
+La migración conserva las rutas públicas, las sesiones locales y los
+cuatro escenarios 3D, así como las cámaras públicas de tránsito.
 
-```mermaid
-flowchart TD
-    UI["Aplicación React"] --> APP["Casos de uso"]
-    APP --> DOMAIN["Dominio y validadores"]
-    APP --> PORTS["Puertos de visión y repositorio"]
-    INFRA["Adaptadores de infraestructura"] --> PORTS
+## Estructura vigente
+
+```text
+src/
+  app/
+    router/                 navegación y control de vistas
+    providers/              contexto de persistencia local
+    layout/                 sidebar, barra superior
+    App.tsx                 coordinación de páginas
+    bootstrap.ts            composición de adaptadores
+  modules/
+    dashboard/              pages/ components/ services/
+    analysis/               pages/ components/ hooks/ services/ validators/
+    detections/             components/ services/
+    segmentation/           services/
+    patterns/               services/
+    alerts/                 pages/ components/ services/
+    history/                pages/ components/ export/
+    scenarios/              pages/ components/ data/ services/
+    settings/               pages/ services/
+    experience/             portada y componentes inmersivos
+  core/
+    domain/                 entidades y reglas de negocio
+    application/            caso de uso
+    ports/                  contratos abstractos
+    contracts/              validación de observaciones
+  infrastructure/
+    vision/                 motor no disponible explícitamente
+    persistence/            repositorios y almacenamiento local
+  shared/
+    ui/ hooks/ utils/ types/
+  styles/                   estilos de la aplicación
+tests/
+  unit/                     validadores y algoritmos
+  integration/              persistencia, contratos y arquitectura
+  e2e/                      navegación y pruebas reales en Chromium
+server/
+  api/                      entrada ASGI hacia FastAPI de backend/app
+backend/
+  app/                      API Python existente en Render Free
 ```
 
-La composición se centraliza en src/app/bootstrap.ts. Las vistas no importan adaptadores, y el dominio no importa React, almacenamiento, red ni componentes. El chequeo de arquitectura analiza imports con la API de TypeScript y rechaza accesos de plataforma en el núcleo. Se probó una importación prohibida de React y el chequeo la rechazó.
+## Responsabilidades y dependencias
 
-## Estructura implementada
+1. **Interfaz:** `app/layout` y páginas de `modules` consumen servicios
+   y contratos del dominio; no importan repositorios concretos.
+2. **Detecciones:** descarga y ejecución del reconocimiento en el
+   navegador, sin usar CPU de Render ni inventar resultados.
+3. **Análisis:** orígenes de video público, recuperación de transmisiones,
+   captura y correlación con resultados; **Segmentation** proporciona
+   máscaras locales y **Patterns** clasifica observaciones repetidas.
+4. **Alerts** reúne las observaciones que requieren revisión humana.
+   No es un sistema certificado ni emite infracciones automáticas.
+5. **Scenarios** mantiene las escenas 3D, movimiento y parámetros.
+6. **Core** no usa `window`, `fetch`, `indexedDB` ni React; los
+   datos persistentes se validan mediante contratos.
+7. **Infraestructura** implementa los repositorios usados por `bootstrap`.
+   Los registros existentes permanecen en el mismo IndexedDB;
+   **no se cambia esquema ni se borran datos**.
+8. **Server/API:** `server/api/app.py` reexporta la aplicación FastAPI
+   real, utilizada por Docker. Render sigue usando
+   `backend.app.main:app`, conservando su configuración gratuita.
 
-| Ruta | Responsabilidad |
-| --- | --- |
-| src/main.tsx | Entrada, montaje y mensaje público ante configuración inválida. |
-| src/app | Pantalla técnica inicial y composición de dependencias. |
-| src/core/domain | Entidades, geometría, errores, validadores y transiciones. |
-| src/core/ports | Interfaces VisionEngine y AnalysisRepository. |
-| src/core/application | Frontera que valida entrada y salida del motor inyectado. |
-| src/infrastructure/persistence | Repositorio VOLÁTIL de contrato, copias y restauración validada. |
-| src/infrastructure/vision | Motor no conectado que falla explícitamente. |
-| src/shared | Configuración pública validada. |
-| src/modules | Espacio reservado a módulos de la Fase 6; sin carpetas vacías ficticias. |
-| tests/ts | Pruebas de contratos, repositorio, motor y configuración. |
-| scripts | Guard de dependencias de arquitectura. |
-| tools y tests | Referencias y pruebas Python de fases previas. |
+## Adaptaciones justificadas frente al árbol sugerido
 
-## Contratos tipados
+- El documento incluye nombres como `DemoVisionAdapter.ts`,
+  `ApiVisionAdapter.ts` y módulos de visión Python en
+  `server/vision`. **No se crean adaptadores o algoritmos falsos**:
+  la inferencia real está en `modules/detections/services` y el
+  endpoint remoto `/infer` sigue deshabilitado (HTTP 503).
+- `modules/experience` permanece como módulo adicional: la portada
+  inmersiva ya está implementada y no corresponde a escenarios ni
+  a los controles de reconocimiento.
+- La segmentación cuenta con servicios matemáticos reales, pero
+  **no tiene una página independiente** porque no existe un flujo de
+  trabajo de segmentación autónomo en el producto actual.
+- `backend/app` conserva la implementación de FastAPI para no
+  alterar el despliegue Render Free. `server/api` es una entrada
+  equivalente utilizada por Docker; no duplica la lógica de la API.
+- La separación por módulos de interfaz es funcional; cualquier
+  separación posterior del motor de navegador en un adaptador adicional
+  debe mantener compatibilidad de datos y pruebas.
 
-AnalysisInput conserva ID, correlación, actor, organización, recurso orientado y configuración versionada. La fuente exige assetId, SHA-256, dimensiones y orientation=already-oriented. El contrato limita dimensiones y píxeles según los presupuestos propuestos; no decodifica el archivo ni mide memoria por sí solo.
+## Aseguramiento de la estructura
 
-VisionEngine recibe esa entrada y devuelve unknown en la frontera: el caso de uso la valida antes de considerarla VisionResult. El adaptador debe declarar origen y no puede cambiar de DEMO a REAL silenciosamente. Los motores de fixture usados en tests viven solo en tests/ts; no constituyen un detector.
+El registro verificable de los movimientos está en
+`scripts/architecture-layout.json`. La comprobación automática
+`npm run check:architecture` examina importaciones y evita volver
+a crear directorios heredados. Las pruebas `tests/integration`
+comprueban rutas existentes y ausencia de rutas antiguas.
 
-VisionResult valida identidad, huella, versión de escenario, clases habilitadas, IDs únicos, cajas, máscaras RLE y evidencia de patrones. El resultado real exige modelVersion; un resultado demo no se presenta como modelo entrenado. Las máscaras se refieren a la imagen canónica y los patrones a evidencias existentes.
+Para probar de extremo a extremo: `npm run check`,
+`npm run build`, pruebas Python y
+`node tests/e2e/qa-responsive.mjs`. GitHub Actions ejecuta
+la suite antes de publicar en `main`.
 
-AnalysisRepository permite crear, consultar, listar, cambiar estado y guardar resultado con comparación de versión. commitResult valida y prepara el resultado y el estado antes de un único reemplazo; transition no permite marcar completed sin ese resultado. Las lecturas y escrituras usan copias para no filtrar referencias mutables.
-
-## Persistencia y migración
-
-El adaptador de esta fase usa un Map y es **volátil**: sus datos se pierden al recargar o crear otra instancia. No se presenta como persistencia del usuario ni como IndexedDB. Su finalidad es probar el contrato y el comportamiento atómico dentro del proceso JavaScript.
-
-El formato analysis-repository-v1 conserva una lista de AnalysisRecord. restoreSnapshot valida la versión, todos los registros y los IDs únicos antes de reemplazar el mapa completo. Una copia corrupta o de versión desconocida se rechaza y deja intacta la actual.
-
-Solo hay esquema v1; no se inventa una migración desde versiones que aún no existen. Antes de cambiarlo: exportar copia, definir migración pura, validar resultado completo, probar compatibilidad y cambiar almacén solo después. La persistencia durable y sus transacciones, cuota e interrupciones reales se implementan en Fase 7. Una restauración válida reemplaza el contenido del adaptador y requiere confirmación cuando la futura UI la exponga.
-
-## Estados y validación temporal
-
-Se conservan los estados de Fase 4, la correlación y el control de versión. Internamente TypeScript utiliza instantes UTC canónicos con milisegundos; un límite de API que reciba otras zonas deberá normalizarlas antes de crear registros. Esto no cambia la comparación de instantes especificada en Fase 4.
-
-El motor no conectado siempre devuelve ENGINE_UNAVAILABLE. Tener VITE_VISION_MODE=real y URL válida no activa un modelo: todavía no existe ApiVisionAdapter real. La pantalla indica que el motor no está conectado. El adaptador demo de escenarios se integrará en Fase 7 y el real en Fase 15.
-
-## Seguridad de configuración
-
-VITE_* es público y se incluye en el cliente; no poner claves ni contraseñas. La configuración admite demo por defecto. Real exige URL base HTTPS, salvo HTTP local para desarrollo. Se rechazan credenciales en URL, consulta y fragmento para no incluir secretos ni alterar la ruta base por accidente. Esto no sustituye la autorización de un servidor ni es un validador de destinos SSRF de backend.
-
-## Decisiones de herramientas
-
-React y Vite se utilizan según el plan; TypeScript es estricto y Vitest prueba el núcleo sin DOM. Se seleccionó TypeScript 6.0.3 porque el guard usa su API de compilador; TypeScript 7.0.2 probado en este entorno expone su CLI pero no esa API y no se mantuvo en las dependencias finales. Las dependencias directas están fijadas y package-lock.json conserva resoluciones e integridad.
-
-Referencias consultadas: [React con una herramienta de compilación](https://react.dev/learn/build-a-react-app-from-scratch), [Vite](https://vite.dev/guide/) y [React con TypeScript](https://react.dev/learn/typescript). Las versiones efectivas se verificaron además con metadatos del registro e instalación local.
-
-## Ampliación D12: YOLO y tiempo real
-
-Los cuatro escenarios pasan a operar con cámara en vivo. La especificación vigente, los estados de sesión, límites de carga, reglas temporales y los diez casos RT pendientes se detallan en [YOLO y tiempo real](tiempo_real_yolo.md). Los diagramas y las pruebas previas conservan su función de referencia; no acreditan inferencia ni seguimiento real. La Fase 6 incorpora selección de cámara, Iniciar, Pausar y Detener, permisos, preview y estados de conexión. La integración YOLO real continúa pendiente de implementación y evaluación.
+**Nota de alcance:** renombrar carpetas no modifica los modelos,
+no requiere desplegar nuevamente el backend y no convierte la
+interfaz en un sistema de videovigilancia.
