@@ -1,10 +1,12 @@
 # Despliegue gratuito y verificación de VISION-AI — Fase 16
 
-**Versión vigente:** dos fuentes en Análisis en vivo: cámaras públicas
-TfL (fotografías JPEG periódicas) y cuatro simulaciones 3D; ambas con
-YOLO ONNX/WASM en navegador. Sin cámara personal ni datasets.
-El frontend React/Vite está en Vercel, que también realiza dos
-reescrituras HTTPS controladas hacia fotografías TfL. Render conserva
+**Versión vigente:** dos fuentes en Análisis en vivo: video HLS continuo
+SDOT (con detección YOLO ONNX/WASM en el navegador) y cuatro simulaciones 3D.
+Las fotografías TfL quedan como adaptador heredado no seleccionado en la UI. Sin cámara personal ni datasets.
+El frontend React/Vite está en Vercel. El video HLS SDOT llega
+DIRECTAMENTE del proveedor al navegador, sin reescrituras ni consumo de
+banda de video en Vercel. Las dos reescrituras JPEG heredadas de TfL
+no forman parte del flujo HLS. Render conserva
 una API opcional de estado, sin modelo ni dependencia para las cámaras.
 
 ## Separación real de responsabilidades
@@ -139,3 +141,20 @@ seguridad certificada, inferencia remota, sincronización entre
 dispositivos, segmentación YOLO-seg, mAP calculado con etiquetas,
 SLA de disponibilidad ni garantía de cero cargos si se activan
 servicios o recursos ajenos al Free/Hobby.
+
+## Directo HLS SDOT
+
+- El usuario elige una cámara de la lista cerrada `live-traffic-sources.ts`.
+- Hls.js 1.7.3 se carga desde CDN solo al iniciar un video (sin instalar npm
+  adicional ni consumir builds de servidor).
+- Se exige manifiesto HLS LIVE y avance real del tiempo de reproducción.
+- Tras solicitarlo, YOLOv8n COCO analiza un fotograma nuevo a la vez;
+  **los resultados se dibujan sobre el fotograma exacto inferido**, no
+  sobre el video vivo que ya avanzó.
+- No se guarda ni redistribuye la señal. No se descargan clips.
+- En el caso de CORS no permisivo, origen caído o media desconectado,
+  mostrar error verificable y permitir otra cámara.
+- La latencia de streaming se estima por el proveedor; no prometer 0 ms.
+- Las cámaras se publican por Seattle Department of Transportation (SDOT)
+  para monitoreo de tráfico: https://web.seattle.gov/travelers .
+  La autorización para uso comercial o retransmisión requiere revisión.
