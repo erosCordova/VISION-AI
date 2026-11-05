@@ -176,6 +176,38 @@ try {
           || (name === 'analisis' && (!view.hasSimulationOnly || !view.noExternalSources || !view.hasYoloModeSwitch || !view.hasSimulatorStage || !view.hasSimulatorControls || !view.hasCameraPresets || !view.hasHumanMode || !view.hasHumanCanvas || !view.hasSyntheticDisclosure || !view.hasSyntheticLabel || !view.hasScenarioTabs || !view.hasAnalytics || !view.hasActivityChart || !view.hasMiniMap || !view.hasKPIs || !view.hasNoMonitorBeforeYolo))) {
         throw Error('QA falló (' + width + ' px, ' + name + '): ' + JSON.stringify(view));
       }
+      if(name==='resumen'){
+        const design=await cdp.send('Runtime.evaluate',{
+          expression:'(() => ({hero:!!document.querySelector(".experience-hero"),'
+           +'canvas:document.querySelector(".experience-hero-canvas")?.width,'
+           +'title:document.querySelector(".experience-hero h1")?.textContent,'
+           +'buttons:document.querySelectorAll(".experience-hero-actions button").length,'
+           +'cards:document.querySelectorAll(".experience-scenario-grid .scenario-card").length,'
+           +'arts:document.querySelectorAll(".experience-scenario-grid .experience-scenario-art").length,'
+           +'motion:document.querySelector(".experience-motion-toggle")?.textContent?.trim(),'
+           +'artLabels:Array.from(document.querySelectorAll(".experience-scenario-grid .scenario-card"))'
+           +'.map(x=>x.getAttribute("aria-label"))}))()',
+          returnByValue:true
+        });
+        const d=design.result?.value;
+        if(!d?.hero||!d.canvas||d.title!=='Una visión clara de tu operación'||
+         d.buttons!==2||d.cards!==4||d.arts!==4||!d.motion||
+         d.artLabels?.some(x=>!x?.startsWith('Abrir simulación:')))
+          throw Error('UX25: portada inmersiva incompleta a '+width+' px: '+JSON.stringify(d));
+        if(width===360){
+          const checkMenu=await cdp.send('Runtime.evaluate',{
+            expression:'(() => {const m=document.querySelector(".menu-button");'
+             +'if(!m)return null;m.click();'
+             +'const open=m.getAttribute("aria-expanded");'
+             +'const scrim=document.querySelector(".experience-nav-scrim");'
+             +'scrim?.click();return {open,after:m.getAttribute("aria-expanded"),scrim:!!scrim};})()',
+            returnByValue:true
+          });
+          if(checkMenu.result?.value?.open!=='true'||!checkMenu.result.value.scrim)
+           throw Error('UX25: menú móvil sin capa de cierre');
+        }
+        console.log('UX25: portada WebGL, 4 tarjetas originales y navegación responsive a '+width+' px');
+      }
       const metrics=await cdp.send('Performance.getMetrics');
       const rawHeap=metrics.metrics?.find(x=>x.name==='JSHeapUsedSize')?.value;
       const sample={

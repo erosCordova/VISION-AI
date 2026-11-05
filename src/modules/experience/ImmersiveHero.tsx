@@ -176,7 +176,7 @@ export function ImmersiveHero({onExplore,onHistory,sessionCount}:Props){
    <div className="experience-overline"><i aria-hidden="true"/>VISION AI / LABORATORIO DE VISIÓN
     <span>EDICIÓN 2026</span></div>
    <p className="experience-kicker">SIMULACIÓN 3D + INTELIGENCIA ARTIFICIAL</p>
-   <h1>Una visión <em>clara</em><br/>de tu operación</h1>
+   <h1>Una visión <em>clara</em>{' '}<br/>de tu operación</h1>
    <p className="experience-hero-description">Cuatro mundos industriales simulados.
     Una inteligencia que observa sus fotogramas. Explora, analiza y
     convierte cada escena en evidencia verificable, directamente en tu navegador.</p>
