@@ -52,6 +52,8 @@
   ],
   "git": {
     "deploymentEnabled": {
+      "test/architecture-52-verified": false,
+      "test/architecture-52-candidate": false,
       "test/architecture-52-alignment": false
     }
   }
