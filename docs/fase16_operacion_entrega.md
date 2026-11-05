@@ -9,7 +9,7 @@ requiere CI integral y comprobación del servicio Render real.
 
 | ID | Condición | Evidencia |
 | --- | --- | --- |
-| RF01 | Guía de uso en la aplicación, en español | Chromium comprueba 3 pasos, navegación y manual |
+| RF01 | Herramienta de reconocimiento accesible en «Visión IA» | Chromium comprueba fuente 3D, cámaras públicas, controles y acceso a historial |
 | RF02 | Doce recorridos responsive y cuatro modelos/escenas YOLO | CI GitHub Actions |
 | RF03 | Frontend publicado en Vercel con SHA exacto y estado READY | API de despliegues Vercel + HTTPS |
 | RF04 | Backend Render Free identificado, plan comprobado y /health real | API del workspace Render confirmado |
