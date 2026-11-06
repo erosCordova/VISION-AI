@@ -1493,6 +1493,70 @@ try {
   },'RF01 laboratorio interactivo con reconocimiento y acceso a historial');
   console.log('RF01: Visión IA activa en escena 3D y controles de cámara disponibles');
   
+  // UI27: verificar el color COMPUTADO del fondo, no solo declaraciones CSS.
+  // Cubre el acceso directo y el laboratorio, que comparten el módulo de cámara.
+  for(const [route,buttonClass,buttonLabel] of [
+   ['#An%C3%A1lisis%20en%20vivo','.vision-source-selector button','Video público en directo'],
+   ['#Visi%C3%B3n%20IA','.vision-workspace-source','Cámaras públicas']
+  ]){
+   await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/'+route});
+   await eventually(async()=>{
+    const result=await cdp.send('Runtime.evaluate',{
+     expression:'(() => {'
+      +'const b=Array.from(document.querySelectorAll('+JSON.stringify(buttonClass)+'))'
+      +'.find(x=>x.textContent.includes('+JSON.stringify(buttonLabel)+'));'
+      +'if(!b)return false;b.click();return true;})()',
+     returnByValue:true
+    });
+    return result.result?.value===true;
+   },'UI27 activar cámara '+route);
+   const snapshot=await eventually(async()=>{
+    const result=await cdp.send('Runtime.evaluate',{
+     expression:'(() => {'
+      +'const w=document.querySelector(".neo-shell .workspace");'
+      +'const camera=document.querySelector(".live-traffic-lab");'
+      +'if(!w||!camera)return null;'
+      +'const color=x=>getComputedStyle(document.querySelector(x)).backgroundColor;'
+      +'return {page:color(".neo-shell .workspace"),'
+      +'header:color(".live-traffic-head"),bar:color(".live-traffic-bar"),'
+      +'videoPanel:color(".live-traffic-stream-column"),'
+      +'resultPanel:color(".live-traffic-inference"),'
+      +'video:!!camera.querySelector("video"),canvas:!!camera.querySelector("canvas")};})()',
+     returnByValue:true
+    });
+    const colors=result.result?.value;
+    return colors?.page==='rgb(217, 238, 255)'?colors:null;
+   },'UI27 fondo azul hielo visible '+route);
+   if(snapshot.header!=='rgb(220, 239, 255)'||
+      snapshot.bar!=='rgb(223, 242, 255)'||
+      snapshot.videoPanel!=='rgb(213, 236, 255)'||
+      snapshot.resultPanel!=='rgb(216, 236, 255)'||
+      !snapshot.video||!snapshot.canvas)
+    throw Error('UI27: colores visibles incorrectos en '+route+': '+JSON.stringify(snapshot));
+   const screenshot=await cdp.send('Page.captureScreenshot',{
+    format:'png',captureBeyondViewport:false
+   });
+   fs.writeFileSync(path.join(artifacts,
+    route.includes('An%C3')?'fondo-azul-camaras.png':'fondo-azul-laboratorio.png'),
+    Buffer.from(screenshot.data,'base64'));
+   console.log('UI27: color de fondo azul hielo verificado '+route+': '+JSON.stringify(snapshot));
+   if(route.includes('An%C3')){
+    const restored=await eventually(async()=>{
+     const result=await cdp.send('Runtime.evaluate',{
+      expression:'(() => {'
+       +'const b=Array.from(document.querySelectorAll(".vision-source-selector button"))'
+       +'.find(x=>x.textContent.includes("Simulaciones 3D"));'
+       +'if(!b)return false;b.click();'
+       +'return true;})()',
+      returnByValue:true
+     });
+     return result.result?.value===true;
+    },'UI27 volver a simulación 3D');
+    if(!restored)throw Error('UI27: retorno a simulación no disponible');
+   }
+  }
+  console.log('UI27: dos rutas con fondo azul verificado en navegador y capturas.');
+
   // A11Y02: sistema con movimiento reducido; render y fotogramas
   // deben detenerse al entrar en la simulación, sin ocultar controles.
   await cdp.send('Emulation.setEmulatedMedia',{

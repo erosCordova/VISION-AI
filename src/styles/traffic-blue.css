@@ -273,3 +273,72 @@
 .neo-shell .live-traffic-lab .live-traffic-metrics strong{color:#085bb0}
 .neo-shell .live-traffic-lab input[type=checkbox],
 .neo-shell .live-traffic-lab input[type=range]{accent-color:#1779e8}
+
+/* CAMERA_PAGE_LIGHT_BLUE_V1
+   El cambio afecta a TODO el espacio de trabajo al mostrar una cámara.
+   Antes solo se pintaban las tarjetas y el fondo de página seguía oscuro.
+   :has() permite abarcar las dos rutas existentes sin alterar la simulación. */
+.neo-shell .workspace:has(.live-traffic-lab){
+ background-color:#d9eeff;
+ background-image:radial-gradient(ellipse at 95% 0%,#b4dcfb 0%,transparent 43%),
+  linear-gradient(140deg,#e9f7ff 0%,#d9eeff 50%,#c6e4fb 100%);
+ color:#092d55;
+}
+.neo-shell .workspace:has(.live-traffic-lab)::before{display:none}
+.neo-shell .workspace:has(.live-traffic-lab) main{color:#092d55}
+.neo-shell .workspace:has(.live-traffic-lab) main>.page-heading h1{
+ color:#092d55;text-shadow:none;
+}
+.neo-shell .workspace:has(.live-traffic-lab) main>.page-heading p{color:#3d618b}
+.neo-shell .workspace:has(.live-traffic-lab) main>.page-heading .eyebrow{color:#136ac2}
+.neo-shell .workspace:has(.live-traffic-lab) .vision-workspace-intro{
+ background:linear-gradient(112deg,#e5f4ff,#c9e7fc 73%,#aed8f8);
+ border-color:#86b7e4;color:#092d55;
+ box-shadow:0 9px 22px #235c9c19;
+}
+.neo-shell .workspace:has(.live-traffic-lab) .vision-workspace-intro h2{color:#0a2e57}
+.neo-shell .workspace:has(.live-traffic-lab) .vision-workspace-intro p{color:#3d648d}
+.neo-shell .workspace:has(.live-traffic-lab) .vision-workspace-eyebrow{color:#176bc0}
+.neo-shell .workspace:has(.live-traffic-lab) .vision-workspace-history{
+ color:#fff;background:#0a478c;border-color:#337bca;
+}
+.neo-shell .workspace:has(.live-traffic-lab) .vision-workspace-history:hover{
+ color:#fff;background:#155ca5;
+}
+.neo-shell .workspace:has(.live-traffic-lab) .vision-workspace-source{
+ color:#0d315a;background:#f1f9ff;border-color:#a3cbec;
+}
+.neo-shell .workspace:has(.live-traffic-lab) .vision-workspace-source[aria-pressed="true"]{
+ background:#cae6fd;border-color:#1978d8;box-shadow:inset 0 0 0 1px #1978d8;
+}
+.neo-shell .workspace:has(.live-traffic-lab) .vision-workspace-source:hover{background:#e1f1ff}
+.neo-shell .workspace:has(.live-traffic-lab) .vision-workspace-source strong{color:#0b3264}
+.neo-shell .workspace:has(.live-traffic-lab) .vision-workspace-source small{color:#496b94}
+.neo-shell .workspace:has(.live-traffic-lab) .vision-workspace-source>svg{color:#176fc5}
+.neo-shell .workspace:has(.live-traffic-lab) .vision-workspace-notice,
+.neo-shell .workspace:has(.live-traffic-lab) .vision-workspace-activity{
+ background:#eaf7ff;border-color:#a0c9e8;color:#315e8b;
+}
+.neo-shell .workspace:has(.live-traffic-lab) .vision-workspace-activity strong{color:#1769c0}
+.neo-shell .workspace:has(.live-traffic-lab) .workspace-footer{border-color:#a7cce8}
+.neo-shell .workspace:has(.live-traffic-lab) .workspace-footer span{color:#38628e!important}
+/* Fondos base explícitos para comprobar en Chromium el color computado. */
+.neo-shell .workspace:has(.live-traffic-lab) .live-traffic-lab{background-color:#cbe6fc}
+.neo-shell .workspace:has(.live-traffic-lab) .live-traffic-head{
+ background-color:#dcefff;
+ background-image:linear-gradient(115deg,#eaf7ff,#c4e3fb);
+}
+.neo-shell .workspace:has(.live-traffic-lab) .live-traffic-bar{
+ background-color:#dff2ff;
+ background-image:linear-gradient(110deg,#e9f7ff,#cae8fc);
+}
+.neo-shell .workspace:has(.live-traffic-lab) .live-traffic-stream-column{
+ background-color:#d5ecff;
+ background-image:linear-gradient(155deg,#e5f4ff,#c4e3fb);
+}
+.neo-shell .workspace:has(.live-traffic-lab) .live-traffic-inference{
+ background-color:#d8ecff;
+ background-image:linear-gradient(155deg,#e6f5ff,#c6e4fc);
+}
+.neo-shell .workspace:has(.live-traffic-lab) .live-traffic-viewport,
+.neo-shell .workspace:has(.live-traffic-lab) .live-traffic-evidence{background-color:#061b37}
