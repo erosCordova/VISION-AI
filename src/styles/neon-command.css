@@ -525,3 +525,22 @@ html{scroll-behavior:smooth}
 @media(prefers-reduced-motion:reduce){
  .neo-shell *{transition-duration:0s!important;animation-duration:0s!important}
 }
+
+/* Ajuste real de viewport: la cabecera móvil nunca amplía el ancho de 360px. */
+@media(max-width:760px){
+ html,body,#root{max-width:100%;overflow-x:clip}
+ .neo-shell,.neo-shell .workspace,.neo-shell main{max-width:100%;min-width:0}
+ .neo-shell .topbar{min-width:0;gap:6px}
+ .neo-shell .studio-top-search{display:none}
+ .neo-shell .neo-profile{padding:0;min-width:0}
+ .neo-shell .neo-profile select{max-width:82px;padding-left:4px;padding-right:6px}
+ .neo-home,.neo-dashboard-grid,.neo-right-rail,.neo-bottom-grid,
+ .neo-scenarios,.neo-shortcuts,.neo-glass,.neo-performance-content,
+ .neo-scenario-grid,.neo-kpi-grid{min-width:0;max-width:100%}
+ .neo-shell .neo-main-actions>span{min-width:0;overflow-wrap:anywhere}
+}
+@media(max-width:420px){
+ .neo-shell .topbar{padding-left:8px;padding-right:8px}
+ .neo-shell .experience-mobile-brand{font-size:15px}
+ .neo-shell .neo-header-bell{width:26px;flex:none}
+}
