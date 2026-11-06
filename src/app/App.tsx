@@ -5,7 +5,6 @@ import { SessionSettings } from '../modules/settings/pages/SessionSettings';
 import {PrivacyCenter} from '../modules/settings/pages/PrivacyCenter';
 import { ErrorBoundary } from '../shared/ui/ErrorBoundary';
 import { LiveAnalysisPage } from '../modules/analysis/pages/LiveAnalysisPage';
-import {VisionWorkspace} from '../modules/detections/pages/VisionWorkspace';
 import type {SimulationSessionRepository} from '../core/ports/simulation-session-repository';
 import {SessionsDashboard} from '../modules/dashboard/pages/SessionsDashboard';
 import {LiveObservationsDashboard} from '../modules/dashboard/components/LiveObservationsDashboard';
@@ -43,7 +42,6 @@ export function App({ apiBaseUrl, sessionRepository, liveObservationRepository }
   const navigate = (p: Page) => { location.hash = p; setPage(p); setMenu(false); };
   const openScene=(key:WorldKey)=>{selectVisualSource('simulated');setScenarioId(key);navigate('Análisis en vivo');};
   const openCameras=()=>{selectVisualSource('live');navigate('Análisis en vivo');};
-  const openStatistics=()=>{navigate('Resumen');window.setTimeout(()=>document.getElementById('neo-insights')?.scrollIntoView({behavior:'smooth'}),120);};
   useEffect(()=>{
    const open=()=>setCommandOpen(true);
    document.addEventListener('vision-ai:open-command',open);
@@ -60,45 +58,28 @@ export function App({ apiBaseUrl, sessionRepository, liveObservationRepository }
     <div className="workspace"><AppHeader menu={menu} page={page} role={role}
       onToggleMenu={()=>setMenu(!menu)} onOpenCommand={()=>setCommandOpen(true)}
       onRoleChange={setRole}/>
-      <main id="contenido" tabIndex={-1}>{page !== 'Resumen'&&<div className="page-heading"><div><span className="eyebrow">VISIÓN COMPUTACIONAL</span><h1>{page}</h1><p>{page === 'Análisis en vivo' ? 'Cámaras públicas en directo y simulaciones con reconocimiento de objetos.' : page === 'Visión IA' ? 'Laboratorio interactivo para reconocer objetos sobre escenas 3D o video público.' : page === 'Historial' ? 'Sesiones y evidencias de tus análisis.' : 'Estado del entorno y capacidades disponibles.'}</p></div></div>}
+      <main id="contenido" tabIndex={-1}>{page !== 'Resumen'&&<div className="page-heading"><div><span className="eyebrow">VISIÓN COMPUTACIONAL</span><h1>{page}</h1><p>{page === 'Análisis en vivo' ? 'Cámaras públicas en directo y simulaciones con reconocimiento de objetos.' : page === 'Estadísticas' ? 'Indicadores de las sesiones guardadas y las cámaras públicas.' : page === 'Historial' ? 'Sesiones y evidencias de tus análisis.' : 'Estado del entorno y capacidades disponibles.'}</p></div></div>}
       <ErrorBoundary key={page + role}>
-      {page === 'Resumen' && <>
-       <CommandHome sessions={sessionRepository} observations={liveObservationRepository}
-        onScene={openScene} onCameras={openCameras} onHistory={()=>navigate('Historial')}
-        onStatistics={openStatistics} onLab={()=>navigate('Visión IA')}/>
-       <section id="neo-insights" className="neo-insights">
+      {page === 'Resumen' && <CommandHome
+       sessions={sessionRepository} observations={liveObservationRepository}
+       onScene={openScene} onCameras={openCameras}/>}
+      {page === 'Estadísticas' && <section id="neo-insights" className="neo-insights">
         <div className="neo-insights-title"><span>DATOS GUARDADOS</span><h2>Estadísticas y resultados</h2>
          <p>Revisa los registros que has conservado en este navegador.</p></div>
         <div className="experience-saved-dashboard"><SessionsDashboard repository={sessionRepository}
          onHistory={()=>navigate('Historial')} onOperations={()=>navigate('Operaciones')}/></div>
         <LiveObservationsDashboard onHistory={()=>navigate('Historial')} onAnalyze={openCameras}/>
-       </section>
-      </>}
+       </section>}
       {page === 'Análisis en vivo' && <LiveAnalysisPage scenarios={scenarios} scenarioId={scenarioId} onScenarioChange={setScenarioId} sessionRepository={sessionRepository} role={role} apiBaseUrl={apiBaseUrl} />}
       {page === 'Historial' && <HistoryPanel onAnalyze={() => navigate('Análisis en vivo')} sessionRepository={sessionRepository} />}
       {page === 'Privacidad' && <PrivacyCenter repository={sessionRepository} />}
-      {page === 'Visión IA' && <VisionWorkspace
-       scenarioId={scenarioId} onScenarioChange={setScenarioId}
-       sessionRepository={sessionRepository}
-       liveObservationRepository={liveObservationRepository}
-       onHistory={()=>navigate('Historial')}/>}
       {page === 'Operaciones' && <OperationsPanel repository={sessionRepository}
    onHistory={() => navigate('Historial')} />}
-      {(page === 'Administración' || page === 'Configuración') && role !== 'administrador' && <section className="panel empty-page"><h2>Vista restringida</h2><p>Esta vista está reservada al perfil administrador de prueba.</p><button onClick={() => navigate('Resumen')}>Volver al resumen</button></section>}
-      {page === 'Administración' && role === 'administrador' && <section className="panel settings">
-       <h2>Herramientas del espacio</h2>
-       <p>Accede a las funciones de administración disponibles en esta página.</p>
-       <div className="settings-actions">
-        <button type="button" onClick={()=>navigate('Configuración')}>Ajustar análisis</button>
-        <button type="button" onClick={()=>navigate('Historial')}>Consultar historial</button>
-        <button type="button" onClick={()=>navigate('Privacidad')}>Gestionar datos</button>
-       </div>
-       <p>Los perfiles seleccionables son de prueba y no son cuentas personales.</p>
-      </section>}
+      {page === 'Configuración' && role !== 'administrador' && <section className="panel empty-page"><h2>Vista restringida</h2><p>Esta vista está reservada al perfil administrador de prueba.</p><button onClick={() => navigate('Resumen')}>Volver al resumen</button></section>}
       {page === 'Configuración' && role === 'administrador' && <><SessionSettings /><section className="panel settings"><h2>Estado de la aplicación</h2><dl><dt>Estado</dt><dd>Disponible para iniciar un análisis</dd><dt>Fuentes de video</dt><dd>Cámaras públicas en directo y cuatro escenarios de simulación 3D</dd><dt>Reconocimiento</dt><dd>Personas y vehículos en cámaras; objetos y protección personal en escenas 3D</dd><dt>Privacidad</dt><dd>Los videos no se graban ni se guardan en la aplicación</dd><dt>Historial</dt><dd>Solo conserva los resultados que decidas guardar</dd><dt>Cuenta</dt><dd>Se usa sin iniciar sesión</dd><dt>Videos públicos</dt><dd>La disponibilidad depende de cada cámara</dd></dl></section></>}
       </ErrorBoundary><footer className="workspace-footer"><span>VISION AI / Visión computacional aplicada</span><span>Cámaras públicas · Detección · Historial</span></footer></main>
     </div>
     <StudioCommandPalette open={commandOpen} onClose={()=>setCommandOpen(false)}
-     onNavigate={name=>navigate(name as Page)} onScenario={openScene}/>
+     onNavigate={(name,source)=>{if(source)selectVisualSource(source);navigate(name as Page);}} onScenario={openScene}/>
   </div></AppProviders>;
 }

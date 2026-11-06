@@ -1,26 +1,28 @@
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {
- Search,ArrowUpRight,LayoutDashboard,ScanEye,Boxes,ClipboardCheck,
+ Search,ArrowUpRight,LayoutDashboard,Boxes,Video,ChartNoAxesCombined,ClipboardCheck,
  History,ShieldCheck,X,Command,
  Factory,Warehouse,ShoppingBag
 } from 'lucide-react';
 import type {LucideIcon} from 'lucide-react';
 import type {WorldKey} from './StudioWorld';
+import type {VisualSource} from '../analysis/services/source-navigation';
 
 type Entry={id:string;label:string;detail:string;icon:LucideIcon;action:()=>void;category:string};
 interface Props{
  readonly open:boolean;
  readonly onClose:()=>void;
- readonly onNavigate:(page:string)=>void;
+ readonly onNavigate:(page:string,source?:VisualSource)=>void;
  readonly onScenario:(key:WorldKey)=>void;
 }
 const PAGE_LINKS=[
- {key:'Resumen',label:'Centro de control',detail:'Panel general y experiencia 3D',icon:LayoutDashboard},
- {key:'Análisis en vivo',label:'Análisis en vivo',detail:'Cámaras en directo y escenas industriales',icon:ScanEye},
- {key:'Visión IA',label:'Laboratorio IA',detail:'Reconocimiento en escenas 3D y cámaras públicas',icon:Boxes},
- {key:'Operaciones',label:'Revisión de indicios',detail:'Decisiones humanas verificables',icon:ClipboardCheck},
- {key:'Historial',label:'Historial de sesiones',detail:'Sesiones y exportaciones locales',icon:History},
- {key:'Privacidad',label:'Privacidad y retención',detail:'Datos guardados y privacidad',icon:ShieldCheck},
+ {key:'Resumen',label:'Inicio',detail:'Resumen de actividad',icon:LayoutDashboard},
+ {key:'Análisis en vivo',source:'simulated' as const,label:'Simulador 3D',detail:'Escenarios industriales interactivos',icon:Boxes},
+ {key:'Análisis en vivo',source:'live' as const,label:'Cámaras públicas',detail:'Demostración de reconocimiento en directo',icon:Video},
+ {key:'Estadísticas',label:'Estadísticas',detail:'Informes de las sesiones y cámaras guardadas',icon:ChartNoAxesCombined},
+ {key:'Operaciones',label:'Operaciones',detail:'Revisión de observaciones de seguridad',icon:ClipboardCheck},
+ {key:'Historial',label:'Historial',detail:'Sesiones y exportaciones locales',icon:History},
+ {key:'Privacidad',label:'Privacidad',detail:'Control de los datos guardados',icon:ShieldCheck},
 ] as const;
 const SCENARIOS=[
  {key:'safety',label:'Seguridad industrial',detail:'Personal y EPP — simulación 3D',icon:ShieldCheck},
@@ -53,8 +55,8 @@ export function StudioCommandPalette({open,onClose,onNavigate,onScenario}:Props)
  },[open]);
  const entries=useMemo<Entry[]>(()=>[
   ...PAGE_LINKS.map(p=>({
-   id:p.key,label:p.label,detail:p.detail,icon:p.icon,category:'NAVEGACIÓN',
-   action:()=>onNavigate(p.key)
+   id:'page-'+p.label,label:p.label,detail:p.detail,icon:p.icon,category:'NAVEGACIÓN',
+   action:()=>onNavigate(p.key,'source' in p?p.source:undefined)
   })),
   ...SCENARIOS.map(s=>({
    id:'scene-'+s.key,label:s.label,detail:s.detail,icon:s.icon,category:'ESCENARIOS 3D',

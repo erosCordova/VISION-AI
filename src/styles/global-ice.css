@@ -374,3 +374,11 @@ html,body,#root{
 .neo-shell .workspace:has(.live-traffic-lab) main>.page-heading h1{
  color:#092d56;
 }
+
+/* Búsqueda una vez: escritorio en cabecera; móvil en menú lateral. */
+@media(min-width:761px){
+ .neo-shell .sidebar-bottom .studio-sidebar-command{display:none}
+}
+@media(max-width:760px){
+ .neo-shell .sidebar-bottom .studio-sidebar-command{display:flex}
+}

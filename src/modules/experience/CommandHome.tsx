@@ -1,8 +1,8 @@
 import {useEffect,useMemo,useState} from 'react';
 import {
-  Activity, ArrowRight, BarChart3, Box, Camera, CheckCircle2, Clock3,
-  Factory, History, Layers3, ScanEye, ShieldCheck, ShoppingBag,
-  Video, Warehouse, Zap
+  Activity, ArrowRight, BarChart3, Box, Camera, Clock3,
+  Factory, Layers3, ScanEye, ShieldCheck, ShoppingBag,
+  Video, Warehouse
 } from 'lucide-react';
 import type {LucideIcon} from 'lucide-react';
 import type {SimulationSessionRepository} from '../../core/ports/simulation-session-repository';
@@ -15,16 +15,12 @@ import {ScenarioArtwork} from './ScenarioArtwork';
 import {validateReproducibility} from '../scenarios/services/simulation-session-model';
 
 type SeriesName='people'|'vehicles'|'other';
-type Recent={id:string;name:string;date:string;count:number;kind:'cameras'|'scenarios'};
 interface DayPoint {label:string;people:number;vehicles:number;other:number;}
 interface Props {
  readonly sessions:SimulationSessionRepository;
  readonly observations:LiveObservationRepository;
  readonly onScene:(key:WorldKey)=>void;
  readonly onCameras:()=>void;
- readonly onHistory:()=>void;
- readonly onStatistics:()=>void;
- readonly onLab:()=>void;
 }
 const sceneCards:{id:WorldKey;title:string;detail:string;icon:LucideIcon}[]=[
  {id:'safety',title:'Seguridad industrial',detail:'Personal y protección',icon:ShieldCheck},
@@ -47,7 +43,7 @@ function chartPath(data:DayPoint[],name:SeriesName,max:number):string{
  }).join(' ');
 }
 /** El tablero jamás genera conteos, porcentajes ni detecciones de demostración. */
-export function CommandHome({sessions,observations,onScene,onCameras,onHistory,onStatistics,onLab}:Props){
+export function CommandHome({sessions,observations,onScene,onCameras}:Props){
  const [records,setRecords]=useState<readonly SimulationSession[]>([]);
  const [live,setLive]=useState<readonly LiveObservation[]>([]);
  const [loading,setLoading]=useState(true);
@@ -84,7 +80,6 @@ export function CommandHome({sessions,observations,onScene,onCameras,onHistory,o
   const people=all.filter(isPerson).length;
   const vehicles=all.filter(isVehicle).length;
   const confidence=all.length?all.reduce((n,d)=>n+d.confidence,0)/all.length:null;
-  const times=observationsByTime.map(x=>x.savedAt);
   const base=new Date();base.setHours(0,0,0,0);
   const activity:DayPoint[]=Array.from({length:7},(_,i)=>{
    const day=new Date(base);day.setDate(base.getDate()-6+i);
@@ -97,18 +92,12 @@ export function CommandHome({sessions,observations,onScene,onCameras,onHistory,o
     other:matched.filter(d=>!isPerson(d)&&!isVehicle(d)).length
    };
   });
-  const recent:Recent[]=[
-   ...records.map(r=>({id:'s-'+r.id,name:r.scenarioName,date:r.savedAt,
-    count:r.inference?.detections.length??0,kind:'scenarios' as const})),
-   ...live.map(r=>({id:'c-'+r.id,name:r.cameraName,date:r.savedAt,
-    count:r.detections.length,kind:'cameras' as const}))
-  ].sort((a,b)=>Date.parse(b.date)-Date.parse(a.date)).slice(0,3);
   const max=Math.max(1,...activity.map(d=>Math.max(d.people,d.vehicles,d.other)));
   const meanMs=observationsByTime.length?[
    ...live.map(r=>r.inferenceMs),
    ...records.filter(r=>r.inference).map(r=>r.inference!.inferenceMs)
   ].reduce((a,b)=>a+b,0)/observationsByTime.length:null;
-  return {all,people,vehicles,confidence,activity,max,recent,meanMs,sourceCount:times.length};
+  return {all,people,vehicles,confidence,activity,max,meanMs};
  },[records,live]);
  const confidencePercent=summary.confidence===null?null:Math.round(summary.confidence*100);
  return <div className="neo-home" aria-label="Centro de control VISION AI">
@@ -117,9 +106,6 @@ export function CommandHome({sessions,observations,onScene,onCameras,onHistory,o
     <h1>Bienvenido a <em>VISION AI</em></h1>
     <p>Monitorea, analiza y reconoce objetos mediante visión computacional.</p>
    </div>
-   <button type="button" className="neo-primary-action" onClick={onLab}>
-    <ScanEye size={17}/> Abrir laboratorio <ArrowRight size={17}/>
-   </button>
   </header>
   {error&&<p role="alert" className="neo-error">{error}</p>}
   <section className="neo-kpi-grid" aria-label="Indicadores de actividad guardada">
@@ -152,7 +138,6 @@ export function CommandHome({sessions,observations,onScene,onCameras,onHistory,o
      </div>
     </div>
     <div className="neo-main-actions">
-     <button onClick={()=>onScene('safety')} type="button"><Layers3 size={17}/> Iniciar simulación 3D</button>
      <button onClick={onCameras} type="button"><Video size={17}/> Demostración con cámaras públicas</button>
      <span>Las cámaras en directo son una demostración complementaria del reconocimiento.</span>
     </div>
@@ -204,7 +189,7 @@ export function CommandHome({sessions,observations,onScene,onCameras,onHistory,o
   <div className="neo-bottom-grid">
    <section className="neo-scenarios neo-glass" aria-label="Escenarios 3D disponibles">
     <header className="neo-panel-heading"><h2><Box size={20}/> Escenarios disponibles</h2>
-     <button className="neo-text-action" onClick={()=>onScene('safety')}>Explorar <ArrowRight size={15}/></button></header>
+</header>
     <div className="neo-scenario-grid">
      {sceneCards.map((scene,i)=>{
       const Icon=scene.icon;
@@ -218,26 +203,7 @@ export function CommandHome({sessions,observations,onScene,onCameras,onHistory,o
      })}
     </div>
    </section>
-   <section className="neo-shortcuts neo-glass" aria-label="Accesos rápidos">
-    <header className="neo-panel-heading"><h2><Zap size={19}/> Accesos rápidos</h2></header>
-    <div className="neo-shortcut-grid">
-     <button type="button" onClick={()=>onScene('safety')}><Box size={26}/> Simulador 3D</button>
-     <button type="button" onClick={onCameras}><Camera size={26}/> Cámaras</button>
-     <button type="button" onClick={onStatistics}><BarChart3 size={26}/> Estadísticas</button>
-     <button type="button" onClick={onHistory}><History size={26}/> Historial</button>
-    </div>
-   </section>
-  </div>
-  <div className="neo-recent neo-glass">
-   <header className="neo-panel-heading"><h2><History size={19}/> Sesiones recientes</h2>
-    <button className="neo-text-action" onClick={onHistory}>Ver historial <ArrowRight size={15}/></button></header>
-   {summary.recent.length===0?<div className="neo-empty"><CheckCircle2 size={17}/>
-    Todavía no hay análisis guardados. Abre una simulación o una cámara para comenzar.</div>:
-    <div className="neo-recent-items">{summary.recent.map(r=><div className="neo-recent-item" key={r.id}>
-     <span className="neo-recent-mark">{r.kind==='cameras'?<Camera size={16}/>:<Box size={16}/>}</span>
-     <div><strong>{r.name}</strong><small>{new Date(r.date).toLocaleString('es-PE',{dateStyle:'short',timeStyle:'short'})}</small></div>
-     <span>{r.count} objetos</span>
-    </div>)}</div>}
+
   </div>
   <p className="neo-data-note">Los indicadores y las curvas proceden de análisis guardados en este navegador. Las ilustraciones de portada no representan transmisiones ni inferencias activas.</p>
  </div>;

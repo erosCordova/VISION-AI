@@ -24,10 +24,27 @@ CDN o modo de navegación restrictivo puede impedir descargar pesos.
 Los resultados de sesión se guardan en **IndexedDB del navegador**
 únicamente cuando se solicita.
 
+## Navegación principal
+
+La barra lateral reúne **Inicio**, **Simulador 3D**, **Cámaras públicas**,
+**Estadísticas**, **Operaciones**, **Historial** y **Privacidad**. El perfil
+administrador de prueba dispone además de **Configuración**.
+
+- **Simulador 3D:** las cuatro escenas industriales y su reconocimiento.
+- **Cámaras públicas:** demostración complementaria con video en directo.
+- **Estadísticas:** resultados consolidados de sesiones guardadas.
+- **Operaciones:** revisión humana de las observaciones.
+- **Historial:** sesiones, evidencias y exportación.
+- **Privacidad:** gestión de datos locales.
+
+El enlace antiguo «Visión IA» abre el mismo espacio de análisis, y
+«Administración» abre Configuración. No hay un segundo laboratorio ni
+tarjetas de accesos rápidos que repitan el menú.
+
 ## 3. Conectar video en tiempo real
 
 1. Acceder a https://vision-ai-erosss.vercel.app .
-2. Abrir **Análisis en vivo** y seleccionar **Video público en directo**.
+2. Abrir **Cámaras públicas** desde el menú.
 3. Elegir una cámara SDOT de Seattle: 2nd Ave / Pike St,
    Western Ave / Broad St, 4th Ave / Battery St o Queen Anne / Thomas.
 4. Pulsar **Iniciar video en directo**. Se descarga Hls.js bajo demanda;
@@ -61,7 +78,7 @@ se fabrican ni se sustituyen por posiciones conocidas de la escena.
 
 ## 5. Ejecutar YOLO real
 
-1. Seleccionar **YOLO real** en Análisis en vivo.
+1. Abrir **Simulador 3D** y seleccionar **Reconocer objetos**.
 2. En Seguridad utilizar, si interesa, **EPP industrial**; en los
    otros escenarios se utiliza el detector general COCO.
 3. Presionar **Iniciar YOLO real**. Se descarga el modelo únicamente

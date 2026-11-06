@@ -189,7 +189,7 @@ try {
             +'title:document.querySelector(".neo-welcome h1")?.textContent?.trim(),'
             +'kpis:document.querySelectorAll(".neo-kpi").length,'
             +'scenes:document.querySelectorAll(".neo-scene").length,'
-            +'shortcuts:document.querySelectorAll(".neo-shortcut-grid button").length,'
+            +'duplicated:document.querySelectorAll(".neo-shortcut-grid,.neo-recent,.neo-primary-action").length,'
             +'chart:!!document.querySelector(".neo-activity-chart"),'
             +'note:document.querySelector(".neo-data-note")?.textContent?.includes("guardados"),'
             +'icons:document.querySelectorAll(".sidebar nav svg").length,'
@@ -201,7 +201,7 @@ try {
          },'UX26 centro de control con datos y acciones reales');
          const d=design;
          if(!d?.hero||!d.title?.includes('Bienvenido')||d.kpis!==4||
-            d.scenes!==4||d.shortcuts!==4||!d.chart||!d.note||d.icons<5||
+            d.scenes!==4||d.duplicated!==0||!d.chart||!d.note||d.icons<5||
             !d.search||!d.sceneAction)
            throw Error('UX26: tablero incompleto a '+width+' px: '+JSON.stringify(d));
          // PORTADA31: verificar carga real de la imagen industrial local.
@@ -402,12 +402,13 @@ try {
         // UI01: rutas directas, títulos y estados iniciales comprobados en el navegador.
         for(const [hash,title] of [
           ['#Resumen','Bienvenido a VISION AI'],
-          ['#Visi%C3%B3n%20IA','Visión IA'],
+          ['#Estad%C3%ADsticas','Estadísticas'],
+          ['#Visi%C3%B3n%20IA','Análisis en vivo'],
           ['#Operaciones','Operaciones'],
           ['#Historial','Historial'],
           ['#Privacidad','Privacidad'],
           ['#Configuraci%C3%B3n','Configuración'],
-          ['#Administraci%C3%B3n','Administración']
+          ['#Administraci%C3%B3n','Configuración']
         ]){
           await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/'+hash});
           await eventually(async()=>{
@@ -417,43 +418,45 @@ try {
             });
             return r.result?.value?.replace(/\\s+/g,'')===title.replace(/\\s+/g,'');
           },'UI01 '+title);
-        if(title==='Visión IA'){
-          await eventually(async()=>{
-            const r=await cdp.send('Runtime.evaluate',{
-              expression:'(() => ({active:!!document.querySelector(".vision-workspace"),'
-                +'model:!!document.querySelector(".vision-workspace .browser-yolo-panel"),'
-                +'selected:document.querySelector(".vision-workspace .simulator-ai-switch button:nth-child(2)")?.getAttribute("aria-pressed")'
-                +'}))()',returnByValue:true
-            });
-            return r.result?.value?.active&&r.result.value.model&&r.result.value.selected==='true';
-          },'Visión IA inicia con el reconocimiento 3D listo');
+        if(hash==='#Visi%C3%B3n%20IA'){
           await cdp.send('Runtime.evaluate',{
-            expression:'Array.from(document.querySelectorAll(".vision-workspace-source"))'
-             +'.find(button=>button.textContent?.includes("Cámaras públicas"))?.click()'
+            expression:'Array.from(document.querySelectorAll(".vision-source-selector button"))'
+             +'.find(button=>button.textContent?.includes("Simulaciones 3D"))?.click()'
+          });
+          const unified=await eventually(async()=>{
+            const r=await cdp.send('Runtime.evaluate',{
+              expression:'(() => ({tabs:document.querySelectorAll(".vision-source-selector button").length,'
+               +'duplicated:!!document.querySelector(".vision-workspace"),'
+               +'simulation:!!document.querySelector(".simulator-shell")}))()',
+              returnByValue:true
+            });
+            return r.result?.value?.tabs===2&&r.result.value.simulation?r.result.value:null;
+          },'NAV32 enlace antiguo abre el espacio de análisis');
+          if(unified.duplicated)throw Error('NAV32: laboratorio duplicado visible');
+          await cdp.send('Runtime.evaluate',{
+            expression:'Array.from(document.querySelectorAll(".vision-source-selector button"))'
+             +'.find(button=>button.textContent?.includes("Video público en directo"))?.click()'
           });
           await eventually(async()=>{
             const r=await cdp.send('Runtime.evaluate',{
-              expression:'!!document.querySelector(".vision-workspace .live-traffic-lab")',
-              returnByValue:true
+              expression:'!!document.querySelector(".live-traffic-lab")',returnByValue:true
             });
             return r.result?.value===true;
-          },'Visión IA muestra cámara real al seleccionar fuente');
+          },'NAV32 cámara disponible desde enlace antiguo');
           await cdp.send('Runtime.evaluate',{
-            expression:'Array.from(document.querySelectorAll(".vision-workspace-source"))'
-             +'.find(button=>button.textContent?.includes("Escenarios 3D"))?.click()'
+            expression:'Array.from(document.querySelectorAll(".vision-source-selector button"))'
+             +'.find(button=>button.textContent?.includes("Simulaciones 3D"))?.click()'
           });
           await eventually(async()=>{
             const r=await cdp.send('Runtime.evaluate',{
-              expression:'!!document.querySelector(".vision-workspace .browser-yolo-panel")',
-              returnByValue:true
+              expression:'!!document.querySelector(".simulator-shell")',returnByValue:true
             });
             return r.result?.value===true;
-          },'Visión IA puede volver a reconocimiento 3D');
-          console.log('Visión IA OK: motor 3D y fuentes de cámaras funcionales');
+          },'NAV32 simulador disponible desde enlace antiguo');
         }
         }
         await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Resumen'});
-        console.log('UI01 OK: siete rutas comprobadas; Visión IA usa fuentes y reconocimiento reales');
+        console.log('NAV32/UI01: ocho rutas y enlace heredado sin duplicación de herramientas');
       }
       if (name === 'analisis' && width === 1440) {
         // DA01: guardar una sesión 3D, navegar y recargar; debe persistir.
@@ -1496,30 +1499,90 @@ try {
   console.log('PR04/PR05/PR07: borrado total atómico y confirmación exacta; IndexedDB vacío tras recarga');
 
 
-  // RF01: laboratorio de reconocimiento en lugar de la antigua guía informativa.
+  // RF01/NAV32: un solo espacio de análisis, conservando los enlaces antiguos.
   await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Visi%C3%B3n%20IA'});
-  const workspace=await eventually(async()=>{
-    const x=await cdp.send('Runtime.evaluate',{
-      expression:'(() => ({'
-       +'lab:!!document.querySelector(".vision-workspace"),'
-       +'scene:!!document.querySelector(".vision-workspace .simulator-shell"),'
-       +'sources:document.querySelectorAll(".vision-workspace-source").length,'
-       +'recognition:document.querySelector(".vision-workspace .simulator-ai-switch button:nth-child(2)")?.getAttribute("aria-pressed"),'
-       +'history:!!document.querySelector(".vision-workspace-history"),'
-       +'input:!!document.querySelector(".vision-workspace input[type=file]")'
-       +'}))()',returnByValue:true
-    });
-    const state=x.result?.value;
-    return state?.lab&&state.scene&&state.sources===2&&
-     state.recognition==='true'&&state.history&&!state.input?state:null;
-  },'RF01 laboratorio interactivo con reconocimiento y acceso a historial');
-  console.log('RF01: Visión IA activa en escena 3D y controles de cámara disponibles');
-  
+  await eventually(async()=>{
+   const x=await cdp.send('Runtime.evaluate',{
+    expression:'(() => {const b=Array.from(document.querySelectorAll(".vision-source-selector button"))'
+     +'.find(button=>button.textContent?.includes("Simulaciones 3D"));'
+     +'if(!b)return false;b.click();return true;})()',
+    returnByValue:true
+   });
+   return x.result?.value===true;
+  },'NAV32 abrir simulación desde URL antigua');
+  const unified=await eventually(async()=>{
+   const x=await cdp.send('Runtime.evaluate',{
+    expression:'(() => ({'
+     +'heading:document.querySelector("main h1")?.textContent,'
+     +'sourceTabs:document.querySelectorAll(".vision-source-selector button").length,'
+     +'simulator:!!document.querySelector(".simulator-shell"),'
+     +'duplicated:!!document.querySelector(".vision-workspace"),'
+     +'recognition:!!document.querySelector(".simulator-ai-switch")'
+     +'}))()',returnByValue:true
+   });
+   const v=x.result?.value;
+   return v?.heading==='Análisis en vivo'&&v.sourceTabs===2&&
+    v.simulator&&v.recognition&&!v.duplicated?v:null;
+  },'NAV32 ruta antigua abre una única herramienta real');
+  if(unified.duplicated)throw Error('NAV32: sigue montado el laboratorio duplicado');
+  console.log('NAV32: vínculo antiguo conserva el simulador y cámaras sin duplicación.');
+
+  // NAV33: los informes completos pertenecen a Estadísticas, no al Inicio.
+  await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Estad%C3%ADsticas'});
+  await eventually(async()=>{
+   const x=await cdp.send('Runtime.evaluate',{
+    expression:'(() => ({heading:document.querySelector("main h1")?.textContent,'
+     +'sessions:!!document.querySelector(".saved-dashboard"),'
+     +'cameras:!!document.querySelector(".live-dashboard"),'
+     +'home:!!document.querySelector(".neo-home")}))()',
+    returnByValue:true
+   });
+   const v=x.result?.value;
+   return v?.heading==='Estadísticas'&&v.sessions&&v.cameras&&!v.home;
+  },'NAV33 estadísticas en ruta propia');
+
+  // NAV34: los accesos principales abren contenidos distintos y sin bloques repetidos.
+  await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Resumen'});
+  const menuCheck=await eventually(async()=>{
+   const x=await cdp.send('Runtime.evaluate',{
+    expression:'(() => {const labels=Array.from(document.querySelectorAll(".sidebar nav a"))'
+     +'.map(x=>x.textContent.trim());return {labels,'
+     +'shortcuts:document.querySelectorAll(".neo-shortcut-grid").length,'
+     +'repeated:document.querySelectorAll(".neo-main-actions button").length};})()',
+    returnByValue:true
+   });
+   return x.result?.value?.labels?.length?x.result.value:null;
+  },'NAV34 verificar navegación visible');
+  if(menuCheck.labels.length!==7||menuCheck.labels.includes('Laboratorio IA')||
+     menuCheck.labels.includes('Administración')||menuCheck.shortcuts!==0||menuCheck.repeated!==1)
+   throw Error('NAV34 menú con accesos duplicados: '+JSON.stringify(menuCheck));
+  await cdp.send('Runtime.evaluate',{
+   expression:'Array.from(document.querySelectorAll(".sidebar nav a"))'
+    +'.find(a=>a.textContent.includes("Cámaras públicas"))?.click()'
+  });
+  await eventually(async()=>{
+   const x=await cdp.send('Runtime.evaluate',{
+    expression:'!!document.querySelector(".live-traffic-lab")',returnByValue:true
+   });
+   return x.result?.value===true;
+  },'NAV34 menú de cámaras abre el visor en directo');
+  await cdp.send('Runtime.evaluate',{
+   expression:'Array.from(document.querySelectorAll(".sidebar nav a"))'
+    +'.find(a=>a.textContent.includes("Simulador 3D"))?.click()'
+  });
+  await eventually(async()=>{
+   const x=await cdp.send('Runtime.evaluate',{
+    expression:'!!document.querySelector(".simulator-shell")',returnByValue:true
+   });
+   return x.result?.value===true;
+  },'NAV34 menú del simulador muestra la escena 3D');
+  console.log('NAV33/NAV34: estadísticas independientes y navegación sin redundancias.');
+
   // UI27: verificar el color COMPUTADO del fondo, no solo declaraciones CSS.
   // Cubre el acceso directo y el laboratorio, que comparten el módulo de cámara.
   for(const [route,buttonClass,buttonLabel] of [
    ['#An%C3%A1lisis%20en%20vivo','.vision-source-selector button','Video público en directo'],
-   ['#Visi%C3%B3n%20IA','.vision-workspace-source','Cámaras públicas']
+   ['#Visi%C3%B3n%20IA','.vision-source-selector button','Video público en directo']
   ]){
    await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/'+route});
    await eventually(async()=>{
@@ -1583,7 +1646,7 @@ try {
   // Comprobar los colores renderizados de la página, la escena y el panel.
   for(const [route,triggerSelector,caption] of [
    ['#An%C3%A1lisis%20en%20vivo','.vision-source-selector button','Simulaciones 3D'],
-   ['#Visi%C3%B3n%20IA','.vision-workspace-source','Escenarios 3D']
+   ['#Visi%C3%B3n%20IA','.vision-source-selector button','Simulaciones 3D']
   ]){
    await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/'+route});
    await eventually(async()=>{
@@ -1635,13 +1698,14 @@ try {
   // UI29: pantalla azul hielo en TODAS las rutas, no solo cámaras o simulador.
   for(const [hash,title,selector] of [
    ['#Resumen','Bienvenido a VISION AI','.neo-welcome h1'],
+   ['#Estad%C3%ADsticas','Estadísticas','.page-heading h1'],
    ['#An%C3%A1lisis%20en%20vivo','Análisis en vivo','.page-heading h1'],
-   ['#Visi%C3%B3n%20IA','Visión IA','.page-heading h1'],
+   ['#Visi%C3%B3n%20IA','Análisis en vivo','.page-heading h1'],
    ['#Historial','Historial','.page-heading h1'],
    ['#Privacidad','Privacidad','.page-heading h1'],
    ['#Operaciones','Operaciones','.page-heading h1'],
    ['#Configuraci%C3%B3n','Configuración','.page-heading h1'],
-   ['#Administraci%C3%B3n','Administración','.page-heading h1']
+   ['#Administraci%C3%B3n','Configuración','.page-heading h1']
   ]){
    await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/'+hash});
    const theme=await eventually(async()=>{
@@ -1700,7 +1764,7 @@ try {
     throw Error('PALETA30: colores verdes visibles en '+title+': '+JSON.stringify(colors.result.value));
    console.log('UI29 azul hielo global confirmado '+title+': '+JSON.stringify(theme));
   }
-  console.log('UI29: ocho rutas con el mismo fondo azul hielo comprobadas en Chromium.');
+  console.log('UI29: nueve rutas con el mismo fondo azul hielo comprobadas en Chromium.');
 
   // A11Y02: sistema con movimiento reducido; render y fotogramas
   // deben detenerse al entrar en la simulación, sin ocultar controles.
