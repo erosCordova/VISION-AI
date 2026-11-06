@@ -32,7 +32,8 @@ describe('VISION AI: fondo azul hielo global',()=>{
   expect(css).toContain('.neo-shell .workspace:has(.live-traffic-lab)');
   const app=file('src/app/App.tsx');
   expect(app).toContain('<CommandHome');
-  expect(app).toContain('<VisionWorkspace');
+  expect(app).toContain('<LiveAnalysisPage');
+  expect(app).not.toContain('<VisionWorkspace');
   expect(app).toContain('<HistoryPanel');
   expect(app).toContain('<PrivacyCenter');
   expect(app).toContain('<OperationsPanel');
