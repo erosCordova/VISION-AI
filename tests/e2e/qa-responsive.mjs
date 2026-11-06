@@ -1610,6 +1610,47 @@ try {
   }
   console.log('UI28: dos rutas del simulador 3D con fondo azul, paneles y visor comprobados.');
 
+  // UI29: pantalla azul hielo en TODAS las rutas, no solo cámaras o simulador.
+  for(const [hash,title,selector] of [
+   ['#Resumen','Bienvenido a VISION AI','.neo-welcome h1'],
+   ['#An%C3%A1lisis%20en%20vivo','Análisis en vivo','.page-heading h1'],
+   ['#Visi%C3%B3n%20IA','Visión IA','.page-heading h1'],
+   ['#Historial','Historial','.page-heading h1'],
+   ['#Privacidad','Privacidad','.page-heading h1'],
+   ['#Operaciones','Operaciones','.page-heading h1'],
+   ['#Configuraci%C3%B3n','Configuración','.page-heading h1'],
+   ['#Administraci%C3%B3n','Administración','.page-heading h1']
+  ]){
+   await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/'+hash});
+   const theme=await eventually(async()=>{
+    const r=await cdp.send('Runtime.evaluate',{
+     expression:'(() => {'
+      +'const root=document.querySelector(".neo-shell .workspace");'
+      +'const heading=document.querySelector('+JSON.stringify(selector)+');'
+      +'if(!root||!heading||!heading.textContent?.includes('+JSON.stringify(title)+'))return null;'
+      +'const page=getComputedStyle(root).backgroundColor;'
+      +'const ink=getComputedStyle(heading).color;'
+      +'const kpi=document.querySelector(".neo-kpi strong");'
+      +'return {page,ink,homeKpi:kpi?getComputedStyle(kpi).color:null,'
+      +'hasBackground:!!getComputedStyle(root).backgroundImage};})()',
+     returnByValue:true
+    });
+    return r.result?.value?.page==='rgb(217, 238, 255)'?r.result.value:null;
+   },'UI29 fondo global azul hielo en '+title);
+   if(!theme.hasBackground)throw Error('UI29 falta textura azul en '+title);
+   if(hash==='#Resumen'&&theme.homeKpi!=='rgb(9, 46, 91)')
+    throw Error('UI29 contraste de indicadores incorrecto: '+JSON.stringify(theme));
+   if(hash!=='#Resumen'&&theme.ink!=='rgb(9, 45, 86)')
+    throw Error('UI29 contraste del título incorrecto en '+title+': '+JSON.stringify(theme));
+   if(hash==='#Resumen'||hash==='#Historial'||hash==='#Operaciones'){
+    const shot=await cdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});
+    const slug=hash.slice(1).toLowerCase();
+    fs.writeFileSync(path.join(artifacts,'tema-global-'+slug+'.png'),Buffer.from(shot.data,'base64'));
+   }
+   console.log('UI29 azul hielo global confirmado '+title+': '+JSON.stringify(theme));
+  }
+  console.log('UI29: ocho rutas con el mismo fondo azul hielo comprobadas en Chromium.');
+
   // A11Y02: sistema con movimiento reducido; render y fotogramas
   // deben detenerse al entrar en la simulación, sin ocultar controles.
   await cdp.send('Emulation.setEmulatedMedia',{

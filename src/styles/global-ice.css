@@ -1,0 +1,376 @@
+/* GLOBAL_ICE_BLUE_V1
+   Tema unificado de VISION AI.
+   Aplica el azul hielo a TODAS las rutas, incluso sin cámaras ni simulador.
+   Mantiene la navegación marino y los visores de medios en alto contraste.
+*/
+:root{
+ --global-ice:#d9eeff;
+ --global-ice-white:#f5fbff;
+ --global-ice-panel:#e9f6ff;
+ --global-ice-border:#9cc8ee;
+ --global-navy:#0b2c57;
+ --global-blue:#176fc9;
+ --global-muted:#486b95;
+ --global-violet:#6a5bc8;
+}
+html,body,#root{
+ min-height:100%;background:var(--global-ice);
+}
+.neo-shell{
+ background:var(--global-ice);
+ color:var(--global-navy);
+}
+.neo-shell .workspace{
+ background-color:#d9eeff;
+ background-image:
+  radial-gradient(ellipse 68% 35% at 100% 0%,#b8deff 0%,transparent 82%),
+  radial-gradient(ellipse 55% 27% at 0% 100%,#c8e5ff 0%,transparent 95%),
+  linear-gradient(145deg,#eef8ff 0%,#d9eeff 53%,#c6e4ff 100%);
+ color:#0b2c55;
+}
+.neo-shell .workspace::before{display:none}
+.neo-shell main{color:#0b2d57}
+.neo-shell main>.page-heading{color:#0b2d57}
+.neo-shell main>.page-heading .eyebrow{color:#1a69c1}
+.neo-shell main>.page-heading h1{
+ color:#092d56;text-shadow:none;
+}
+.neo-shell main>.page-heading p{color:#41668e}
+.neo-shell .workspace-footer{
+ background:transparent;border-color:#a3c8e9;color:#456b94;
+}
+.neo-shell .workspace-footer span{color:#456b94!important}
+/* La barra lateral es la superficie de contraste original, sin acentos verdes. */
+.neo-shell .sidebar{
+ background:
+  radial-gradient(ellipse 120% 55% at 10% 3%,#2633693a,transparent 80%),
+  linear-gradient(180deg,#07162f 0%,#0b2751 65%,#091c3d 100%);
+ border-color:#2d599a;color:#e9f5ff;
+}
+.neo-shell .sidebar nav a[aria-current=page]{
+ background:linear-gradient(105deg,#1462bd,#2f7edb);
+ border-color:#57a8f2;box-shadow:inset 3px 0 #b3dffe,0 7px 23px #03172b63;
+}
+.neo-shell .sidebar nav a[aria-current=page]>svg{
+ color:#b9e4ff;filter:drop-shadow(0 0 5px #2a8ee5);
+}
+.neo-shell .sidebar nav a:hover{
+ background:#17447d;border-color:#5794d6;color:#fff;
+}
+.neo-shell .neo-sidebar-bottom .studio-sidebar-command svg{color:#9bd2ff}
+/* Cabecera azul noche: separa la navegación del contenido luminoso. */
+.neo-shell .topbar{
+ background:#071a38ed;border-bottom-color:#31598f;color:#ecf6ff;
+ box-shadow:0 7px 21px #125a9b17;
+}
+/* Inicio: superficie azul hielo, paneles de porcelana azulada. */
+.neo-shell .neo-home{
+ color:#0b2d57;
+}
+.neo-shell .neo-welcome h1{
+ color:#0a2b51;text-shadow:none;
+}
+.neo-shell .neo-welcome h1 em{
+ color:#126fcb;text-shadow:none;
+}
+.neo-shell .neo-welcome-kicker{color:#195fb7}
+.neo-shell .neo-welcome p{color:#42678f}
+.neo-shell .neo-primary-action{
+ color:#fff;border-color:#3188e2;
+ background:linear-gradient(110deg,#176acc,#287fdf);
+ box-shadow:0 7px 24px #276cbd38;
+}
+.neo-shell .neo-primary-action:hover{
+ color:#fff;background:#0f57af;
+}
+.neo-shell .neo-kpi{
+ color:#0b2f5b;background:linear-gradient(140deg,#f8fcff,#e8f5ff);
+ border-color:#94c3ed;
+ box-shadow:inset 0 1px #fff,0 9px 24px #194c8340;
+}
+.neo-shell .neo-kpi span{color:#345c86}
+.neo-shell .neo-kpi strong{color:#092e5b}
+.neo-shell .neo-kpi small{color:#52749a}
+.neo-shell .neo-kpi-icon{
+ background:color-mix(in srgb,var(--local-accent) 12%,#f6fbff);
+ box-shadow:0 0 19px color-mix(in srgb,var(--local-accent) 15%,transparent);
+}
+.neo-shell .neo-kpi-green{
+ --local-accent:#236fc4;border-color:#7cafe9;
+}
+.neo-shell .neo-kpi-blue{--local-accent:#146bbb}
+.neo-shell .neo-kpi-violet{--local-accent:#386fca}
+.neo-shell .neo-kpi-purple{--local-accent:#8159c4}
+.neo-shell .neo-glass{
+ background:linear-gradient(155deg,#f7fbff,#e4f2ff);
+ border-color:#93bee9;
+ box-shadow:inset 0 1px #fff,0 11px 35px #134f8d24;
+}
+.neo-shell .neo-panel-heading h2{
+ color:#0c315d;
+}
+.neo-shell .neo-panel-heading h2 svg{color:#2474c4}
+.neo-shell .neo-state{
+ color:#135cae;background:#dbeeff;border-color:#77b7ed;
+}
+.neo-shell .neo-state span{
+ background:#2c83db;box-shadow:0 0 9px #3f92e7;
+}
+/* En portada, la foto es ilustrativa y mantiene su overlay oscuro. */
+.neo-shell .neo-preview-scene{border-color:#6899d4}
+.neo-shell .neo-preview-overlay{color:#eef8ff;background:#081a3bdc}
+.neo-shell .neo-preview-overlay>span{color:#e4f1ff}
+.neo-shell .neo-main-actions button{
+ color:#fff;background:#155cad;border-color:#357fd0;
+}
+.neo-shell .neo-main-actions button:hover{background:#1f74cb;color:#fff}
+.neo-shell .neo-main-actions>span{color:#57769c}
+.neo-shell .neo-performance-list>div{
+ background:#e3f1ff;border-color:#b3d3ef;color:#254d79;
+}
+.neo-shell .neo-performance-list span{color:#355e8c}
+.neo-shell .neo-performance-list b{color:#0c3160}
+.neo-shell .neo-progress-track{stroke:#c8e1f8}
+.neo-shell .neo-progress-ring{stroke:#277bce;filter:drop-shadow(0 0 4px #69b5ff)}
+.neo-shell .neo-progress strong{color:#0b3466}
+.neo-shell .neo-progress span{color:#456a96}
+.neo-shell .neo-performance-footnote{color:#57789e!important}
+.neo-shell .neo-period{
+ background:#e1efff;border-color:#a6c8e8;color:#41668d;
+}
+.neo-shell .neo-chart-grid line{stroke:#b5d1ed}
+.neo-shell .neo-activity-chart text{fill:#44668f}
+.neo-shell .neo-chart-line.people{stroke:#2274d1;color:#2274d1}
+.neo-shell .neo-chart-line.vehicles{stroke:#795ad4;color:#795ad4}
+.neo-shell .neo-chart-line.other{stroke:#ef9b4b;color:#ef9b4b}
+.neo-shell .neo-chart-legend span{color:#4d7199}
+.neo-shell .neo-chart-legend i.people{background:#2274d1}
+.neo-shell .neo-chart-legend i.vehicles{background:#795ad4}
+.neo-shell .neo-chart-legend i.other{background:#ef9b4b}
+.neo-shell .neo-chart-empty{
+ color:#245385;background:#eaf5ffed;border-color:#93bde4;
+}
+.neo-shell .neo-scenarios,.neo-shell .neo-shortcuts{border-color:#9cbee6}
+.neo-shell .neo-text-action{color:#155eb2}
+.neo-shell .neo-text-action:hover{color:#0a3877;background:#d4ebff}
+.neo-shell .neo-scene{
+ border-color:#8db6e4;background:#edf7ff;color:#0d2e59;
+}
+.neo-shell .neo-scene:hover{
+ background:#e1f1ff;border-color:#2c8be5;
+ box-shadow:0 7px 22px #2b6db433;
+}
+.neo-shell .neo-scene-text strong{color:#0d315e}
+.neo-shell .neo-scene-text small{color:#51759b}
+.neo-shell .neo-scene-text>svg{color:#176bc1}
+.neo-shell .neo-shortcut-grid button{
+ background:linear-gradient(150deg,#e5edff,#d6e4ff);
+ border-color:#a8b9ee;color:#392f97;
+}
+.neo-shell .neo-shortcut-grid button:nth-child(2){
+ background:linear-gradient(150deg,#d7efff,#c4e4ff);
+ border-color:#85bbf2;color:#12559e;
+}
+.neo-shell .neo-shortcut-grid button:nth-child(3){
+ background:linear-gradient(150deg,#d9e9ff,#c0dafb);
+ border-color:#8db8ec;color:#0f4b9e;
+}
+.neo-shell .neo-shortcut-grid button:nth-child(4){
+ background:linear-gradient(150deg,#ebe7ff,#dcdafa);
+ border-color:#b3a5ed;color:#5846ac;
+}
+.neo-shell .neo-shortcut-grid button:hover{filter:brightness(1.025)}
+.neo-shell .neo-recent-item{
+ background:#eaf6ff;border-color:#a7c9e8;color:#194779;
+}
+.neo-shell .neo-recent-mark{background:#d6eaff;color:#1b6bbc}
+.neo-shell .neo-recent-item strong{color:#133c72}
+.neo-shell .neo-recent-item small{color:#50729a}
+.neo-shell .neo-recent-item>span:last-child{color:#2064b5}
+.neo-shell .neo-empty{color:#53749d}
+.neo-shell .neo-data-note{color:#51769f!important}
+.neo-shell .neo-insights-title>span{color:#236fbd}
+.neo-shell .neo-insights-title h2{color:#0a2e57}
+.neo-shell .neo-insights-title p{color:#436990}
+/* Historial, estadísticas, operaciones, privacidad y configuración. */
+.neo-shell .saved-dashboard-filters,
+.neo-shell .saved-dashboard-metrics>div,
+.neo-shell .saved-dashboard-plot,
+.neo-shell .saved-dashboard-breakdown,
+.neo-shell .saved-dashboard-timeline,
+.neo-shell .saved-dashboard-recent,
+.neo-shell .live-dashboard,
+.neo-shell .history-panel,
+.neo-shell .privacy-center,
+.neo-shell .operations-panel,
+.neo-shell .session-settings,
+.neo-shell .panel:not(.simulator-shell):not(.live-traffic-lab){
+ color:#0c315e;
+ background:linear-gradient(150deg,#f9fdff,#e7f4ff);
+ border-color:#a3cbed;
+ box-shadow:0 10px 30px #15599b1a;
+}
+.neo-shell :is(.saved-dashboard,.history-panel,.privacy-center,.operations-panel,
+ .session-settings,.live-dashboard,.neo-insights) :is(h2,h3,h4){
+ color:#0d3566;
+}
+.neo-shell :is(.saved-dashboard,.history-panel,.privacy-center,.operations-panel,
+ .session-settings,.live-dashboard,.neo-insights) p{
+ color:#45668c;
+}
+.neo-shell .saved-dashboard-metrics strong{
+ color:#0d4c97;
+}
+.neo-shell .saved-dashboard-metrics span,
+.neo-shell .saved-dashboard-metrics small{
+ color:#497197;
+}
+.neo-shell .saved-dashboard :is(.saved-dashboard-filters,.saved-dashboard-plot,.saved-dashboard-breakdown) label{
+ color:#2d5786;
+}
+.neo-shell .saved-dashboard-bar>span,
+.neo-shell .saved-dashboard-bar strong{color:#224c80}
+.neo-shell .saved-dashboard-bar>div{background:#d5e7fa}
+.neo-shell .saved-dashboard-bar i,
+.neo-shell .saved-dashboard-day i{
+ background:linear-gradient(90deg,#1c6bce,#7e5cd0);
+}
+.neo-shell .saved-dashboard-breakdown :is(dt,dd),
+.neo-shell .saved-dashboard-classes :is(span,b){
+ color:#2a5889;
+}
+.neo-shell .saved-dashboard-caveat{color:#4b7097}
+.neo-shell .saved-dashboard-timeline time{color:#285e9a}
+.neo-shell .saved-dashboard-recent-row{border-color:#b7d3ec}
+.neo-shell .saved-dashboard-recent-row strong{color:#153c72}
+.neo-shell .live-dashboard .live-dashboard-top button,
+.neo-shell .saved-dashboard button,
+.neo-shell .history-panel button:not(.session-history-delete):not(.history-danger),
+.neo-shell .operations-panel button:not(.privacy-danger),
+.neo-shell .session-settings button:not(.privacy-danger){
+ background:#185dab;color:#fff;border-color:#3684d8;
+}
+.neo-shell :is(.live-dashboard,.saved-dashboard,.history-panel,.operations-panel,
+ .session-settings) button:hover:not(:disabled){
+ border-color:#69aaf0;
+}
+.neo-shell .live-dashboard-metrics>div,
+.neo-shell .live-dashboard-details>div{
+ background:#ecf7ff;border-color:#b0d0ee;
+}
+.neo-shell .live-dashboard-metrics span,
+.neo-shell .live-dashboard-details span{color:#446a91}
+.neo-shell .live-dashboard-metrics strong,
+.neo-shell .live-dashboard-details b{color:#155598}
+.neo-shell .history-panel .table-scroll{
+ background:#eff8ff;border-color:#a2c8e9;
+}
+.neo-shell :is(.history-panel,.operations-panel,.privacy-center) table{
+ background:#f5fbff;
+}
+.neo-shell :is(.history-panel,.operations-panel,.privacy-center) thead{
+ background:#d9ebfc;
+}
+.neo-shell :is(.history-panel,.operations-panel,.privacy-center) th{
+ color:#143e76;border-color:#a2c6e7;
+}
+.neo-shell :is(.history-panel,.operations-panel,.privacy-center) td{
+ color:#2d527d;border-color:#c6dcf0;
+}
+.neo-shell :is(.history-panel,.operations-panel,.privacy-center) tbody tr:hover{
+ background:#e3f1ff;
+}
+.neo-shell .history-panel .history-empty{
+ background:#e8f5ff;border-color:#a4c7e8;
+}
+.neo-shell .history-panel .history-empty :is(h3,p){color:#2b5282}
+.neo-shell .history-panel .session-history-detail,
+.neo-shell .history-panel .history-report-summary,
+.neo-shell .history-panel .history-report-stats>div,
+.neo-shell .history-panel .session-history-confirm{
+ background:#e8f5ff;border-color:#9dbfe5;color:#1b467c;
+}
+.neo-shell .history-panel .session-history-detail :is(dt,dd),
+.neo-shell .history-panel .history-report-summary :is(p,strong){
+ color:#255181;
+}
+.neo-shell .operations-review-stats>div,
+.neo-shell .operations-review-item,
+.neo-shell .operations-review-filters,
+.neo-shell .operations-review-decision,
+.neo-shell .privacy-metrics>div,
+.neo-shell .privacy-data-card,
+.neo-shell .privacy-erase,
+.neo-shell .settings-fields{
+ background:#edf8ff;border-color:#a8cbed;color:#1d497c;
+}
+.neo-shell .operations-review-stats strong,
+.neo-shell .privacy-metrics strong{color:#135ba8}
+.neo-shell .operations-review-stats span,
+.neo-shell .privacy-metrics span{color:#456e9b}
+.neo-shell .operations-review-top strong,
+.neo-shell .operations-review-main small{color:#24568a}
+.neo-shell .operations-review-main p{color:#456a91}
+.neo-shell .operations-review-state.is-closed{
+ color:#1f66b8;background:#d4e9ff;border-color:#93bcea;
+}
+.neo-shell .operations-review-item button:not(:disabled){
+ background:#1b69b9;border-color:#468de0;color:#fff;
+}
+.neo-shell :is(.history-panel,.session-settings,.operations-panel,.privacy-center,
+ .saved-dashboard,.live-dashboard) :is(input,select,textarea){
+ background:#f4faff;border:1px solid #9bc3e7;
+ color:#0b315f;accent-color:#256fcb;
+}
+.neo-shell :is(.history-panel,.session-settings,.operations-panel,.privacy-center,
+ .saved-dashboard,.live-dashboard) :is(input,select,textarea)::placeholder{
+ color:#6683a4;
+}
+.neo-shell :is(.history-panel,.session-settings,.operations-panel,.privacy-center,
+ .saved-dashboard,.live-dashboard) :is(input,select,textarea):focus-visible{
+ outline:2px solid #348ee8;outline-offset:2px;
+}
+.neo-shell :is(.history-panel,.session-settings,.operations-panel,.privacy-center,
+ .saved-dashboard,.live-dashboard) label{
+ color:#244e80;
+}
+.neo-shell .privacy-empty-state,
+.neo-shell .session-history-notice{
+ background:#e7f4ff;border-color:#95bfe8;color:#245486;
+}
+.neo-shell .privacy-empty-state strong{color:#0e3b77}
+/* Mantener cámaras, simulación 3D y sus resultados con sus estilos propios. */
+.neo-shell .vision-workspace:not(:has(.simulator-v3,.live-traffic-lab)) .vision-workspace-intro{
+ background:linear-gradient(115deg,#e8f6ff,#c6e4fd);
+ border-color:#93bfeb;color:#0b315d;
+}
+.neo-shell .vision-workspace-intro h2{color:#0b2f60}
+.neo-shell .vision-workspace-intro p{color:#3d668d}
+.neo-shell .vision-workspace-source:hover{background:#e2f1ff}
+.neo-shell .vision-workspace-source[aria-pressed=true]{
+ border-color:#2880d7;background:#d4eaff;
+}
+.neo-shell .vision-workspace-eyebrow{color:#185eb7}
+.neo-shell .vision-workspace-notice,
+.neo-shell .vision-workspace-activity{
+ background:#ebf6ff;border-color:#a0c8ea;color:#315e8e;
+}
+.neo-shell .vision-workspace-activity strong{color:#155ca7}
+/* Las páginas de cámara y simulador mantienen los fondos confirmados. */
+.neo-shell .workspace:has(.simulator-v3):not(:has(.live-traffic-lab)),
+.neo-shell .workspace:has(.live-traffic-lab):not(:has(.simulator-v3)){
+ background-color:#d9eeff;
+}
+@media(max-width:880px){
+ .neo-shell .workspace{min-width:0;max-width:100%}
+ .neo-shell .neo-glass,.neo-shell .neo-home{min-width:0;max-width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+ .neo-shell *{scroll-behavior:auto!important}
+}
+
+/* Los encabezados mantienen el mismo azul también cuando hay un visor activo. */
+.neo-shell .workspace:has(.simulator-v3) main>.page-heading h1,
+.neo-shell .workspace:has(.live-traffic-lab) main>.page-heading h1{
+ color:#092d56;
+}

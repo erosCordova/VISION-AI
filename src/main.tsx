@@ -16,6 +16,7 @@ import './styles/vision-workspace.css';
 import './styles/neon-command.css';
 import './styles/traffic-blue.css';
 import './styles/simulator-blue.css';
+import './styles/global-ice.css';
 const root = document.getElementById('root');
 if (!root) throw new Error('No se encontró el punto de entrada de VISION AI.');
 try {
