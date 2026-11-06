@@ -33,8 +33,8 @@ function getAsset(url:string):Promise<Asset>{
 function mat(hex:number,roughness=.68,metalness=.07){
  return new THREE.MeshStandardMaterial({color:hex,roughness,metalness});
 }
-const fabric=mat(0x278e9c,.92),pants=mat(0x344f5e,.9),skin=mat(0xd6a788,.94);
-const yellow=mat(0xf4bb46,.5),safety=mat(0xcfe7dd,.6);
+const fabric=mat(0x3368a6,.92),pants=mat(0x344f68,.9),skin=mat(0xd6a788,.94);
+const yellow=mat(0xf4bb46,.5),safety=mat(0xd4e5f5,.6);
 function mesh(parent:any,geometry:any,material:any,x=0,y=0,z=0):any{
  const object=new THREE.Mesh(geometry,material);object.position.set(x,y,z);
  object.castShadow=true;object.receiveShadow=true;parent.add(object);return object;
@@ -212,8 +212,8 @@ export const HumanizedScene3D=forwardRef<IndustrialSceneHandle,Props>(function H
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.14;
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   const stage=new THREE.Scene();
-  stage.background=new THREE.Color(0x1b3847);
-  stage.fog=new THREE.FogExp2(0x243c48,.012);
+  stage.background=new THREE.Color(0xd9eafa);
+  stage.fog=new THREE.FogExp2(0xc9e1f4,.012);
   stage.add(new THREE.HemisphereLight(0xf5fffa,0x526c7a,1.9));
   const sun=new THREE.DirectionalLight(0xfff1dd,2.4);
   sun.position.set(-7,13,8);sun.castShadow=true;
@@ -395,7 +395,7 @@ export const HumanizedScene3D=forwardRef<IndustrialSceneHandle,Props>(function H
      <span>MODELOS CC0 / {props.view.toUpperCase()}</span></div>
    <span className="simulator-human-status" role="status">{label}</span>
    <div className="simulator-3d-bottom" aria-hidden="true">
-     <span>SIMULACIÓN SINTÉTICA · NO YOLO</span><span>ARASTRAR O FLECHAS PARA GIRAR · + / − ZOOM · R RESTABLECER</span>
+     <span>ESCENA VIRTUAL · REPRESENTACIÓN 3D</span><span>ARASTRAR O FLECHAS PARA GIRAR · + / − ZOOM · R RESTABLECER</span>
    </div>
    {error&&<div className="simulator-3d-error" role="alert"><strong>El motor 3D no está disponible</strong><p>{error}</p></div>}
  </div>;

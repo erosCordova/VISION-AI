@@ -290,6 +290,6 @@ export const IndustrialScene3D=forwardRef<IndustrialSceneHandle,Props>(function 
      <span>ARRASTRAR PARA GIRAR · RUEDA PARA ZOOM</span></div>
    {error&&<div className="simulator-3d-error" role="alert">
      <strong>Renderizado 3D no disponible</strong><p>{error}</p>
-     <p>El simulador no inicia inferencia YOLO ni envía imágenes al servidor.</p></div>}
+     <p>El simulador utiliza imágenes de escenas virtuales y no activa el reconocimiento automáticamente.</p></div>}
  </div>;
 });

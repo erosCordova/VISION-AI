@@ -1,0 +1,416 @@
+/* SIMULATOR_ICE_BLUE_V1
+   Fondo del SIMULADOR 3D, no de las cámaras. Tema autorizado:
+   azul hielo + azul eléctrico + contraste marino, sin verde/turquesa.
+   El fondo del canvas opaco se configura también en ambos motores 3D. */
+.neo-shell .workspace:has(.simulator-v3){
+ background-color:#d9eeff;
+ background-image:
+  radial-gradient(ellipse 65% 38% at 100% 0%,#b6dcff 0%,transparent 85%),
+  linear-gradient(145deg,#e9f6ff 0%,#d9eeff 53%,#c6e4ff 100%);
+ color:#0c2c54;
+}
+.neo-shell .workspace:has(.simulator-v3)::before{display:none}
+.neo-shell .workspace:has(.simulator-v3) main{
+ color:#0b2d58;
+}
+.neo-shell .workspace:has(.simulator-v3) main>.page-heading h1{
+ color:#092951;text-shadow:none;
+}
+.neo-shell .workspace:has(.simulator-v3) main>.page-heading p{
+ color:#3b5f89;
+}
+.neo-shell .workspace:has(.simulator-v3) main>.page-heading .eyebrow{
+ color:#176ec4;
+}
+.neo-shell .workspace:has(.simulator-v3) .vision-workspace-intro{
+ background:linear-gradient(117deg,#e7f5ff,#cce7ff 80%,#b7ddfc);
+ border:1px solid #88bbeb;box-shadow:0 8px 28px #225f9b22;
+ color:#0b315c;
+}
+.neo-shell .workspace:has(.simulator-v3) .vision-workspace-intro h2{
+ color:#092d56;
+}
+.neo-shell .workspace:has(.simulator-v3) .vision-workspace-intro p{
+ color:#345d88;
+}
+.neo-shell .workspace:has(.simulator-v3) .vision-workspace-eyebrow{
+ color:#1567c1;
+}
+.neo-shell .workspace:has(.simulator-v3) .vision-workspace-history{
+ color:#fff;background:#104b98;border-color:#2778d5;
+}
+.neo-shell .workspace:has(.simulator-v3) .vision-workspace-source{
+ color:#0d3466;background:#f4faff;border-color:#9bc7ee;
+}
+.neo-shell .workspace:has(.simulator-v3) .vision-workspace-source strong{
+ color:#0b3260;
+}
+.neo-shell .workspace:has(.simulator-v3) .vision-workspace-source small{
+ color:#3c668f;
+}
+.neo-shell .workspace:has(.simulator-v3) .vision-workspace-source>svg{
+ color:#176fc9;
+}
+.neo-shell .workspace:has(.simulator-v3) .vision-workspace-source[aria-pressed=true]{
+ background:#c9e6ff;border-color:#2285e9;
+ box-shadow:inset 0 0 0 1px #267ddd,0 4px 15px #146bc32b;
+}
+.neo-shell .workspace:has(.simulator-v3) .vision-workspace-notice,
+.neo-shell .workspace:has(.simulator-v3) .vision-workspace-activity{
+ background:#eaf6ff;border-color:#9bc8ee;color:#315c8e;
+}
+.neo-shell .workspace:has(.simulator-v3) .vision-workspace-activity strong{
+ color:#1769c3;
+}
+.neo-shell .workspace:has(.simulator-v3) .workspace-footer{
+ border-color:#a8cdec;color:#456c96;
+}
+.neo-shell .workspace:has(.simulator-v3) .workspace-footer span{
+ color:#456c96!important;
+}
+/* Paneles generales de la simulación. */
+.neo-shell .simulator-v3{
+ background:#dcefff;border:1px solid #77b7ea;color:#0c315d;
+ box-shadow:0 21px 50px #113f773b;
+}
+.neo-shell .simulator-v3 .simulator-topline{
+ background:linear-gradient(112deg,#e9f7ff 0%,#d4ebff 63%,#bdddfb 100%);
+ border-color:#98c6e9;
+}
+.neo-shell .simulator-v3 .simulator-topline h2{color:#082d59}
+.neo-shell .simulator-v3 .simulator-topline p{color:#3e648e}
+.neo-shell .simulator-v3 .simulator-overline,
+.neo-shell .simulator-v3 .simulator-kicker{color:#1667be}
+.neo-shell .simulator-v3 .simulator-pro-label{
+ color:#f5faff;background:#185ec5;border:1px solid #3489ec;
+}
+.neo-shell .simulator-v3 .simulator-mode{
+ color:#175eaf;background:#f3faff;border-color:#7eb3e5;
+}
+.neo-shell .simulator-v3 .simulator-signal{
+ background:#258df5;box-shadow:0 0 11px #2985e5;
+}
+.neo-shell .simulator-v3 .simulator-scenarios{
+ background:#d2eaff;border-color:#9fc8ed;
+}
+.neo-shell .simulator-v3 .simulator-scenarios button{
+ color:#315e8d;border:1px solid transparent;
+}
+.neo-shell .simulator-v3 .simulator-scenarios button span{
+ color:#216dc9;
+}
+.neo-shell .simulator-v3 .simulator-scenarios button:hover{
+ background:#c3e2ff;border-color:#619feb;color:#0c3e78;
+}
+.neo-shell .simulator-v3 .simulator-scenarios button[aria-pressed=true]{
+ background:#0e55ac;border-color:#388be6;color:#fff;
+ box-shadow:0 4px 13px #135eaf40;
+}
+.neo-shell .simulator-v3 .simulator-scenarios button[aria-pressed=true] span{
+ color:#b7e4ff;
+}
+.neo-shell .simulator-v3 .simulator-3d-summary{
+ background:#edf8ff;border-color:#9bc6e9;
+}
+.neo-shell .simulator-v3 .simulator-3d-summary>div{
+ background:transparent;border-color:#bad5ed;
+}
+.neo-shell .simulator-v3 .simulator-3d-summary>div>span{
+ color:#416b9a;
+}
+.neo-shell .simulator-v3 .simulator-3d-summary strong{
+ color:#082f5f;
+}
+.neo-shell .simulator-v3 .simulator-3d-summary strong small{
+ color:#4c75a0;
+}
+.neo-shell .simulator-v3 .simulator-3d-summary strong.sim-status-normal{
+ color:#0e64c3;
+}
+.neo-shell .simulator-v3 .simulator-content{
+ background:#e4f3ff;
+}
+.neo-shell .simulator-v3 .simulator-visual{
+ background:#e1f2ff;
+ background-image:linear-gradient(165deg,#eaf7ff,#d5eaff);
+ color:#092d55;border-color:#9fc7ee;
+}
+.neo-shell .simulator-v3 .simulator-visual-head h3{color:#0c305c}
+.neo-shell .simulator-v3 .simulator-visual-head p{color:#416890}
+.neo-shell .simulator-v3 .simulator-fps{
+ color:#145db3;
+}
+.neo-shell .simulator-v3 .simulator-render-preset{
+ background:#d5e9fc;border-color:#8eb9e7;
+}
+.neo-shell .simulator-v3 .simulator-render-preset>span{
+ color:#174d8b;
+}
+.neo-shell .simulator-v3 .simulator-render-preset>div{
+ background:#0d2a53;
+}
+.neo-shell .simulator-v3 .simulator-render-preset button{
+ color:#bfd7fb;border-color:transparent;
+}
+.neo-shell .simulator-v3 .simulator-render-preset button[aria-pressed=true]{
+ background:#1c67bd;border-color:#51a0f3;color:white;
+}
+.neo-shell .simulator-v3 .simulator-ai-select{
+ background:#d9edff;
+ background-image:linear-gradient(110deg,#e8f5ff,#cce6fb);
+ border-color:#8abce9;
+}
+.neo-shell .simulator-v3 .simulator-ai-select>div:first-child strong{
+ color:#175897;
+}
+.neo-shell .simulator-v3 .simulator-ai-select>div:first-child span{
+ color:#4b749d;
+}
+.neo-shell .simulator-v3 .simulator-ai-switch{
+ background:#0b2755;border-color:#326cbb;
+}
+.neo-shell .simulator-v3 .simulator-ai-switch button{color:#d5e7ff}
+.neo-shell .simulator-v3 .simulator-ai-switch button[aria-pressed=true]{
+ color:#fff;border-color:#419ff4;background:#1867c2;
+}
+.neo-shell .simulator-v3 .simulator-canvas-wrap{
+ background:#d4e8f9;border:1px solid #5699d4;
+ box-shadow:0 0 0 2px #f3faff,0 15px 38px #2c66ac3b;
+}
+.neo-shell .simulator-v3 .simulator-3d-stage{
+ background-color:#d7eafa;
+ background-image:radial-gradient(ellipse at 45% 20%,#eff9ff 0%,#d7eafa 70%,#bad9f3 100%);
+}
+.neo-shell .simulator-v3 .simulator-human-stage{
+ background-color:#d7eafa;
+ background-image:radial-gradient(ellipse at 45% 20%,#eff9ff 0%,#d7eafa 70%,#bad9f3 100%);
+}
+.neo-shell .simulator-v3 .simulator-3d-stage::after{
+ background:repeating-linear-gradient(to bottom,transparent 0,transparent 5px,#3562a00b 5px,#3562a00b 6px);
+ box-shadow:inset 0 0 40px 3px #36639c0d;
+}
+.neo-shell .simulator-v3 .simulator-canvas-badge{
+ background:#073d7de8;border-color:#479ae8;color:#e9f7ff;
+}
+.neo-shell .simulator-v3 .simulator-3d-top,
+.neo-shell .simulator-v3 .simulator-3d-bottom{
+ color:#184575;text-shadow:0 1px 3px #f3faff;
+}
+.neo-shell .simulator-v3 .simulator-3d-live{
+ color:#114eab;
+}
+.neo-shell .simulator-v3 .simulator-human-status{
+ background:#0c356be5;color:#e9f5ff;border-color:#4295e9;
+}
+.neo-shell .simulator-v3 .simulator-camera-toolbar{
+ background:transparent;
+}
+.neo-shell .simulator-v3 .simulator-view-group,
+.neo-shell .simulator-v3 .simulator-view-tools{
+ background:#0a2c58;border-color:#38699d;
+}
+.neo-shell .simulator-v3 .simulator-view-group button,
+.neo-shell .simulator-v3 .simulator-view-tools button{
+ color:#d8e9ff;border-color:transparent;background:transparent;
+}
+.neo-shell .simulator-v3 .simulator-view-group button:hover,
+.neo-shell .simulator-v3 .simulator-view-tools button:hover{
+ color:#fff;background:#174f9a;border-color:#4b9ff4;
+}
+.neo-shell .simulator-v3 .simulator-view-group button[aria-pressed=true]{
+ background:#1d66bc;border-color:#4e9ce9;color:#fff;
+}
+.neo-shell .simulator-v3 .simulator-event{
+ background:#e7f4ff;border:1px solid #a2c6e7;color:#214c81;
+}
+.neo-shell .simulator-v3 .simulator-event:not(.is-alert) .simulator-event-dot{
+ background:#177be6;
+}
+.neo-shell .simulator-v3 .simulator-event-tag{
+ color:#1e64ae;
+}
+.neo-shell .simulator-v3 .simulator-timeline{
+ background:#eaf6ff;border-color:#9ac1e5;
+}
+.neo-shell .simulator-v3 .simulator-timeline-meta{
+ color:#345f91;
+}
+.neo-shell .simulator-v3 .simulator-timeline input[type=range]{
+ accent-color:#176be0;
+}
+.neo-shell .simulator-v3 .simulator-timeline-actions button{
+ background:#0d478f;border-color:#357bd2;color:#fff;
+}
+.neo-shell .simulator-v3 .simulator-timeline-actions button:hover{
+ background:#1a69ba;border-color:#54a1ef;
+}
+.neo-shell .simulator-v3 .simulator-timeline-actions button.simulator-pause{
+ background:#185cb8;border-color:#418fe6;color:#fff;
+}
+.neo-shell .simulator-v3 .simulator-bottomline{color:#345f91}
+.neo-shell .simulator-v3 .simulator-bottomline i{background:#1a73d2}
+.neo-shell .simulator-v3 .simulator-footnote{
+ background:#d5e9fc;color:#3e638c;border-color:#a5c7eb;
+}
+/* La consola lateral conserva alto contraste, pero en azul marino real. */
+.neo-shell .simulator-v3 .simulator-controls{
+ background:#0b2048;border-left:1px solid #3774b8;
+ color:#e8f3ff;
+}
+.neo-shell .simulator-v3 .simulator-controls>.simulator-kicker{
+ color:#6fb2ff;
+}
+.neo-shell .simulator-v3 .simulator-control-section{
+ border-bottom-color:#2f4a7e;
+}
+.neo-shell .simulator-v3 .simulator-control-label,
+.neo-shell .simulator-v3 .simulator-control-section>p{
+ color:#a4c7ef;
+}
+.neo-shell .simulator-v3 .simulator-control-section>strong{
+ color:#f1f7ff;
+}
+.neo-shell .simulator-v3 .simulator-inline label{
+ color:#c6dff8;
+}
+.neo-shell .simulator-v3 .simulator-inline b,
+.neo-shell .simulator-v3 .simulator-inline strong{
+ color:#6fb5ff;
+}
+.neo-shell .simulator-v3 .simulator-health{
+ color:#b2d1f1;border-color:#355382;
+}
+.neo-shell .simulator-v3 .simulator-health b{
+ color:#81bcff;
+}
+.neo-shell .simulator-v3 .simulator-speed button{
+ background:#16345b;border-color:#3c5f94;color:#d2e7ff;
+}
+.neo-shell .simulator-v3 .simulator-speed button[aria-pressed=true]{
+ background:#1b66bc;border-color:#70b1ff;color:white;
+}
+.neo-shell .simulator-v3 .simulator-control-section input[type=range]{
+ accent-color:#4a9dff;
+}
+.neo-shell .simulator-v3 .simulator-toggle input:checked{
+ background:#2372d5;border-color:#489aff;
+}
+.neo-shell .simulator-v3 .simulator-toggle input:checked::before{
+ background:#eff8ff;
+}
+.neo-shell .simulator-v3 .simulator-toggle{
+ color:#d3e7ff;
+}
+.neo-shell .simulator-v3 .simulator-actions button{
+ background:#1c427b;border-color:#3875c1;color:#fff;
+}
+.neo-shell .simulator-v3 .simulator-actions button.simulator-pause{
+ background:#1a67bb;border-color:#55a6f2;
+}
+/* Tableros, mediciones y gráficos de la simulación. */
+.neo-shell .simulator-v3 .sim-analytics-head h3{
+ color:#eff6ff;
+}
+.neo-shell .simulator-v3 .sim-analytics-eyebrow{
+ color:#82baff;
+}
+.neo-shell .simulator-v3 .sim-analytics-synthetic{
+ background:#3d304a;border-color:#6c5a7b;color:#ffe4ae;
+}
+.neo-shell .simulator-v3 .sim-kpi{
+ background:linear-gradient(155deg,#132e61,#0d2751);
+ border-color:#315d9c;
+}
+.neo-shell .simulator-v3 .sim-kpi-featured{
+ background:linear-gradient(135deg,#0c5ab0,#124084);
+ border-color:#4a98ee;
+}
+.neo-shell .simulator-v3 .sim-kpi strong{color:#f1f8ff}
+.neo-shell .simulator-v3 .sim-kpi>span:first-child{color:#bbd4f3}
+.neo-shell .simulator-v3 .sim-kpi-tiny,
+.neo-shell .simulator-v3 .sim-kpi strong small{
+ color:#91c2ff;
+}
+.neo-shell .simulator-v3 .sim-analytics-activity,
+.neo-shell .simulator-v3 .sim-analytics-map,
+.neo-shell .simulator-v3 .sim-analytics-class,
+.neo-shell .simulator-v3 .sim-analytics-events{
+ background:linear-gradient(155deg,#0e2855,#0b2047);
+ border-color:#31588b;
+}
+.neo-shell .simulator-v3 .sim-analytics-section-head h4{
+ color:#f0f7ff;
+}
+.neo-shell .simulator-v3 .sim-analytics-section-head p,
+.neo-shell .simulator-v3 .sim-analytics-note{
+ color:#a5c6e9!important;
+}
+.neo-shell .simulator-v3 .sim-analytics-value,
+.neo-shell .simulator-v3 .sim-map-live,
+.neo-shell .simulator-v3 .sim-analytics-eventcount{
+ color:#78b9ff;
+}
+.neo-shell .simulator-v3 .sim-analytics-map svg{
+ background-color:#102d57;
+}
+.neo-shell .simulator-v3 .sim-legend-person,
+.neo-shell .simulator-v3 .sim-class-dot{
+ background-color:#4a9fff;
+}
+.neo-shell .simulator-v3 .sim-map-legend span,
+.neo-shell .simulator-v3 .sim-analytic-class-row>span:nth-child(2){
+ color:#d2e2f5;
+}
+.neo-shell .simulator-v3 .sim-map-legend i.sim-legend-zone{
+ border-color:#4aa1ff;
+}
+.neo-shell .simulator-v3 .sim-analytics-activity svg{
+ color:#5ca9ff;
+}
+.neo-shell .simulator-v3 .v2-event-marker:not(.is-critical){
+ background:#62adff;border-color:#163c6c;
+}
+.neo-shell .simulator-v3 .v2-event-time{
+ color:#8ec6ff;
+}
+/* Reconocimiento de la escena 3D y sus métricas: usar el mismo azul. */
+.neo-shell .simulator-v3 .browser-yolo-panel,
+.neo-shell .simulator-v3 .yolo-monitor{
+ background:linear-gradient(150deg,#0b2a57,#0c1e44);
+ border-color:#3266a4;color:#e8f3ff;
+}
+.neo-shell .simulator-v3 .browser-yolo-heading h3,
+.neo-shell .simulator-v3 .yolo-monitor-header h3{
+ color:#f5faff;
+}
+.neo-shell .simulator-v3 .browser-yolo-phase.is-live,
+.neo-shell .simulator-v3 .yolo-monitor-status.is-active{
+ background:#154e9c;border-color:#429dff;color:#d7efff;
+}
+.neo-shell .simulator-v3 .browser-yolo-actions button.primary{
+ background:#1c6aca;border-color:#5aabff;color:#fff;
+}
+.neo-shell .simulator-v3 .browser-yolo-kpis>div,
+.neo-shell .simulator-v3 .yolo-monitor-kpi{
+ background:#11356a;border-color:#375e9b;
+}
+.neo-shell .simulator-v3 .browser-yolo-kpis strong,
+.neo-shell .simulator-v3 .yolo-monitor-kpi strong{
+ color:#a3d0ff;
+}
+.neo-shell .simulator-v3 .browser-yolo-actions input[type=range],
+.neo-shell .simulator-v3 .browser-yolo-mask-options input[type=range],
+.neo-shell .simulator-v3 .browser-yolo-mask-options input[type=checkbox]{
+ accent-color:#449eff;
+}
+/* Ambas rutas respetan la misma composición responsive existente. */
+@media(max-width:1040px){
+ .neo-shell .simulator-v3 .simulator-controls{
+  border-left:none;border-top:1px solid #4b87ca;
+ }
+}
+@media(max-width:650px){
+ .neo-shell .simulator-v3 .simulator-canvas-badge{
+  top:45px;
+ }
+}

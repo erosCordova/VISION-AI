@@ -1557,6 +1557,59 @@ try {
   }
   console.log('UI27: dos rutas con fondo azul verificado en navegador y capturas.');
 
+  // UI28: la foto del usuario muestra el SIMULADOR, no la cámara.
+  // Comprobar los colores renderizados de la página, la escena y el panel.
+  for(const [route,triggerSelector,caption] of [
+   ['#An%C3%A1lisis%20en%20vivo','.vision-source-selector button','Simulaciones 3D'],
+   ['#Visi%C3%B3n%20IA','.vision-workspace-source','Escenarios 3D']
+  ]){
+   await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/'+route});
+   await eventually(async()=>{
+    const r=await cdp.send('Runtime.evaluate',{
+     expression:'(() => {'
+      +'const b=Array.from(document.querySelectorAll('+JSON.stringify(triggerSelector)+'))'
+      +'.find(x=>x.textContent?.includes('+JSON.stringify(caption)+'));'
+      +'if(!b)return false;b.click();return true;})()',
+     returnByValue:true
+    });
+    return r.result?.value===true;
+   },'UI28 seleccionar simulación desde '+route);
+   const visual=await eventually(async()=>{
+    const r=await cdp.send('Runtime.evaluate',{
+     expression:'(() => {const shell=document.querySelector(".simulator-v3");'
+      +'const stage=document.querySelector(".simulator-3d-stage");'
+      +'if(!shell||!stage)return null;'
+      +'const color=x=>getComputedStyle(document.querySelector(x)).backgroundColor;'
+      +'return {page:color(".neo-shell .workspace"),'
+      +'shell:color(".simulator-v3"),'
+      +'visual:color(".simulator-v3 .simulator-visual"),'
+      +'controls:color(".simulator-v3 .simulator-controls"),'
+      +'scene:color(".simulator-v3 .simulator-3d-stage"),'
+      +'origin:color(".simulator-v3 .simulator-ai-select"),'
+      +'canvas:!!stage.querySelector("canvas"),'
+      +'recognition:!!shell.querySelector(".simulator-ai-switch")};})()',
+     returnByValue:true
+    });
+    return r.result?.value?.page==='rgb(217, 238, 255)'?r.result.value:null;
+   },'UI28 página del simulador azul hielo '+route);
+   const expected={page:'rgb(217, 238, 255)',shell:'rgb(220, 239, 255)',
+    visual:'rgb(225, 242, 255)',controls:'rgb(11, 32, 72)',
+    scene:'rgb(215, 234, 250)',origin:'rgb(217, 237, 255)'};
+   for(const [name,color] of Object.entries(expected))
+    if(visual[name]!==color)
+     throw Error('UI28: '+name+' no tiene azul esperado desde '+route+': '+JSON.stringify(visual));
+   if(!visual.canvas||!visual.recognition)
+    throw Error('UI28: render 3D o selector de reconocimiento perdido');
+   const image=await cdp.send('Page.captureScreenshot',{
+    format:'png',captureBeyondViewport:false
+   });
+   fs.writeFileSync(path.join(artifacts,route.includes('An%C3')?
+    'simulador-fondo-azul-real.png':'laboratorio-simulador-fondo-azul-real.png'),
+    Buffer.from(image.data,'base64'));
+   console.log('UI28 fondo del simulador azul confirmado en '+route+': '+JSON.stringify(visual));
+  }
+  console.log('UI28: dos rutas del simulador 3D con fondo azul, paneles y visor comprobados.');
+
   // A11Y02: sistema con movimiento reducido; render y fotogramas
   // deben detenerse al entrar en la simulación, sin ocultar controles.
   await cdp.send('Emulation.setEmulatedMedia',{

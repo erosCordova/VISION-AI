@@ -4,10 +4,10 @@ import type { Camera,Vec3 } from './scene-math';
 import { entityFootprint, zoneFootprint } from './scene-math';
 type Color=readonly [number,number,number];
 const C={
-  floor:[.107,.176,.218],grid:[.218,.321,.344],concrete:[.16,.24,.27],
-  wall:[.17,.27,.32],steel:[.37,.50,.55],dark:[.065,.11,.15],pale:[.64,.78,.75],
-  mint:[.22,.88,.72],green:[.08,.60,.47],amber:[1,.67,.26],red:[.94,.32,.27],
-  blue:[.25,.56,.78],wood:[.55,.38,.23],box:[.70,.50,.27],lamp:[.85,.94,.84]
+  floor:[.42,.54,.68],grid:[.38,.50,.65],concrete:[.57,.68,.80],
+  wall:[.55,.66,.78],steel:[.36,.49,.66],dark:[.11,.18,.30],pale:[.81,.90,.97],
+  mint:[.30,.64,.93],green:[.19,.46,.81],amber:[1,.67,.26],red:[.94,.32,.27],
+  blue:[.25,.56,.86],wood:[.55,.38,.23],box:[.70,.50,.27],lamp:[.88,.94,.98]
 } as const satisfies Record<string,Color>;
 type Face=[Vec3,Vec3,Vec3,Vec3,Vec3];
 /** Una sola malla dinámica batched evita cientos de draw calls por fotograma. */
@@ -333,7 +333,7 @@ in vec3 vColor;
 in float vDistance;
 out vec4 fragColor;
 void main(){
- vec3 fogColor=vec3(.063,.112,.145);
+ vec3 fogColor=vec3(.79,.88,.97);
  float fog=smoothstep(14.,39.,vDistance)*.60;
  fragColor=vec4(mix(vColor,fogColor,fog),1.);
 }
@@ -363,7 +363,7 @@ export class IndustrialRenderer {
  render(scene:SceneBuilder,camera:Camera,width:number,height:number){
   const gl=this.gl;
   gl.viewport(0,0,width,height);
-  gl.clearColor(.063,.112,.145,1);
+  gl.clearColor(.79,.88,.97,1);
   gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
   gl.useProgram(this.program);
   gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);

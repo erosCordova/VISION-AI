@@ -1,21 +1,21 @@
 /* Human Edition — personajes GLB animados y controles de calidad. */
 .simulator-render-preset{display:flex;align-items:center;justify-content:space-between;gap:12px;
- flex-wrap:wrap;padding:10px 14px;background:#12303d;border:1px solid #365b65;
+ flex-wrap:wrap;padding:10px 14px;background:#12243d;border:1px solid #364a65;
  border-radius:9px 9px 0 0;margin-bottom:2px}
-.simulator-render-preset>span{font-size:10px;color:#a9d2c9;letter-spacing:.9px;font-weight:800}
+.simulator-render-preset>span{font-size:10px;color:#a9bad2;letter-spacing:.9px;font-weight:800}
 .simulator-render-preset>div{display:flex;gap:4px;background:#0c2533;padding:3px;border-radius:7px}
 .simulator-render-preset button{font-size:11px;min-height:34px;padding:8px 13px;
- background:transparent;border:1px solid transparent;color:#b1ccc5;border-radius:6px}
-.simulator-render-preset button[aria-pressed="true"]{background:#246d60;border-color:#4ea68f;color:#eafff6}
-.simulator-render-preset button:focus-visible{outline:2px solid #8fffe0;outline-offset:2px}
-.simulator-human-stage{background:radial-gradient(ellipse at 55% 40%,#2f5663,#172e3b 70%)}
+ background:transparent;border:1px solid transparent;color:#b1bccc;border-radius:6px}
+.simulator-render-preset button[aria-pressed="true"]{background:#24426d;border-color:#4e73a6;color:#ebf3fe}
+.simulator-render-preset button:focus-visible{outline:2px solid #96bff8;outline-offset:2px}
+.simulator-human-stage{background:radial-gradient(ellipse at 55% 40%,#2f4563,#172e3b 70%)}
 .simulator-human-status{position:absolute;z-index:3;left:16px;right:16px;bottom:45px;
  width:max-content;max-width:calc(100% - 32px);border:1px solid rgba(105,222,190,.50);
- background:rgba(11,38,49,.88);color:#baf5df;padding:8px 11px;border-radius:6px;
+ background:rgba(11,38,49,.88);color:#bad3f5;padding:8px 11px;border-radius:6px;
  font-size:10px;letter-spacing:.2px;font-weight:750;pointer-events:none;overflow-wrap:anywhere}
 .simulator-human-stage .simulator-3d-top{font-weight:800}
-.simulator-human-stage .simulator-3d-live{color:#81f8cd}
-.simulator-v3 .simulator-topline .simulator-pro-label{letter-spacing:.7px;background:linear-gradient(125deg,#91f2d8,#4ac3ac);font-size:9px}
+.simulator-human-stage .simulator-3d-live{color:#82b3f7}
+.simulator-v3 .simulator-topline .simulator-pro-label{letter-spacing:.7px;background:linear-gradient(125deg,#91b9f2,#4a7cc3);font-size:9px}
 @media(max-width:690px){
  .simulator-render-preset{align-items:stretch;padding:9px 10px;flex-direction:column}
  .simulator-render-preset>div{width:100%}

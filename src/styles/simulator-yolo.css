@@ -1,57 +1,57 @@
 /* Inferencia neural browser / anotaciones visuales separadas */
 .simulator-ai-select{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
- padding:12px 14px;margin:3px 0 9px;border:1px solid #39666c;border-radius:9px;
- background:linear-gradient(120deg,#133e47,#112c3b)}
+ padding:12px 14px;margin:3px 0 9px;border:1px solid #394e6c;border-radius:9px;
+ background:linear-gradient(120deg,#132947,#112c3b)}
 .simulator-ai-select>div:first-child{display:grid;gap:5px}
-.simulator-ai-select>div:first-child strong{font-size:10px;letter-spacing:1.1px;color:#b9f5d9}
-.simulator-ai-select>div:first-child span{font-size:10px;color:#9fbdc5}
-.simulator-ai-switch{display:flex;gap:5px;background:#102833;border-radius:8px;padding:4px;border:1px solid #325660}
-.simulator-ai-switch button{font-size:11px;border-radius:6px;background:transparent;color:#b8cfd0;border:1px solid transparent;
+.simulator-ai-select>div:first-child strong{font-size:10px;letter-spacing:1.1px;color:#b9d2f5}
+.simulator-ai-select>div:first-child span{font-size:10px;color:#9fafc5}
+.simulator-ai-switch{display:flex;gap:5px;background:#101f33;border-radius:8px;padding:4px;border:1px solid #324560}
+.simulator-ai-switch button{font-size:11px;border-radius:6px;background:transparent;color:#b8c2d0;border:1px solid transparent;
  padding:9px 10px;min-height:37px}
-.simulator-ai-switch button[aria-pressed="true"]{background:#267c67;color:#f6fff9;border-color:#4bcaa7}
-.simulator-ai-switch button:focus-visible{outline:2px solid #c1ffe9;outline-offset:2px}
-.browser-yolo-panel{border:1px solid #34816c;border-radius:12px;background:linear-gradient(145deg,#0d3039,#102a37);
- padding:17px 15px 15px;margin:12px 0 15px;min-width:0;color:#deefe7}
+.simulator-ai-switch button[aria-pressed="true"]{background:#264a7c;color:#f7fafe;border-color:#4b80ca}
+.simulator-ai-switch button:focus-visible{outline:2px solid #c5dbfb;outline-offset:2px}
+.browser-yolo-panel{border:1px solid #345481;border-radius:12px;background:linear-gradient(145deg,#0d1f39,#102037);
+ padding:17px 15px 15px;margin:12px 0 15px;min-width:0;color:#dee5ef}
 .browser-yolo-heading{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;
- border-bottom:1px solid #315d60;padding-bottom:13px}
-.browser-yolo-heading h3{font-size:18px;color:#e5fff2;margin:5px 0 6px;font-family:Manrope,sans-serif}
-.browser-yolo-heading p{font-size:11px;color:#9bbdc0;max-width:620px;line-height:1.65;margin:0}
+ border-bottom:1px solid #314560;padding-bottom:13px}
+.browser-yolo-heading h3{font-size:18px;color:#e7f0fd;margin:5px 0 6px;font-family:Manrope,sans-serif}
+.browser-yolo-heading p{font-size:11px;color:#9baac0;max-width:620px;line-height:1.65;margin:0}
 .browser-yolo-phase{font-size:9px;letter-spacing:.8px;font-weight:800;color:#e9bc93;border:1px solid #72553f;
  padding:8px 10px;border-radius:18px;background:#372f30;white-space:nowrap}
-.browser-yolo-phase.is-live{color:#9df4ce;background:#184e42;border-color:#4eac88}
+.browser-yolo-phase.is-live{color:#9dc1f4;background:#182e4e;border-color:#4e75ac}
 .browser-yolo-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:14px 0 7px}
-.browser-yolo-actions button{background:#1c4e55;border:1px solid #4c8077;color:#d6fff0;
+.browser-yolo-actions button{background:#1c3455;border:1px solid #4c6280;color:#d8e7fd;
  font-size:12px;font-weight:800;padding:11px 16px}
-.browser-yolo-actions button.primary{background:#257f65;border-color:#56ca98;color:#f1fff6}
-.browser-yolo-actions button:hover{background:#2e6d68}
-.browser-yolo-actions label{font-size:11px;color:#bedbd3;display:flex;gap:8px;align-items:center}
-.browser-yolo-actions label strong{color:#81ecc6;font-size:12px}
-.browser-yolo-actions input[type="range"]{width:145px;accent-color:#72e9c5;cursor:pointer}
-.browser-yolo-status{font-size:11px;margin:9px 0 13px;color:#a7e7d3;line-height:1.5}
+.browser-yolo-actions button.primary{background:#254a7f;border-color:#5686ca;color:#f2f7fe}
+.browser-yolo-actions button:hover{background:#2e486d}
+.browser-yolo-actions label{font-size:11px;color:#becadb;display:flex;gap:8px;align-items:center}
+.browser-yolo-actions label strong{color:#81aeec;font-size:12px}
+.browser-yolo-actions input[type="range"]{width:145px;accent-color:#72a4e9;cursor:pointer}
+.browser-yolo-status{font-size:11px;margin:9px 0 13px;color:#a7c2e7;line-height:1.5}
 .browser-yolo-error{color:#ffd4b9;background:#492b30;border:1px solid #ae6656;border-radius:6px;padding:10px;font-size:11px}
 .browser-yolo-result{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(180px,.75fr);gap:13px}
-.browser-yolo-preview,.browser-yolo-summary{border-radius:9px;border:1px solid #305661;background:#102b37;padding:12px;min-width:0}
+.browser-yolo-preview,.browser-yolo-summary{border-radius:9px;border:1px solid #304461;background:#102037;padding:12px;min-width:0}
 .browser-yolo-subhead{display:flex;justify-content:space-between;gap:7px;flex-wrap:wrap;margin-bottom:10px;
- font-size:9px;letter-spacing:.55px;color:#c5efe0}
-.browser-yolo-subhead span{color:#79cbb2}
-.browser-yolo-preview-frame{position:relative;background:#0a1e2a;border:1px solid #294e5b;border-radius:7px;overflow:hidden}
+ font-size:9px;letter-spacing:.55px;color:#c5d7ef}
+.browser-yolo-subhead span{color:#799bcb}
+.browser-yolo-preview-frame{position:relative;background:#0a1e2a;border:1px solid #293e5b;border-radius:7px;overflow:hidden}
 .browser-yolo-preview-frame canvas{width:100%;height:auto;aspect-ratio:960/550;object-fit:contain;display:block}
 .browser-yolo-placeholder{position:absolute;inset:0;display:grid;place-items:center;text-align:center;margin:0;
- padding:15px;color:#97c6be;background:#092431d8;font-size:11px}
-.browser-yolo-preview>p{font-size:10px;line-height:1.6;color:#92babb;margin:9px 0 0}
+ padding:15px;color:#97abc6;background:#091a31d8;font-size:11px}
+.browser-yolo-preview>p{font-size:10px;line-height:1.6;color:#92a3bb;margin:9px 0 0}
 .browser-yolo-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:9px 0 12px}
-.browser-yolo-kpis>div{background:#173d48;border:1px solid #35636a;border-radius:7px;padding:11px 9px;min-width:0}
-.browser-yolo-kpis span{display:block;font-size:10px;color:#afd1ca;line-height:1.35}
-.browser-yolo-kpis strong{display:block;margin-top:6px;color:#74ebc1;font:800 19px Manrope,sans-serif}
-.browser-yolo-summary .eyebrow{font-size:9px;letter-spacing:1.2px;color:#9fe0c9}
-.browser-yolo-count,.browser-yolo-empty,.browser-yolo-limit{font-size:10px;color:#a2c5bf;line-height:1.7}
-.browser-yolo-count b{color:#d2f5dd}
-.browser-yolo-empty{border:1px solid #45606d;background:#1b3d45;padding:9px;border-radius:7px}
-.browser-yolo-limit{border-top:1px solid #32545f;margin-top:14px;padding-top:12px;color:#c6ad8f}
+.browser-yolo-kpis>div{background:#172b48;border:1px solid #354b6a;border-radius:7px;padding:11px 9px;min-width:0}
+.browser-yolo-kpis span{display:block;font-size:10px;color:#afbdd1;line-height:1.35}
+.browser-yolo-kpis strong{display:block;margin-top:6px;color:#74a6eb;font:800 19px Manrope,sans-serif}
+.browser-yolo-summary .eyebrow{font-size:9px;letter-spacing:1.2px;color:#9fbae0}
+.browser-yolo-count,.browser-yolo-empty,.browser-yolo-limit{font-size:10px;color:#a2b1c5;line-height:1.7}
+.browser-yolo-count b{color:#d2e1f5}
+.browser-yolo-empty{border:1px solid #45566d;background:#1b2c45;padding:9px;border-radius:7px}
+.browser-yolo-limit{border-top:1px solid #32455f;margin-top:14px;padding-top:12px;color:#c6ad8f}
 .browser-yolo-classes{display:grid;gap:5px}
-.browser-yolo-classes>div{display:flex;justify-content:space-between;gap:9px;border-bottom:1px solid #2c4b53;
- padding:7px 0;color:#c3e0d5;font-size:10px}
-.browser-yolo-classes strong{color:#91eec7}
+.browser-yolo-classes>div{display:flex;justify-content:space-between;gap:9px;border-bottom:1px solid #2c3c53;
+ padding:7px 0;color:#c3cfe0;font-size:10px}
+.browser-yolo-classes strong{color:#91b8ee}
 @media(max-width:1180px){.browser-yolo-result{grid-template-columns:1fr}}
 @media(max-width:690px){
  .simulator-ai-select{flex-direction:column;align-items:stretch}
@@ -65,20 +65,20 @@
 
 /* Selector de modelos real y origen de imágenes, sin mezclas con simulación. */
 .browser-yolo-selectors{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:13px 0 8px}
-.browser-yolo-picker{background:#102c38;border:1px solid #35646a;border-radius:9px;padding:12px;min-width:0;display:grid;gap:9px}
-.browser-yolo-picker>span{font-weight:800;font-size:9px;letter-spacing:1.2px;color:#9bcbbf}
+.browser-yolo-picker{background:#102138;border:1px solid #354b6a;border-radius:9px;padding:12px;min-width:0;display:grid;gap:9px}
+.browser-yolo-picker>span{font-weight:800;font-size:9px;letter-spacing:1.2px;color:#9bafcb}
 .browser-yolo-picker>div{display:flex;flex-wrap:wrap;gap:5px}
-.browser-yolo-picker button{padding:9px 11px;border:1px solid #41646b;background:#173642;
-color:#c3e2d9;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
-.browser-yolo-picker button[aria-pressed="true"]{background:#267965;border-color:#53cda6;color:#effff6}
-.browser-yolo-picker button:hover{background:#27535b}
-.browser-yolo-picker button:focus-visible{outline:2px solid #b8ffe5;outline-offset:2px}
-.browser-yolo-modelnote{background:#363829;border:1px solid #77704b;padding:11px 13px;
+.browser-yolo-picker button{padding:9px 11px;border:1px solid #41526b;background:#172942;
+color:#c3d0e2;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
+.browser-yolo-picker button[aria-pressed="true"]{background:#264979;border-color:#5386cd;color:#f0f6fe}
+.browser-yolo-picker button:hover{background:#273d5b}
+.browser-yolo-picker button:focus-visible{outline:2px solid #bcd6fb;outline-offset:2px}
+.browser-yolo-modelnote{background:#292f38;border:1px solid #77704b;padding:11px 13px;
  border-radius:8px;font-size:10px;color:#e3d6ae;line-height:1.65;margin:9px 0}
 .browser-ppe-summary{margin:12px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-.browser-ppe-summary>div{padding:10px;border:1px solid #3c6867;background:#174039;border-radius:7px}
-.browser-ppe-summary>div span{display:block;font-size:9px;color:#b9d9ca;line-height:1.3}
-.browser-ppe-summary>div strong{display:block;margin-top:5px;font:800 24px Manrope,sans-serif;color:#80f4c6}
+.browser-ppe-summary>div{padding:10px;border:1px solid #3c4e68;background:#172840;border-radius:7px}
+.browser-ppe-summary>div span{display:block;font-size:9px;color:#b9c6d9;line-height:1.3}
+.browser-ppe-summary>div strong{display:block;margin-top:5px;font:800 24px Manrope,sans-serif;color:#80b0f4}
 .browser-ppe-summary>div strong.is-review{color:#ffad9a}
 .browser-ppe-summary>p{grid-column:1/-1;color:#e7d9b3;font-size:10px;line-height:1.6;margin:4px 0}
 @media(max-width:690px){
@@ -89,59 +89,59 @@ color:#c3e2d9;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
 
 .simulation-only-notice{display:flex;align-items:center;justify-content:space-between;gap:12px;
  flex-wrap:wrap;margin:0 0 12px;padding:13px 16px;border-radius:10px;
- border:1px solid #41877a;background:linear-gradient(110deg,#113d41,#133647)}
-.simulation-only-notice strong{font-size:10px;font-weight:800;letter-spacing:1px;color:#9ef4d3}
-.simulation-only-notice span{font-size:11px;color:#bddbd4;line-height:1.5}
+ border:1px solid #415e87;background:linear-gradient(110deg,#112541,#132947)}
+.simulation-only-notice strong{font-size:10px;font-weight:800;letter-spacing:1px;color:#9ec2f4}
+.simulation-only-notice span{font-size:11px;color:#bdcadb;line-height:1.5}
 .browser-yolo-simulation-only .browser-yolo-source-locked{display:flex;flex-direction:column;gap:8px;
- border:1px solid #3c7770;background:#153e43;border-radius:9px;padding:13px;justify-content:center}
-.browser-yolo-source-locked strong{font-size:9px;letter-spacing:1px;color:#94e7ca}
-.browser-yolo-source-locked span{font-weight:800;color:#e2faf1;font-size:12px}
-.browser-yolo-source-locked small{font-size:10px;color:#abd1c4;line-height:1.5}
+ border:1px solid #3c5577;background:#152843;border-radius:9px;padding:13px;justify-content:center}
+.browser-yolo-source-locked strong{font-size:9px;letter-spacing:1px;color:#94b7e7}
+.browser-yolo-source-locked span{font-weight:800;color:#e2ecfa;font-size:12px}
+.browser-yolo-source-locked small{font-size:10px;color:#abbbd1;line-height:1.5}
 @media(max-width:690px){.simulation-only-notice{align-items:flex-start;flex-direction:column}}
 
 /* Supervisor YOLO: sólo datos de inferencias, sin sumar etiquetas de simulación. */
-.yolo-monitor{display:grid;gap:12px;min-width:0;color:#d5efe5}
+.yolo-monitor{display:grid;gap:12px;min-width:0;color:#d5e0ef}
 .yolo-monitor-header{display:flex;align-items:center;justify-content:space-between;
- gap:8px;flex-wrap:wrap;border-bottom:1px solid #365968;padding-bottom:11px}
-.yolo-monitor-header h3{font:800 17px/1.2 "Manrope",sans-serif;color:#f0fff9;
+ gap:8px;flex-wrap:wrap;border-bottom:1px solid #364b68;padding-bottom:11px}
+.yolo-monitor-header h3{font:800 17px/1.2 "Manrope",sans-serif;color:#f1f6fe;
  margin:0;width:100%}
-.yolo-monitor-eyebrow{font-size:9px;font-weight:800;letter-spacing:1.3px;color:#87dcc4}
+.yolo-monitor-eyebrow{font-size:9px;font-weight:800;letter-spacing:1.3px;color:#87aadc}
 .yolo-monitor-status{font-size:9px;font-weight:800;letter-spacing:.6px;color:#e3c299;
  background:#40372e;border:1px solid #806950;border-radius:5px;padding:7px 9px}
-.yolo-monitor-status.is-active{color:#9ef3d0;background:#1c5147;border-color:#54a98d}
-.yolo-monitor-source{margin:0;font-size:10px;line-height:1.65;color:#abd2c7}
-.yolo-monitor-source strong{color:#dcf6e9}
+.yolo-monitor-status.is-active{color:#9ec1f3;background:#1c3251;border-color:#5477a9}
+.yolo-monitor-source{margin:0;font-size:10px;line-height:1.65;color:#abbbd2}
+.yolo-monitor-source strong{color:#dce7f6}
 .yolo-monitor-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .yolo-monitor-kpi{padding:12px;min-height:97px;display:flex;flex-direction:column;gap:6px;
- background:linear-gradient(145deg,#1d4150,#132f3f);border:1px solid #366275;border-radius:9px}
-.yolo-monitor-kpi.primary{background:linear-gradient(140deg,#1c604e,#14463f);border-color:#57a98d}
-.yolo-monitor-kpi span{font-size:10px;line-height:1.35;color:#bbd9d0}
-.yolo-monitor-kpi strong{font:800 23px "Manrope",sans-serif;color:#96f5d0;font-variant-numeric:tabular-nums}
-.yolo-monitor-kpi small{font-size:9px;line-height:1.4;color:#8fbdb4}
+ background:linear-gradient(145deg,#1d3250,#132f3f);border:1px solid #365075;border-radius:9px}
+.yolo-monitor-kpi.primary{background:linear-gradient(140deg,#1c3860,#142946);border-color:#5779a9}
+.yolo-monitor-kpi span{font-size:10px;line-height:1.35;color:#bbc7d9}
+.yolo-monitor-kpi strong{font:800 23px "Manrope",sans-serif;color:#96bef5;font-variant-numeric:tabular-nums}
+.yolo-monitor-kpi small{font-size:9px;line-height:1.4;color:#8fa2bd}
 .yolo-monitor-trend,.yolo-monitor-classes,.yolo-monitor-ppe{
- padding:13px;border-radius:9px;background:linear-gradient(150deg,#153847,#102c39);
- border:1px solid #365b67;min-width:0}
+ padding:13px;border-radius:9px;background:linear-gradient(150deg,#152a47,#102139);
+ border:1px solid #364a67;min-width:0}
 .yolo-monitor-sectionhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
-.yolo-monitor-sectionhead h4{font:800 12px "Manrope",sans-serif;color:#e8fff6;margin:0}
-.yolo-monitor-sectionhead span{font-size:9px;color:#94beb8}
-.yolo-monitor-sectionhead strong{font:800 24px "Manrope",sans-serif;color:#78f0c4}
+.yolo-monitor-sectionhead h4{font:800 12px "Manrope",sans-serif;color:#e9f2fe;margin:0}
+.yolo-monitor-sectionhead span{font-size:9px;color:#94a6be}
+.yolo-monitor-sectionhead strong{font:800 24px "Manrope",sans-serif;color:#78aaf0}
 .yolo-monitor-sectionhead strong.is-review{color:#ffb39d}
 .yolo-monitor-trend svg{display:block;width:100%;height:110px;margin-top:10px}
-.yolo-monitor-empty{color:#8fb5b9;font-size:10px;line-height:1.6;margin:13px 0 0}
+.yolo-monitor-empty{color:#8fa0b9;font-size:10px;line-height:1.6;margin:13px 0 0}
 .yolo-monitor-class{display:grid;grid-template-columns:minmax(0,1fr) 20px auto;
- gap:6px;border-top:1px solid #335764;padding:10px 0;align-items:center}
+ gap:6px;border-top:1px solid #334764;padding:10px 0;align-items:center}
 .yolo-monitor-class:first-of-type{margin-top:7px}
-.yolo-monitor-class span{font-size:11px;color:#cce5da;min-width:0;overflow-wrap:anywhere}
-.yolo-monitor-class strong{font-size:12px;color:#8ff6d2;text-align:center}
-.yolo-monitor-class small{font-size:9px;color:#99bec0}
+.yolo-monitor-class span{font-size:11px;color:#ccd6e5;min-width:0;overflow-wrap:anywhere}
+.yolo-monitor-class strong{font-size:12px;color:#8fbaf6;text-align:center}
+.yolo-monitor-class small{font-size:9px;color:#99a9c0}
 .yolo-monitor-ppe p{color:#d1c6a8;font-size:10px;line-height:1.65;margin:9px 0 0}
 .yolo-monitor-caveat,.yolo-monitor-note,.yolo-monitor-stale,.yolo-monitor-error{
  font-size:10px;line-height:1.7;padding:11px 12px;margin:0;border-radius:7px}
 .yolo-monitor-caveat{color:#f0d4ab;background:#3c372e;border:1px solid #77654b}
-.yolo-monitor-note{color:#9ebfc2;background:#15323e;border:1px solid #385967}
+.yolo-monitor-note{color:#9eadc2;background:#15263e;border:1px solid #384c67}
 .yolo-monitor-stale{color:#f9c992;border:1px solid #8a644b;background:#42362d}
 .yolo-monitor-error{color:#ffd6c5;border:1px solid #b26f5e;background:#452b30}
-.simulator-yolo-guidance p{color:#a5d3cb!important}
+.simulator-yolo-guidance p{color:#a5b8d3!important}
 @media(max-width:1040px){
  .yolo-monitor{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
  .yolo-monitor-header,.yolo-monitor-source,.yolo-monitor-kpis,.yolo-monitor-caveat,
@@ -156,30 +156,30 @@ color:#c3e2d9;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
 }
 
 /* Evidencia temporal de EPP: indicios del modelo, no infracciones confirmadas. */
-.yolo-monitor-review{padding:13px;border:1px solid #59695d;border-radius:9px;
- background:linear-gradient(150deg,#18393b,#132d36);display:grid;gap:10px;min-width:0}
+.yolo-monitor-review{padding:13px;border:1px solid #596069;border-radius:9px;
+ background:linear-gradient(150deg,#18273b,#132236);display:grid;gap:10px;min-width:0}
 .yolo-monitor-review-explain,.yolo-monitor-review-disclaimer{font-size:10px;line-height:1.65;
- color:#bbd4c7;margin:0}
-.yolo-monitor-review-disclaimer{border-top:1px solid #486060;padding-top:10px;color:#dec6a6}
+ color:#bbc5d4;margin:0}
+.yolo-monitor-review-disclaimer{border-top:1px solid #485260;padding-top:10px;color:#dec6a6}
 .yolo-monitor-review-active{display:grid;gap:7px}
 .yolo-monitor-review-active>div{padding:10px;border:1px solid #936d50;
  background:#4a3930;border-radius:7px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .yolo-monitor-review-active span{font-size:11px;color:#ffe0b6;font-weight:750}
 .yolo-monitor-review-active small{font-size:10px;color:#f6ccab;line-height:1.35}
 .yolo-monitor-review-log{display:grid;gap:8px}
-.yolo-monitor-log-heading{font-weight:800;letter-spacing:.6px;font-size:9px;color:#90cbb7}
+.yolo-monitor-log-heading{font-weight:800;letter-spacing:.6px;font-size:9px;color:#90a9cb}
 .yolo-monitor-review-log>div{display:grid;grid-template-columns:68px minmax(0,1fr) auto;
- gap:7px;align-items:center;border-bottom:1px solid #38555b;padding:8px 0}
-.yolo-monitor-review-log time{font-size:10px;color:#94e0c7;font-variant-numeric:tabular-nums}
-.yolo-monitor-review-log>div span{font-size:10px;color:#dee9dc;min-width:0;overflow-wrap:anywhere}
-.yolo-monitor-review-log small{font-size:9px;color:#9bbdb6}
+ gap:7px;align-items:center;border-bottom:1px solid #38475b;padding:8px 0}
+.yolo-monitor-review-log time{font-size:10px;color:#94b4e0;font-variant-numeric:tabular-nums}
+.yolo-monitor-review-log>div span{font-size:10px;color:#dce1e9;min-width:0;overflow-wrap:anywhere}
+.yolo-monitor-review-log small{font-size:9px;color:#9ba9bd}
 @media(max-width:680px){.yolo-monitor-review-log>div{grid-template-columns:60px 1fr;gap:4px}
  .yolo-monitor-review-log>div small{grid-column:2}}
 
 /* Fase 9 — trazabilidad de intentos de análisis sobre fotogramas 3D. */
 .browser-yolo-run{margin:8px 0 11px;padding:9px 12px;border-radius:7px;
- background:linear-gradient(120deg,#163e4b,#164a42);border:1px solid #4b9682;
- color:#a8f1d7;font-size:10px;font-weight:750;line-height:1.6;letter-spacing:.2px}
+ background:linear-gradient(120deg,#162c4b,#162c4a);border:1px solid #4b6a96;
+ color:#a8c6f1;font-size:10px;font-weight:750;line-height:1.6;letter-spacing:.2px}
 
 /* Evidencia PNG: no altera la confidencia ni el color de los elementos principales. */
 .browser-yolo-actions button.browser-yolo-export{
@@ -187,17 +187,17 @@ color:#c3e2d9;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
 }
 .browser-yolo-actions button.browser-yolo-export:hover{background:#356487}
 .browser-yolo-export-status{font-size:11px;line-height:1.5;margin:0 0 12px;
- color:#adddcf;border-left:3px solid #72d6bb;padding:6px 10px;background:#123b43}
+ color:#adc1dd;border-left:3px solid #729cd6;padding:6px 10px;background:#122643}
 
 /* Fase 10 — segmentación cromática medida desde los píxeles del frame 3D. */
 .browser-yolo-mask-options{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
- margin:12px 0;padding:13px 14px;border:1px solid #647a69;border-radius:9px;
- background:linear-gradient(110deg,#173944,#263c39)}
-.browser-yolo-mask-options label{color:#e7f5e5;font-size:11px;font-weight:750;
+ margin:12px 0;padding:13px 14px;border:1px solid #646d7a;border-radius:9px;
+ background:linear-gradient(110deg,#172a44,#262f3c)}
+.browser-yolo-mask-options label{color:#e5ecf5;font-size:11px;font-weight:750;
  display:flex;gap:8px;align-items:center}
 .browser-yolo-mask-options input[type=checkbox]{accent-color:#ffb16a;width:15px;height:15px}
 .browser-yolo-mask-options input[type=range]{width:150px;accent-color:#ffb16a}
-.browser-yolo-mask-options small{display:block;flex-basis:100%;color:#c4cbc0;
+.browser-yolo-mask-options small{display:block;flex-basis:100%;color:#c0c5cb;
  font-size:10px;line-height:1.55}
 .browser-yolo-mask-summary{flex-basis:100%;margin:2px 0 0;font-size:11px;
  color:#ffe0ac;line-height:1.6}
@@ -205,16 +205,16 @@ color:#c3e2d9;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
 
 .browser-yolo-mask-regions{display:grid;gap:6px;flex-basis:100%;width:100%;max-width:620px}
 .browser-yolo-mask-region{display:grid;grid-template-columns:minmax(80px,1fr) minmax(80px,1.3fr) 50px;
- gap:11px;align-items:center;color:#e5efe6;font-size:10px}
+ gap:11px;align-items:center;color:#e5e9ef;font-size:10px}
 .browser-yolo-mask-region>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .browser-yolo-mask-region strong{color:#ffce8d;text-align:right;font-variant-numeric:tabular-nums}
-.browser-yolo-mask-bar{height:6px;border-radius:99px;background:#35565b;overflow:hidden}
+.browser-yolo-mask-bar{height:6px;border-radius:99px;background:#35455b;overflow:hidden}
 .browser-yolo-mask-bar>span{height:100%;display:block;border-radius:99px;
  background:linear-gradient(90deg,#ff995e,#ffd57e)}
 @media(max-width:460px){.browser-yolo-mask-region{grid-template-columns:minmax(55px,1fr) minmax(55px,1fr) 44px;gap:7px}}
 
-.browser-yolo-mask-options select{max-width:165px;min-width:120px;border:1px solid #6b8e83;
- padding:7px 8px;border-radius:6px;color:#e8f9eb;background:#23404a;font-size:11px}
+.browser-yolo-mask-options select{max-width:165px;min-width:120px;border:1px solid #6b7a8e;
+ padding:7px 8px;border-radius:6px;color:#e8eff9;background:#23334a;font-size:11px}
 @media(max-width:590px){.browser-yolo-mask-options select{flex:1;min-width:116px}}
 
 .browser-yolo-mask-options .browser-yolo-mask-export{background:#665038;color:#ffe4ad;
@@ -227,31 +227,31 @@ color:#c3e2d9;font-size:10px;font-weight:750;border-radius:6px;line-height:1.3}
 
 /* Fase 11: estados de reglas explicables, sin confundir presencia con alertas. */
 .yolo-monitor-rules{display:grid;gap:9px;margin:15px 0;
- border:1px solid #476973;border-radius:11px;padding:15px;background:#102d3b}
-.yolo-monitor-rules .yolo-monitor-sectionhead small{font-size:9px;color:#9dbfc1}
-.yolo-rule-card{padding:12px 13px;background:#193c46;border:1px solid #496b6e;
+ border:1px solid #475973;border-radius:11px;padding:15px;background:#10223b}
+.yolo-monitor-rules .yolo-monitor-sectionhead small{font-size:9px;color:#9dacc1}
+.yolo-rule-card{padding:12px 13px;background:#192c46;border:1px solid #49586e;
  border-radius:9px;display:grid;gap:7px}
 .yolo-rule-card>div{display:flex;gap:9px;align-items:center;flex-wrap:wrap;
  justify-content:space-between}
-.yolo-rule-card strong{font-size:11px;color:#d7f6ed}
-.yolo-rule-card span{font-size:9px;font-weight:750;background:#31525d;
- border-radius:99px;padding:5px 9px;color:#c6ebdf}
+.yolo-rule-card strong{font-size:11px;color:#d7e4f6}
+.yolo-rule-card span{font-size:9px;font-weight:750;background:#31435d;
+ border-radius:99px;padding:5px 9px;color:#c6d5eb}
 .yolo-rule-card.is-review{border-color:#d49a75}
 .yolo-rule-card.is-review span{background:#6d3e37;color:#ffd6bd}
-.yolo-rule-card.is-observed span{background:#20575a;color:#bbf6e0}
-.yolo-rule-card p{margin:0;font-size:10px;line-height:1.7;color:#b9d6d1}
-.yolo-rule-card small{font-size:9px;color:#a1c8c5}
+.yolo-rule-card.is-observed span{background:#20385a;color:#bbd4f6}
+.yolo-rule-card p{margin:0;font-size:10px;line-height:1.7;color:#b9c5d6}
+.yolo-rule-card small{font-size:9px;color:#a1b1c8}
 @media(max-width:520px){.yolo-monitor-rules{padding:11px}.yolo-rule-card{padding:10px}}
 
 /* Fase 15: rendimiento real de inferencia ONNX, sin métricas inventadas. */
-.browser-yolo-adaptive{font-size:10px;color:#a7f6d9;max-width:230px;
- border:1px solid #3d7a70;background:#16443f;border-radius:7px;padding:8px 10px}
+.browser-yolo-adaptive{font-size:10px;color:#a7c8f6;max-width:230px;
+ border:1px solid #3d567a;background:#162944;border-radius:7px;padding:8px 10px}
 .browser-yolo-profile{display:grid;grid-template-columns:1fr auto;gap:7px;
- padding:11px;margin:13px 0;background:#153a44;border:1px solid #366c69;border-radius:8px}
-.browser-yolo-profile h4{font-size:11px;color:#a0f0d3;grid-column:1/-1;margin:0 0 5px}
+ padding:11px;margin:13px 0;background:#152944;border:1px solid #364c6c;border-radius:8px}
+.browser-yolo-profile h4{font-size:11px;color:#a0c1f0;grid-column:1/-1;margin:0 0 5px}
 .browser-yolo-profile>div{display:contents}
-.browser-yolo-profile span,.browser-yolo-profile strong{font-size:10px;color:#bde7db}
-.browser-yolo-profile strong{text-align:right;color:#a5f7d7;font-variant-numeric:tabular-nums}
+.browser-yolo-profile span,.browser-yolo-profile strong{font-size:10px;color:#bdcee7}
+.browser-yolo-profile strong{text-align:right;color:#a5c7f7;font-variant-numeric:tabular-nums}
 .browser-yolo-profile .browser-yolo-profile-total{display:contents}
 .browser-yolo-profile p{grid-column:1/-1;margin:4px 0 0;
- font-size:9px;color:#9ebfb7;line-height:1.6}
+ font-size:9px;color:#9eacbf;line-height:1.6}
