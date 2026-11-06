@@ -1,3 +1,4 @@
+import {trafficPhotos} from '../services/traffic-photo-assets';
 import {useEffect,useRef,useState} from 'react';
 import {useLiveCameraSelection} from '../hooks/useLiveCameraSelection';
 import type {Detection} from '../../../core/domain/model';
@@ -514,7 +515,8 @@ export function LiveTrafficAnalysis(){
   </header>
   <div className="live-traffic-bar">
    <div className="live-traffic-source-row">
-    <span className="live-traffic-camera-photo" aria-hidden="true"/>
+    <img className="live-traffic-camera-photo" src={trafficPhotos.camera.src}
+     alt="" aria-hidden="true" loading="lazy" decoding="async"/>
     <label htmlFor="live-traffic-source">Cámara pública de tránsito
      <select id="live-traffic-source" value={cameraId} onChange={event=>changeCamera(event.target.value)}>
       {LIVE_TRAFFIC_SOURCES.map(source=><option key={source.id} value={source.id}>{source.name}</option>)}
@@ -527,7 +529,8 @@ export function LiveTrafficAnalysis(){
     }}/>
     Cambiar automáticamente de cámara si falla
    </label>
-   <span className="live-traffic-skyline" aria-hidden="true"/>
+   <img className="live-traffic-skyline" src={trafficPhotos.skyline.src}
+    alt="" aria-hidden="true" loading="lazy" decoding="async"/>
   </div>
   <div className="live-traffic-grid">
    <div className="live-traffic-stream-column">
@@ -568,7 +571,8 @@ export function LiveTrafficAnalysis(){
     <div className="live-traffic-inference-head">
      <span className="live-traffic-eyebrow">RESULTADOS DEL ÚLTIMO ANÁLISIS</span>
      <div className="live-traffic-inference-title">
-      <span className="live-traffic-car-photo" aria-hidden="true"/>
+      <img className="live-traffic-car-photo" src={trafficPhotos.car.src}
+       alt="" aria-hidden="true" loading="lazy" decoding="async"/>
       <div><h3>Objetos reconocidos</h3>
        <p>Las detecciones corresponden a la imagen analizada,
         aunque el video siga avanzando.</p>
@@ -579,12 +583,15 @@ export function LiveTrafficAnalysis(){
      <canvas ref={evidenceRef} role="img" aria-label="Imagen analizada con objetos resaltados"/>
      {!analyzed&&<div className="live-traffic-evidence-empty">
       <div className="live-traffic-gallery" aria-hidden="true">
-       <span className="live-traffic-gallery-photo is-car"/>
-       <span className="live-traffic-gallery-photo is-bus"/>
-       <span className="live-traffic-gallery-photo is-bicycle"/>
+       <img className="live-traffic-gallery-photo is-car" src={trafficPhotos.car.src}
+        alt="" loading="lazy" decoding="async"/>
+       <img className="live-traffic-gallery-photo is-bus" src={trafficPhotos.bus.src}
+        alt="" loading="lazy" decoding="async"/>
+       <img className="live-traffic-gallery-photo is-bicycle" src={trafficPhotos.bicycle.src}
+        alt="" loading="lazy" decoding="async"/>
       </div>
       <p>Inicia el video y el reconocimiento para ver los objetos detectados.</p>
-      <small>Imágenes ilustrativas: todavía no hay resultados de esta cámara.</small>
+      <small>Fotografías reales de referencia; no son resultados de la cámara.</small>
      </div>}
     </div>
     <div className="live-traffic-actions">
@@ -646,6 +653,14 @@ export function LiveTrafficAnalysis(){
   <footer className="live-traffic-footer">
    Resultados orientativos de reconocimiento visual; no identifica rostros ni matrículas.
    La transmisión depende de la disponibilidad de cada cámara pública.
+   <details className="live-traffic-photo-credits">
+    <summary>Origen de las fotografías reales</summary>
+    <p>Fotografías de Wikimedia Commons, licencia CC0 1.0.
+     No representan fotogramas de la transmisión.</p>
+    <ul>{Object.values(trafficPhotos).map(item=>
+     <li key={item.file}><a href={item.sourcePage} target="_blank" rel="noopener noreferrer">
+      {item.label}</a><span> · {item.author}</span></li>)}</ul>
+   </details>
   </footer>
  </section>;
 }

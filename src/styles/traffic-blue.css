@@ -28,9 +28,9 @@
 .neo-shell .live-traffic-status{background:#e5f3ff;border-color:#83b5ec;color:#27588e}
 .neo-shell .live-traffic-status i{background:#328df0;box-shadow:0 0 10px #2e8cf277}
 .neo-shell .live-traffic-status.is-live{
- background:#0a4ca1;border-color:#42b3ff;color:#f7fdff
+ background:#0a4ca1;border-color:#42b3ff;color:#f7faff
 }
-.neo-shell .live-traffic-status.is-live i{background:#6bcdff;box-shadow:0 0 12px #32b1ff}
+.neo-shell .live-traffic-status.is-live i{background:#6ba4ff;box-shadow:0 0 12px #32b1ff}
 .neo-shell .live-traffic-bar{
  position:relative;isolation:isolate;display:flex;align-items:center;justify-content:flex-start;
  padding:18px 25px;gap:24px 25px;min-height:125px;overflow:hidden;
@@ -57,14 +57,14 @@
 }
 .neo-shell .live-traffic-camera-photo{
  display:block;flex:none;width:82px;height:82px;
- background:#b3dcf9 url('/visuals/traffic-camera.svg') center/cover no-repeat;
- border-radius:13px;border:2px solid #e4f7ff;
+ background:#b3dcf9;object-fit:cover;object-position:center;
+ border-radius:13px;border:2px solid #e4eeff;
  box-shadow:0 5px 20px #134e8961;
 }
 .neo-shell .live-traffic-skyline{
  position:absolute;top:0;right:0;width:300px;height:100%;opacity:.87;
  pointer-events:none;z-index:0;
- background:url('/visuals/seattle-skyline.svg') right bottom/auto 120px no-repeat;
+ object-fit:cover;object-position:58% 47%;
  -webkit-mask-image:linear-gradient(90deg,transparent,#000 35%);
  mask-image:linear-gradient(90deg,transparent,#000 35%);
 }
@@ -97,7 +97,7 @@
 .neo-shell .live-traffic-placeholder span{color:#a4c8ed}
 .neo-shell .live-traffic-video-label{
  background:linear-gradient(110deg,#07356ecf,#0864b0df);
- border:1px solid #36a6ff;color:#f4fcff;box-shadow:0 0 14px #237cf888;
+ border:1px solid #36a6ff;color:#f4f8ff;box-shadow:0 0 14px #237cf888;
 }
 .neo-shell .live-traffic-stream-controls{gap:10px}
 .neo-shell .live-traffic-stream-controls span,
@@ -120,8 +120,8 @@
 }
 .neo-shell .live-traffic-car-photo{
  display:block;width:74px;height:68px;flex:none;border-radius:10px;
- border:2px solid #e5f7ff;box-shadow:0 6px 14px #153e7752;
- background:#09284d url('/visuals/traffic-car.svg') center/cover no-repeat;
+ border:2px solid #e5efff;box-shadow:0 6px 14px #153e7752;
+ background:#09284d;object-fit:cover;
 }
 .neo-shell .live-traffic-evidence{
  background:#061934;border:1px solid #2f65a9;border-radius:14px;
@@ -149,11 +149,11 @@
 .neo-shell .live-traffic-gallery-photo{
  display:block;height:clamp(65px,7vw,104px);border:1px solid #82c5ff;
  border-radius:12px;box-shadow:0 4px 18px #020b23ae;
- background-color:#143c6b;background-position:center;background-size:cover;
+ background-color:#143c6b;object-fit:cover;object-position:center;
 }
-.neo-shell .live-traffic-gallery-photo.is-car{background-image:url('/visuals/traffic-car.svg')}
-.neo-shell .live-traffic-gallery-photo.is-bus{background-image:url('/visuals/traffic-bus.svg')}
-.neo-shell .live-traffic-gallery-photo.is-bicycle{background-image:url('/visuals/traffic-cyclist.svg')}
+
+
+
 .neo-shell .live-traffic-evidence-empty p{
  position:relative;z-index:1;color:#f1f8ff;margin:0;
  font-size:12px;line-height:1.55;font-weight:650;
@@ -165,7 +165,7 @@
  width:100%;height:100%;object-fit:contain;position:relative;z-index:0;
 }
 .neo-shell .live-traffic-lab button{
- background:#164d87;border-color:#3c81c5;color:#f3fbff;
+ background:#164d87;border-color:#3c81c5;color:#f3f8ff;
 }
 .neo-shell .live-traffic-lab button:hover:not(:disabled){
  background:#2365a4;color:#fff;border-color:#49adff;
@@ -232,3 +232,44 @@
  .neo-shell .live-traffic-evidence-empty{padding:15px 10px}
  .neo-shell .live-traffic-evidence-empty small{font-size:8px}
 }
+
+/* Prioridad a azul eléctrico: sin indicadores verdes, ni en directo. */
+.neo-shell .live-traffic-status.is-live{
+ color:#e6f4ff;background:#0c4295;border-color:#368aff;
+}
+.neo-shell .live-traffic-status.is-live i{
+ background:#45b0ff;box-shadow:0 0 13px #1985ff;
+}
+.neo-shell .live-traffic-video-label{
+ background:#083a84dd;color:#f5faff;border-color:#479bff;
+}
+.neo-shell .live-traffic-skyline,
+.neo-shell .live-traffic-camera-photo,
+.neo-shell .live-traffic-car-photo,
+.neo-shell .live-traffic-gallery-photo{
+ color:transparent;image-rendering:auto;
+}
+.neo-shell .live-traffic-gallery-photo{
+ width:100%;min-width:0;display:block;
+}
+.neo-shell .live-traffic-photo-credits{font-size:10px;margin-top:12px;
+ border-top:1px solid #83b7e3;padding-top:10px;color:#315985;}
+.neo-shell .live-traffic-photo-credits summary{
+ display:list-item;cursor:pointer;max-width:max-content;color:#095daf;
+ font-weight:750;
+}
+.neo-shell .live-traffic-photo-credits p{font-size:10px;color:#315985;margin:7px 0}
+.neo-shell .live-traffic-photo-credits ul{display:flex;flex-wrap:wrap;gap:7px 12px;
+ list-style:none;padding:0;margin:9px 0 0}
+.neo-shell .live-traffic-photo-credits li{white-space:normal}
+.neo-shell .live-traffic-photo-credits a{color:#075db9;text-decoration:underline}
+.neo-shell .live-traffic-photo-credits span{color:#385f85}
+
+/* Azul hielo coherente en estados locales y navegación de cámara. */
+.neo-shell .live-traffic-bar,
+.neo-shell .live-traffic-inference,
+.neo-shell .live-traffic-stream-column{color:#102e53;}
+.neo-shell .live-traffic-lab .live-traffic-observations li b,
+.neo-shell .live-traffic-lab .live-traffic-metrics strong{color:#085bb0}
+.neo-shell .live-traffic-lab input[type=checkbox],
+.neo-shell .live-traffic-lab input[type=range]{accent-color:#1779e8}
