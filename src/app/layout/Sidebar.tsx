@@ -70,3 +70,4 @@ export function Sidebar({menu,page,role,onClose,onOpenCommand}:Props){
    <small>VISION AI / 2026</small>
   </div>
  </aside>;
+}
