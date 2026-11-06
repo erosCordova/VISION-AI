@@ -491,8 +491,8 @@ try {
           return r.result?.value?.includes('Seguridad industrial');
         },'DA01 IndexedDB después de recarga completa');
         console.log('DA01 OK: simulación guardada, consultada y recuperada tras recarga del navegador');
-        // Fase 8: el dashboard debe calcular SOLO la sesión recién persistida.
-        await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Resumen'});
+        // Fase 8: los informes detallados se consultan en Estadísticas.
+        await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Estad%C3%ADsticas'});
         await eventually(async()=>{
           const r=await cdp.send('Runtime.evaluate',{
            expression:'(() => ({'
@@ -592,7 +592,7 @@ try {
           const state=await reviewState();
           return state?.open==='0'&&state.closed==='1'&&state.total==='1';
         },'KP02 revisión persistente sin conteos duplicados tras recarga');
-        await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Resumen'});
+        await cdp.send('Page.navigate',{url:'http://127.0.0.1:4173/#Estad%C3%ADsticas'});
         await eventually(async()=>{
           const r=await cdp.send('Runtime.evaluate',{
            expression:'({open:document.querySelector(".dashboard-open-reviews")?.textContent?.trim(),'
