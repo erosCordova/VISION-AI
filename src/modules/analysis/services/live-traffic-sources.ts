@@ -34,3 +34,18 @@ export function isAuthorizedLiveTrafficUrl(url:string):boolean{
    LIVE_TRAFFIC_SOURCES.some(s=>s.streamUrl===u.href);
  }catch{return false;}
 }
+
+/** Busca una fuente distinta de la actual, sin repetir cámaras que fallaron.
+ * Una cámara nunca se considera disponible hasta que avanzan fotogramas reales.
+ */
+export function nextTrafficSource(
+ currentId:string,excluded:ReadonlySet<string>
+):LiveTrafficSource|null{
+ const index=LIVE_TRAFFIC_SOURCES.findIndex(source=>source.id===currentId);
+ if(index<0)return null;
+ for(let step=1;step<LIVE_TRAFFIC_SOURCES.length;step++){
+  const candidate=LIVE_TRAFFIC_SOURCES[(index+step)%LIVE_TRAFFIC_SOURCES.length];
+  if(!excluded.has(candidate.id))return candidate;
+ }
+ return null;
+}

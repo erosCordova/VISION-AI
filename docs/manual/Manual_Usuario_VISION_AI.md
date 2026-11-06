@@ -169,7 +169,12 @@ video HLS para monitoreo del tráfico, disponible en el portal oficial:
 https://web.seattle.gov/travelers . La plataforma conecta el reproductor
 del navegador directamente con el proveedor (sin proxy de video
 ni transcodificación en Render o Vercel). La reproducción y detección
-requieren conectividad y permiso CORS para leer fotogramas.
+requieren conectividad y permiso CORS para leer fotogramas. Si la cámara reproduce video pero
+no autoriza leer sus píxeles, la opción de cambio automático prueba
+otra fuente pública permitida sin repetir las que fallaron. El sistema
+solo reanuda el reconocimiento cuando la fuente alternativa entrega
+fotogramas nuevos; si se agotan las opciones, informa que no puede
+continuar. La opción se puede desactivar en Configuración.
 El análisis se limita al conteo de clases generales visibles por
 fotograma; no es control de cumplimiento industrial ni biométrico.
 

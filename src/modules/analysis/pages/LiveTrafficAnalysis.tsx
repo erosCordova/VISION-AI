@@ -6,7 +6,7 @@ import type {LoadedYolo,YoloFrame} from '../../detections/services/yolo-browser'
 import {frameBoxPixels} from '../services/frame-analysis-cycle';
 import {loadHlsFactory} from '../services/live-hls-loader';
 import type {HlsPlayer,HlsErrorData,HlsLevelData} from '../services/live-hls-loader';
-import {LIVE_TRAFFIC_SOURCES,isAuthorizedLiveTrafficUrl} from '../services/live-traffic-sources';
+import {LIVE_TRAFFIC_SOURCES,isAuthorizedLiveTrafficUrl,nextTrafficSource} from '../services/live-traffic-sources';
 import {useLiveObservationRepository} from '../../../shared/live-observation-context';
 import type {LiveObservation} from '../../../core/domain/live-observation';
 import {readLivePreferences,saveLivePreferences} from '../../settings/services/live-preferences';
@@ -61,6 +61,7 @@ export function LiveTrafficAnalysis(){
  const [liveConfirmed,setLiveConfirmed]=useState(false);
  const [yoloPhase,setYoloPhase]=useState<YoloPhase>('idle');
  const [yoloError,setYoloError]=useState('');
+ const [analysisSourceBlocked,setAnalysisSourceBlocked]=useState<string|null>(null);
  const [yoloMessage,setYoloMessage]=useState('Inicia el reconocimiento para ver los objetos detectados.');
  const [analyzing,setAnalyzing]=useState(false);
  const [threshold,setThreshold]=useState(()=>readLivePreferences().threshold);
@@ -276,35 +277,52 @@ export function LiveTrafficAnalysis(){
   * No se afirma disponibilidad hasta recibir video realmente en movimiento.
   */
  useEffect(()=>{
-  if(!autoSwitch||!streaming||videoPhase!=='error')return;
+  const imageAccessBlocked=analysisSourceBlocked===cameraId;
+  if(!autoSwitch||!streaming||(videoPhase!=='error'&&!imageAccessBlocked))return;
   failedCameras.current.add(cameraId);
-  const alternative=LIVE_TRAFFIC_SOURCES.find(item=>!failedCameras.current.has(item.id));
+  const alternative=nextTrafficSource(cameraId,failedCameras.current);
   if(!alternative){
-   setVideoMessage('No hay otra cámara sin probar. Puedes reintentar más tarde.');
+   if(imageAccessBlocked){
+    wantsRecognition.current=false;
+    setAnalysisSourceBlocked(null);
+    setYoloPhase('error');
+    setYoloError('Ninguna de las cámaras probadas permite analizar sus imágenes. Puedes reintentar el reconocimiento más tarde.');
+    setYoloMessage('Reconocimiento detenido: no hay otra fuente disponible.');
+   }else{
+    setVideoMessage('No hay otra cámara sin probar. Puedes reintentar más tarde.');
+   }
    return;
   }
   reconnectAttempts.current=0;
   setLiveConfirmed(false);setVideoPhase('connecting');setVideoError('');
-  setVideoMessage('Buscando otra cámara en directo…');
+  setVideoMessage(imageAccessBlocked?
+   'Probando otra cámara que permita analizar sus imágenes…':
+   'Buscando otra cámara en directo…');
+  if(imageAccessBlocked){
+   setYoloError('');
+   setYoloMessage('Cambio de cámara: el reconocimiento continuará al recibir video.');
+  }
+  setAnalysisSourceBlocked(null);
   setCameraId(alternative.id);
   setDetections([]);setAnalyzed(0);setFps(null);setInferenceMs(null);
   setSampleTime('');setClassFilter('all');setSaveNotice('');
   observedAtRef.current='';lastResultRef.current=null;
   const c=evidenceRef.current;
   c?.getContext('2d')?.clearRect(0,0,c.width,c.height);
- },[autoSwitch,streaming,videoPhase,cameraId]);
+ },[autoSwitch,streaming,videoPhase,cameraId,analysisSourceBlocked]);
 
  useEffect(()=>{
   if(videoPhase!=='live'&&analyzing){
    setAnalyzing(false);runGeneration.current++;
    setYoloPhase('idle');
    setYoloMessage('Reconectando. El reconocimiento continuará cuando vuelva la señal.');
-  }else if(videoPhase==='live'&&!analyzing&&wantsRecognition.current&&modelRef.current&&
+  }else if(videoPhase==='live'&&!analyzing&&analysisSourceBlocked!==cameraId&&
+   wantsRecognition.current&&modelRef.current&&
    videoRef.current&&!videoRef.current.paused&&videoRef.current.readyState>=2){
    setYoloPhase('running');setAnalyzing(true);
    setYoloMessage('Reconocimiento reanudado.');
   }
- },[videoPhase,analyzing,yoloPhase]);
+ },[videoPhase,analyzing,yoloPhase,cameraId,analysisSourceBlocked]);
 
  useEffect(()=>{
   const frame=lastResultRef.current;
@@ -362,9 +380,19 @@ export function LiveTrafficAnalysis(){
     }catch(error){
      if(closed||token!==runGeneration.current)return;
      const text=error instanceof Error?error.message:String(error);
+     const accessDenied=/SecurityError|tainted|cross-origin/i.test(text);
+     setAnalyzing(false);
+     if(accessDenied&&autoSwitch){
+      // El video puede reproducirse sin permitir leer sus píxeles. Tratar
+      // esta fuente como incompatible, sin afirmar que dejó de transmitir.
+      setYoloPhase('idle');setYoloError('');
+      setYoloMessage('La cámara restringe el reconocimiento. Buscando otra fuente…');
+      setAnalysisSourceBlocked(cameraId);
+      return;
+     }
      wantsRecognition.current=false;
-     setYoloPhase('error');setAnalyzing(false);
-     setYoloError(/SecurityError|tainted|cross-origin/i.test(text)?
+     setYoloPhase('error');
+     setYoloError(accessDenied?
       'Esta cámara no permite analizar sus imágenes. Selecciona otra cámara.':
       'No se pudo reconocer la imagen. Intenta con otra cámara.');
      return;
@@ -374,11 +402,13 @@ export function LiveTrafficAnalysis(){
   };
   void pump();
   return()=>{closed=true;runGeneration.current++;};
- },[analyzing,cameraId]);
+ },[analyzing,cameraId,autoSwitch]);
 
  const stopStream=()=>{
   runGeneration.current++;
   wantsRecognition.current=false;
+  failedCameras.current.clear();
+  setAnalysisSourceBlocked(null);
   reconnectAttempts.current=0;
   setAnalyzing(false);setYoloPhase('idle');
   setStreaming(false);setVideoPhase('idle');setLiveConfirmed(false);
@@ -386,6 +416,7 @@ export function LiveTrafficAnalysis(){
  };
  const retryStream=()=>{
   failedCameras.current.clear();
+  setAnalysisSourceBlocked(null);
   reconnectAttempts.current=0;
   setVideoError('');setLiveConfirmed(false);setVideoPhase('connecting');
   if(streaming)setConnectionEpoch(n=>n+1);
@@ -394,6 +425,7 @@ export function LiveTrafficAnalysis(){
  const changeCamera=(next:string)=>{
   if(!LIVE_TRAFFIC_SOURCES.some(x=>x.id===next))return;
   stopStream();failedCameras.current.clear();
+  setAnalysisSourceBlocked(null);
   nativeHlsRejected.current=false;setCameraId(next);
   setDetections([]);setAnalyzed(0);setFps(null);
   setInferenceMs(null);setSampleTime('');setYoloError('');
@@ -405,6 +437,9 @@ export function LiveTrafficAnalysis(){
  };
  const startYolo=async()=>{
   if(!readyForInference||yoloPhase==='loading')return;
+  // Un nuevo intento solicitado por el usuario vuelve a probar las fuentes.
+  failedCameras.current.clear();
+  setAnalysisSourceBlocked(null);
   wantsRecognition.current=true;
   const token=++runGeneration.current;
   setYoloPhase('loading');setYoloError('');
@@ -430,6 +465,7 @@ export function LiveTrafficAnalysis(){
  const stopYolo=()=>{
   runGeneration.current++;
   wantsRecognition.current=false;
+  setAnalysisSourceBlocked(null);
   setAnalyzing(false);setYoloPhase('idle');
   setYoloMessage('Análisis detenido. El video puede continuar reproduciéndose.');
  };
