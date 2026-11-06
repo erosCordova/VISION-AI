@@ -544,3 +544,13 @@ html{scroll-behavior:smooth}
  .neo-shell .experience-mobile-brand{font-size:15px}
  .neo-shell .neo-header-bell{width:26px;flex:none}
 }
+
+/* Tablet: el contenido de filtros y tarjetas no amplía el documento. */
+@media(min-width:761px) and (max-width:880px){
+ html,body,#root{max-width:100%;overflow-x:clip}
+ .neo-shell,.neo-shell .workspace,.neo-shell main,
+ .neo-home,.neo-dashboard-grid,.neo-right-rail,.neo-bottom-grid,
+ .neo-insights,.neo-glass{min-width:0;max-width:100%}
+ .neo-shell .topbar{min-width:0}
+ .neo-shell .neo-main-actions>span{min-width:0;overflow-wrap:anywhere}
+}
