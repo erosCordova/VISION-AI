@@ -513,16 +513,21 @@ export function LiveTrafficAnalysis(){
      videoPhase==='buffering'?'BUFFERING':videoPhase==='error'?'SIN SEÑAL':'DETENIDO'}</span>
   </header>
   <div className="live-traffic-bar">
-   <label htmlFor="live-traffic-source">Cámara pública de tránsito
-    <select id="live-traffic-source" value={cameraId} onChange={event=>changeCamera(event.target.value)}>
-     {LIVE_TRAFFIC_SOURCES.map(source=><option key={source.id} value={source.id}>{source.name}</option>)}
-    </select></label>
+   <div className="live-traffic-source-row">
+    <span className="live-traffic-camera-photo" aria-hidden="true"/>
+    <label htmlFor="live-traffic-source">Cámara pública de tránsito
+     <select id="live-traffic-source" value={cameraId} onChange={event=>changeCamera(event.target.value)}>
+      {LIVE_TRAFFIC_SOURCES.map(source=><option key={source.id} value={source.id}>{source.name}</option>)}
+     </select>
+    </label>
+   </div>
    <label className="live-traffic-auto">
     <input type="checkbox" checked={autoSwitch} onChange={e=>{
      setAutoSwitch(e.target.checked);persist({autoSwitch:e.target.checked});
     }}/>
     Cambiar automáticamente de cámara si falla
    </label>
+   <span className="live-traffic-skyline" aria-hidden="true"/>
   </div>
   <div className="live-traffic-grid">
    <div className="live-traffic-stream-column">
@@ -562,14 +567,24 @@ export function LiveTrafficAnalysis(){
    <aside className="live-traffic-inference">
     <div className="live-traffic-inference-head">
      <span className="live-traffic-eyebrow">RESULTADOS DEL ÚLTIMO ANÁLISIS</span>
-     <h3>Objetos reconocidos</h3>
-     <p>Las detecciones corresponden a la imagen analizada,
-      aunque el video siga avanzando.</p>
+     <div className="live-traffic-inference-title">
+      <span className="live-traffic-car-photo" aria-hidden="true"/>
+      <div><h3>Objetos reconocidos</h3>
+       <p>Las detecciones corresponden a la imagen analizada,
+        aunque el video siga avanzando.</p>
+      </div>
+     </div>
     </div>
     <div className="live-traffic-evidence">
      <canvas ref={evidenceRef} role="img" aria-label="Imagen analizada con objetos resaltados"/>
      {!analyzed&&<div className="live-traffic-evidence-empty">
-      Inicia el video y el reconocimiento para ver los objetos detectados.
+      <div className="live-traffic-gallery" aria-hidden="true">
+       <span className="live-traffic-gallery-photo is-car"/>
+       <span className="live-traffic-gallery-photo is-bus"/>
+       <span className="live-traffic-gallery-photo is-bicycle"/>
+      </div>
+      <p>Inicia el video y el reconocimiento para ver los objetos detectados.</p>
+      <small>Imágenes ilustrativas: todavía no hay resultados de esta cámara.</small>
      </div>}
     </div>
     <div className="live-traffic-actions">

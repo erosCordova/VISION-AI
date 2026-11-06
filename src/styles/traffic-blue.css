@@ -1,0 +1,234 @@
+/* VISION AI / Cámaras azul hielo
+   Basado en la vista aprobada: paneles claros, video marino y acentos azules.
+   Los recursos visuales son ilustraciones; nunca reemplazan fotogramas. */
+.neo-shell .vision-source-selector{
+ background:linear-gradient(115deg,#dbf0ff,#c5e4fc);
+ border:1px solid #83b9e8;box-shadow:0 12px 30px #030c2445;color:#092e57;
+}
+.neo-shell .vision-source-selector strong{color:#0a2c54}
+.neo-shell .vision-source-selector p{color:#42638b}
+.neo-shell .vision-source-selector button{
+ background:#f2f9ff;border-color:#8cbce5;color:#123c6f;
+}
+.neo-shell .vision-source-selector button[aria-pressed=true]{
+ background:linear-gradient(115deg,#156ed4,#1855bb);border-color:#2b8fff;
+ color:#fff;box-shadow:0 5px 17px #1b74da33
+}
+.neo-shell .live-traffic-lab{
+ background:#cce8fe;color:#0b2f59;border:1px solid #85bff2;
+ box-shadow:0 22px 54px #00183663;border-radius:19px;isolation:isolate;
+}
+.neo-shell .live-traffic-head{
+ background:linear-gradient(113deg,#e6f5ff 0%,#cdeaff 62%,#add7f9 100%);
+ border-color:#91c7f0;align-items:center;
+}
+.neo-shell .live-traffic-head h2{color:#082951}
+.neo-shell .live-traffic-head p{color:#3c5c84}
+.neo-shell .live-traffic-eyebrow{color:#176ec5}
+.neo-shell .live-traffic-status{background:#e5f3ff;border-color:#83b5ec;color:#27588e}
+.neo-shell .live-traffic-status i{background:#328df0;box-shadow:0 0 10px #2e8cf277}
+.neo-shell .live-traffic-status.is-live{
+ background:#0a4ca1;border-color:#42b3ff;color:#f7fdff
+}
+.neo-shell .live-traffic-status.is-live i{background:#6bcdff;box-shadow:0 0 12px #32b1ff}
+.neo-shell .live-traffic-bar{
+ position:relative;isolation:isolate;display:flex;align-items:center;justify-content:flex-start;
+ padding:18px 25px;gap:24px 25px;min-height:125px;overflow:hidden;
+ background:linear-gradient(100deg,#dbf1ff 0%,#c7e6ff 71%,#afdafa 100%);
+ border-color:#9ec7eb;
+}
+.neo-shell .live-traffic-source-row{
+ position:relative;z-index:1;display:flex;align-items:center;
+ gap:16px;flex:1 1 535px;min-width:0;max-width:860px;
+}
+.neo-shell .live-traffic-source-row label{
+ display:flex;flex-direction:column;gap:9px;flex:1 1 0;min-width:0;max-width:none;
+ color:#102d54;font-size:12px;font-weight:850;
+}
+.neo-shell .live-traffic-source-row select{
+ width:100%;max-width:none;min-width:0;min-height:57px;
+ border:1px solid #1b5baa;border-radius:11px;
+ background:#061e44;color:#f5faff;
+ box-shadow:inset 0 2px 12px #19438385;
+ padding:12px 16px;font-size:14px;font-weight:800;
+}
+.neo-shell .live-traffic-source-row select:focus-visible{
+ outline-color:#146fe3;
+}
+.neo-shell .live-traffic-camera-photo{
+ display:block;flex:none;width:82px;height:82px;
+ background:#b3dcf9 url('/visuals/traffic-camera.svg') center/cover no-repeat;
+ border-radius:13px;border:2px solid #e4f7ff;
+ box-shadow:0 5px 20px #134e8961;
+}
+.neo-shell .live-traffic-skyline{
+ position:absolute;top:0;right:0;width:300px;height:100%;opacity:.87;
+ pointer-events:none;z-index:0;
+ background:url('/visuals/seattle-skyline.svg') right bottom/auto 120px no-repeat;
+ -webkit-mask-image:linear-gradient(90deg,transparent,#000 35%);
+ mask-image:linear-gradient(90deg,transparent,#000 35%);
+}
+.neo-shell .live-traffic-auto{
+ position:relative;z-index:1;flex:0 1 355px;min-width:220px;
+ display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+ font-size:12px;font-weight:850;color:#153765;
+ text-shadow:0 1px #e4f4ffb0;
+}
+.neo-shell .live-traffic-auto input{
+ width:18px;height:18px;accent-color:#1478e9;cursor:pointer
+}
+.neo-shell .live-traffic-grid{
+ display:grid;grid-template-columns:minmax(0,1.3fr) minmax(350px,1fr);
+ gap:0;border-top:1px solid #a5d0ef;
+}
+.neo-shell .live-traffic-stream-column{
+ min-width:0;background:linear-gradient(152deg,#d8efff,#bee2fc);
+ padding:20px;border-right:1px solid #a9d0ed;
+}
+.neo-shell .live-traffic-viewport{
+ border:1px solid #2a619f;border-radius:13px;
+ background:#04162f;box-shadow:0 0 0 2px #ceeaff,0 12px 30px #103d7a28;
+}
+.neo-shell .live-traffic-viewport video{background:#06172a}
+.neo-shell .live-traffic-placeholder{
+ background:radial-gradient(ellipse at 40% 20%,#103e73,#061730 74%);
+ color:#d8efff;
+}
+.neo-shell .live-traffic-placeholder span{color:#a4c8ed}
+.neo-shell .live-traffic-video-label{
+ background:linear-gradient(110deg,#07356ecf,#0864b0df);
+ border:1px solid #36a6ff;color:#f4fcff;box-shadow:0 0 14px #237cf888;
+}
+.neo-shell .live-traffic-stream-controls{gap:10px}
+.neo-shell .live-traffic-stream-controls span,
+.neo-shell .live-traffic-stream-column>p,
+.neo-shell .live-traffic-source-note{color:#365f8e}
+.neo-shell .live-traffic-stream-column>a{color:#055cb5;font-weight:800}
+.neo-shell .live-traffic-inference{
+ background:linear-gradient(159deg,#d7edff,#c6e5ff 60%,#b8dbfb);
+ border-left:1px solid #9ac7ef;color:#092d57;padding:22px;
+}
+.neo-shell .live-traffic-inference-head{margin-bottom:12px}
+.neo-shell .live-traffic-inference-head h3{
+ color:#082950;margin:4px 0 4px;font-size:clamp(20px,2.2vw,27px);
+}
+.neo-shell .live-traffic-inference-head p{
+ color:#355f8e;margin:0;font-size:12px;
+}
+.neo-shell .live-traffic-inference-title{
+ display:flex;align-items:center;gap:13px;margin-top:10px;min-width:0;
+}
+.neo-shell .live-traffic-car-photo{
+ display:block;width:74px;height:68px;flex:none;border-radius:10px;
+ border:2px solid #e5f7ff;box-shadow:0 6px 14px #153e7752;
+ background:#09284d url('/visuals/traffic-car.svg') center/cover no-repeat;
+}
+.neo-shell .live-traffic-evidence{
+ background:#061934;border:1px solid #2f65a9;border-radius:14px;
+ box-shadow:0 2px 17px #1a5c9c1f;overflow:hidden;
+}
+.neo-shell .live-traffic-evidence-empty{
+ display:flex;flex-direction:column;gap:13px;
+ justify-content:center;align-items:center;min-width:0;
+ padding:18px 20px;text-align:center;
+ background:
+  radial-gradient(ellipse 100% 70% at 100% 94%,#1263a27b,transparent 72%),
+  linear-gradient(135deg,#05254c,#031b3d 57%,#0c4582);
+ color:#e8f4ff;
+}
+.neo-shell .live-traffic-evidence-empty:after{
+ content:"";position:absolute;left:-15%;right:-15%;bottom:-10%;
+ height:22%;border-top:2px solid #219dff90;border-radius:50%;
+ transform:rotate(-5deg);pointer-events:none;
+ box-shadow:0 -11px 25px #117fe05e;
+}
+.neo-shell .live-traffic-gallery{
+ position:relative;z-index:1;width:100%;max-width:410px;
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;
+}
+.neo-shell .live-traffic-gallery-photo{
+ display:block;height:clamp(65px,7vw,104px);border:1px solid #82c5ff;
+ border-radius:12px;box-shadow:0 4px 18px #020b23ae;
+ background-color:#143c6b;background-position:center;background-size:cover;
+}
+.neo-shell .live-traffic-gallery-photo.is-car{background-image:url('/visuals/traffic-car.svg')}
+.neo-shell .live-traffic-gallery-photo.is-bus{background-image:url('/visuals/traffic-bus.svg')}
+.neo-shell .live-traffic-gallery-photo.is-bicycle{background-image:url('/visuals/traffic-cyclist.svg')}
+.neo-shell .live-traffic-evidence-empty p{
+ position:relative;z-index:1;color:#f1f8ff;margin:0;
+ font-size:12px;line-height:1.55;font-weight:650;
+}
+.neo-shell .live-traffic-evidence-empty small{
+ position:relative;z-index:1;font-size:9px;color:#90b4e3;
+}
+.neo-shell .live-traffic-evidence canvas{
+ width:100%;height:100%;object-fit:contain;position:relative;z-index:0;
+}
+.neo-shell .live-traffic-lab button{
+ background:#164d87;border-color:#3c81c5;color:#f3fbff;
+}
+.neo-shell .live-traffic-lab button:hover:not(:disabled){
+ background:#2365a4;color:#fff;border-color:#49adff;
+}
+.neo-shell .live-traffic-lab button.primary{
+ background:linear-gradient(120deg,#1678e3,#1854b3);
+ border-color:#379ff2;color:#fff;box-shadow:0 4px 15px #0d64ca37;
+}
+.neo-shell .live-traffic-lab button:focus-visible,
+.neo-shell .live-traffic-lab select:focus-visible,
+.neo-shell .live-traffic-lab input:focus-visible{
+ outline:3px solid #2788eb;outline-offset:3px;
+}
+.neo-shell .live-traffic-engine-note{color:#42638e}
+.neo-shell .live-traffic-threshold,
+.neo-shell .live-traffic-class-label{color:#173963}
+.neo-shell .live-traffic-threshold input,
+.neo-shell .live-traffic-auto input{accent-color:#1879ed}
+.neo-shell .live-traffic-class-label select{
+ background:#09244e;color:#fff;border-color:#4381c6
+}
+.neo-shell .live-traffic-metrics>div{
+ background:#e7f4ff;border-color:#9dc9ee;
+}
+.neo-shell .live-traffic-metrics span{color:#44638e}
+.neo-shell .live-traffic-metrics strong{color:#145bb1}
+.neo-shell .live-traffic-observations{
+ border-top:1px solid #90bbdf;color:#173b65;
+}
+.neo-shell .live-traffic-observations>strong,
+.neo-shell .live-traffic-observations li{color:#174874}
+.neo-shell .live-traffic-observations p{color:#557699}
+.neo-shell .live-traffic-observations li{border-color:#a7c9e6}
+.neo-shell .live-traffic-observations li b{color:#075eb8}
+.neo-shell .live-traffic-error{background:#ffece7;border-color:#dc6473;color:#982f49!important}
+.neo-shell .live-history-notice{background:#e3f1ff;border-color:#307ed4;color:#194c83}
+.neo-shell .live-traffic-footer{
+ background:#bfdffb;border-top:1px solid #95c3ef;
+ color:#305a84;
+}
+/* El fondo claro solo afecta a la interfaz, nunca a los fotogramas reales. */
+@media(max-width:1160px){
+ .neo-shell .live-traffic-bar{flex-wrap:wrap}
+ .neo-shell .live-traffic-skyline{opacity:.45}
+}
+@media(max-width:1050px){
+ .neo-shell .live-traffic-grid{grid-template-columns:minmax(0,1fr)}
+ .neo-shell .live-traffic-stream-column{border-right:0}
+ .neo-shell .live-traffic-inference{border-left:0;border-top:1px solid #8cbceb}
+}
+@media(max-width:650px){
+ .neo-shell .live-traffic-bar{padding:15px 12px;gap:13px;min-height:0}
+ .neo-shell .live-traffic-source-row{gap:9px;flex-basis:100%}
+ .neo-shell .live-traffic-camera-photo{width:55px;height:61px;border-radius:9px}
+ .neo-shell .live-traffic-source-row select{min-height:49px;font-size:12px}
+ .neo-shell .live-traffic-skyline{width:180px;height:80px;opacity:.25}
+ .neo-shell .live-traffic-auto{flex-basis:100%;min-width:0;font-size:11px}
+ .neo-shell .live-traffic-stream-column{padding:10px}
+ .neo-shell .live-traffic-inference{padding:15px}
+ .neo-shell .live-traffic-inference-title{gap:10px}
+ .neo-shell .live-traffic-car-photo{width:54px;height:56px}
+ .neo-shell .live-traffic-gallery{gap:6px}
+ .neo-shell .live-traffic-gallery-photo{height:65px}
+ .neo-shell .live-traffic-evidence-empty{padding:15px 10px}
+ .neo-shell .live-traffic-evidence-empty small{font-size:8px}
+}

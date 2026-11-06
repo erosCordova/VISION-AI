@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 220"><defs>
+ <linearGradient id="sbike" x2="0" y2="1"><stop stop-color="#8ac1eb"/><stop offset=".68" stop-color="#cceaff"/><stop offset="1" stop-color="#234a70"/></linearGradient>
+ <linearGradient id="rbike" x2="0" y2="1"><stop stop-color="#486b86"/><stop offset="1" stop-color="#162b45"/></linearGradient>
+ <linearGradient id="cbike" x2="0" y2="1"><stop stop-color="#fafdff"/><stop offset="1" stop-color="#8db5d4"/></linearGradient>
+ <filter id="fbike"><feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#01152f" flood-opacity=".55"/></filter></defs>
+ <rect width="360" height="220" fill="url(#sbike)"/>
+ <path d="M0 142 90 112l86 16 86-22 98 21v93H0Z" fill="#1c456c" opacity=".38"/>
+ <path d="M0 153h70v-64h27v67h20v-83h28v79h45v-65h27v63h20V88h37v62h20V75h32v75h35v70H0Z" fill="#1d4d78" opacity=".55"/>
+ <g fill="#b9deef" opacity=".56"><rect x="0" y="106" width="5" height="8"/><rect x="19" y="113" width="5" height="8"/><rect x="38" y="120" width="5" height="8"/><rect x="57" y="127" width="5" height="8"/><rect x="76" y="134" width="5" height="8"/><rect x="95" y="141" width="5" height="8"/><rect x="114" y="111" width="5" height="8"/><rect x="133" y="118" width="5" height="8"/><rect x="152" y="125" width="5" height="8"/><rect x="171" y="132" width="5" height="8"/><rect x="190" y="139" width="5" height="8"/><rect x="209" y="109" width="5" height="8"/><rect x="228" y="116" width="5" height="8"/><rect x="247" y="123" width="5" height="8"/><rect x="266" y="130" width="5" height="8"/><rect x="285" y="137" width="5" height="8"/><rect x="304" y="107" width="5" height="8"/><rect x="323" y="114" width="5" height="8"/></g>
+ <path d="M-15 220 112 150h125l143 70Z" fill="url(#rbike)"/>
+ <path d="M153 154 94 220M208 154l54 66" stroke="#d1e5f8" stroke-width="3" opacity=".62"/>
+ <path d="M0 207h360" stroke="#145088" stroke-width="6" opacity=".65"/>
+ <g stroke="#4bddff" fill="none" stroke-width="5" stroke-linecap="round">
+ <path d="M35 66V30h38 M287 30h38v37 M35 147v38h40 M287 185h38v-38"/>
+ </g><g filter="url(#fbike)">
+<ellipse cx="184" cy="193" rx="111" ry="11" fill="#071b34" opacity=".55"/>
+<circle cx="112" cy="169" r="42" fill="none" stroke="#0b233e" stroke-width="7"/>
+<circle cx="256" cy="169" r="42" fill="none" stroke="#0b233e" stroke-width="7"/>
+<circle cx="112" cy="169" r="35" fill="none" stroke="#8bbedc" stroke-width="1.7"/>
+<circle cx="256" cy="169" r="35" fill="none" stroke="#8bbedc" stroke-width="1.7"/>
+<path d="m112 169 65-67 32 67h-97m65-67 48 10 31 57h-47m-32-67 8 67 24-57" fill="none" stroke="#3bb2f0" stroke-width="5" stroke-linejoin="round"/>
+<path d="m164 104 29 0m40 3h-24" stroke="#092c4c" stroke-width="6" stroke-linecap="round"/>
+<circle cx="190" cy="59" r="19" fill="#abcfdf" stroke="#1c416d" stroke-width="4"/>
+<path d="M173 60q6-28 28-16l9 13-37 4Z" fill="#194c94"/>
+<path d="m182 80-35 30 50 29 18-42-33-17Z" fill="#234c86" stroke="#4e85bb" stroke-width="3"/>
+<path d="m158 111 31-4 20 27m-60-24-26 20 27 21" stroke="#d2e8f7" stroke-width="12" stroke-linecap="round" fill="none"/>
+<path d="m203 132-26 36m-29-17-18 16" stroke="#25354b" stroke-width="8" stroke-linecap="round"/>
+</g></svg>
