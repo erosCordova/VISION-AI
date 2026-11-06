@@ -21,7 +21,8 @@ describe('Rediseño visual VISION AI',()=>{
   expect(home).toContain('r.inference!.detections');
   expect(home).toContain('chartPath(summary.activity');
   expect(home).toContain('Confianza media');
-  expect(home).toContain('VISTA ILUSTRATIVA');
+  expect(home).toContain('ILUSTRACIÓN DEL PROYECTO');
+  expect(home).toContain('src="/visuals/vision-ai-supervision-industrial.webp"');
   expect(home).not.toContain('96%');
   expect(home).not.toContain('1,248');
  });
