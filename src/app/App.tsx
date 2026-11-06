@@ -7,7 +7,6 @@ import { ErrorBoundary } from '../shared/ui/ErrorBoundary';
 import { LiveAnalysisPage } from '../modules/analysis/pages/LiveAnalysisPage';
 import {VisionWorkspace} from '../modules/detections/pages/VisionWorkspace';
 import type {SimulationSessionRepository} from '../core/ports/simulation-session-repository';
-import {validateReproducibility} from '../modules/scenarios/services/simulation-session-model';
 import {SessionsDashboard} from '../modules/dashboard/pages/SessionsDashboard';
 import {LiveObservationsDashboard} from '../modules/dashboard/components/LiveObservationsDashboard';
 import {AppProviders} from './providers/AppProviders';
@@ -17,10 +16,10 @@ import {Sidebar} from './layout/Sidebar';
 import {AppHeader} from './layout/AppHeader';
 import type {LiveObservationRepository} from '../core/ports/live-observation-repository';
 import {OperationsPanel} from '../modules/alerts/pages/OperationsPanel';
-import {StudioLanding} from '../modules/experience/StudioLanding';
+import {CommandHome} from '../modules/experience/CommandHome';
+import {selectVisualSource} from '../modules/analysis/services/source-navigation';
 import {StudioCommandPalette} from '../modules/experience/StudioCommandPalette';
 import type {WorldKey} from '../modules/experience/StudioWorld';
-import {ScenarioArtwork} from '../modules/experience/ScenarioArtwork';
 const scenarios = [
   { id: 'safety', name: 'Seguridad industrial', icon: '◈', text: 'Personas y equipos de protección', rule: 'Revisión de casco y chaleco por persona', classes: 'Persona · Casco · Chaleco' },
   { id: 'warehouse', name: 'Almacén inteligente', icon: '▦', text: 'Objetos y zonas de operación', rule: 'Presencia de montacargas en zona configurada', classes: 'Caja · Pallet · Montacargas' },
@@ -33,17 +32,6 @@ export function App({ apiBaseUrl, sessionRepository, liveObservationRepository }
   const [menu, setMenu] = useState(false);
   const [commandOpen,setCommandOpen]=useState(false);
   const [role, setRole] = useState('operador');
-  const [savedStats,setSavedStats] = useState<{total:number;indicios:number}|null>(null);
-  useEffect(()=>{
-   let active=true;
-   const reload=()=>{void sessionRepository.list().then(records=>{
-    const valid=records.filter(r=>{try{validateReproducibility(r);return true;}catch{return false;}});
-    if(active)setSavedStats({total:valid.length,
-     indicios:valid.reduce((sum,r)=>sum+(r.inference?.reviewLog.length??0),0)});
-   }).catch(()=>{if(active)setSavedStats(null);});};
-   reload();window.addEventListener('vision-ai-sessions-updated',reload);
-   return()=>{active=false;window.removeEventListener('vision-ai-sessions-updated',reload);};
-  },[page,sessionRepository]);
   useEffect(() => {
    // SPA con navegación hash: cada vista empieza arriba; evita revelar
    // la portada a mitad de scroll después de visitar Historial/YOLO.
@@ -53,13 +41,15 @@ export function App({ apiBaseUrl, sessionRepository, liveObservationRepository }
    return()=>window.removeEventListener('hashchange',update);
   },[]);
   const navigate = (p: Page) => { location.hash = p; setPage(p); setMenu(false); };
-  const openScene=(key:WorldKey)=>{setScenarioId(key);navigate('Análisis en vivo');};
+  const openScene=(key:WorldKey)=>{selectVisualSource('simulated');setScenarioId(key);navigate('Análisis en vivo');};
+  const openCameras=()=>{selectVisualSource('live');navigate('Análisis en vivo');};
+  const openStatistics=()=>{navigate('Resumen');window.setTimeout(()=>document.getElementById('neo-insights')?.scrollIntoView({behavior:'smooth'}),120);};
   useEffect(()=>{
    const open=()=>setCommandOpen(true);
    document.addEventListener('vision-ai:open-command',open);
    return()=>document.removeEventListener('vision-ai:open-command',open);
   },[]);
-  return <AppProviders liveObservationRepository={liveObservationRepository}><div className="app-shell experience-shell studio-shell">
+  return <AppProviders liveObservationRepository={liveObservationRepository}><div className="app-shell experience-shell studio-shell neo-shell">
     <a className="skip" href="#contenido" onClick={e => { e.preventDefault(); document.getElementById('contenido')?.focus(); }}>Saltar al contenido</a>
     {menu&&<button type="button" className="experience-nav-scrim"
      aria-label="Cerrar navegación" onClick={()=>setMenu(false)}/>}
@@ -73,26 +63,17 @@ export function App({ apiBaseUrl, sessionRepository, liveObservationRepository }
       <main id="contenido" tabIndex={-1}>{page !== 'Resumen'&&<div className="page-heading"><div><span className="eyebrow">VISIÓN COMPUTACIONAL</span><h1>{page}</h1><p>{page === 'Análisis en vivo' ? 'Cámaras públicas en directo y simulaciones con reconocimiento de objetos.' : page === 'Visión IA' ? 'Laboratorio interactivo para reconocer objetos sobre escenas 3D o video público.' : page === 'Historial' ? 'Sesiones y evidencias de tus análisis.' : 'Estado del entorno y capacidades disponibles.'}</p></div></div>}
       <ErrorBoundary key={page + role}>
       {page === 'Resumen' && <>
-       <StudioLanding onExplore={openScene}
-        onHistory={()=>navigate('Historial')} sessionCount={savedStats?.total??null}/>
-       <div className="experience-dashboard-label studio-insights-label studio-scroll-reveal">
-        <span>01 / CENTRO DE CONTROL</span><p>RESULTADOS GUARDADOS</p>
-       </div>
-       <div className="stats studio-scroll-reveal">{[['Escenarios','04','Simulaciones 3D'],['Reconocimiento','Disponible','Análisis de imágenes'],['Sesiones 3D',savedStats?savedStats.total.toString():'—','Guardadas en este navegador'],['Indicios conservados',savedStats?savedStats.indicios.toString():'—','Observaciones guardadas']].map(([title,value,detail]) => <section className="stat" key={title}><span>{title}</span><strong>{value}</strong><small>{detail}</small></section>)}</div><div className="experience-saved-dashboard studio-scroll-reveal"><SessionsDashboard repository={sessionRepository}
-   onHistory={()=>navigate('Historial')} onOperations={()=>navigate('Operaciones')} /></div>
-   <LiveObservationsDashboard onHistory={()=>navigate('Historial')} onAnalyze={()=>navigate('Análisis en vivo')}/>
-   <section className="section-heading experience-scenarios-heading studio-scroll-reveal"><div><h2>Elige tu escenario</h2><p>Un flujo de trabajo adaptado a cada operación.</p></div><span>01 — 04</span></section><div className="scenario-grid experience-scenario-grid studio-scroll-reveal">{scenarios.map((s,i) =>
-    <button className={'scenario-card scenario-'+i} key={s.id}
-     aria-label={'Abrir simulación: '+s.name}
-     onClick={() => { setScenarioId(s.id); navigate('Análisis en vivo'); }}>
-     <ScenarioArtwork kind={s.id as 'safety'|'quality'|'retail'|'warehouse'}/>
-     <div className="experience-card-shade" aria-hidden="true"/>
-     <div className="card-top"><span className="scenario-icon">{s.icon}</span><span className="card-index">0{i+1} ↗</span></div><div className="experience-card-copy"><span className="experience-card-label">
-      SIMULACIÓN / 0{i+1}</span><h3>{s.name}</h3><p>{s.text}</p></div>
-     <div className="card-footer">Explorar entorno <span aria-hidden="true">↗</span></div>
-    </button>)}</div><section className="ready-banner experience-ready-banner studio-scroll-reveal"><div className="banner-icon">⟡</div>
-     <div><span className="experience-banner-eyebrow">02 / INTELIGENCIA OPERATIVA</span>
-      <h2>De la simulación a la evidencia</h2><p>Observa cámaras en directo o explora escenas 3D. Guarda los resultados que necesites.</p></div><button onClick={() => navigate('Análisis en vivo')}>Iniciar exploración ↗</button></section></>}
+       <CommandHome sessions={sessionRepository} observations={liveObservationRepository}
+        onScene={openScene} onCameras={openCameras} onHistory={()=>navigate('Historial')}
+        onStatistics={openStatistics} onLab={()=>navigate('Visión IA')}/>
+       <section id="neo-insights" className="neo-insights">
+        <div className="neo-insights-title"><span>DATOS GUARDADOS</span><h2>Estadísticas y resultados</h2>
+         <p>Revisa los registros que has conservado en este navegador.</p></div>
+        <div className="experience-saved-dashboard"><SessionsDashboard repository={sessionRepository}
+         onHistory={()=>navigate('Historial')} onOperations={()=>navigate('Operaciones')}/></div>
+        <LiveObservationsDashboard onHistory={()=>navigate('Historial')} onAnalyze={openCameras}/>
+       </section>
+      </>}
       {page === 'Análisis en vivo' && <LiveAnalysisPage scenarios={scenarios} scenarioId={scenarioId} onScenarioChange={setScenarioId} sessionRepository={sessionRepository} role={role} apiBaseUrl={apiBaseUrl} />}
       {page === 'Historial' && <HistoryPanel onAnalyze={() => navigate('Análisis en vivo')} sessionRepository={sessionRepository} />}
       {page === 'Privacidad' && <PrivacyCenter repository={sessionRepository} />}

@@ -17,7 +17,7 @@ interface Props{
 const PAGE_LINKS=[
  {key:'Resumen',label:'Centro de control',detail:'Panel general y experiencia 3D',icon:LayoutDashboard},
  {key:'Análisis en vivo',label:'Análisis en vivo',detail:'Cámaras en directo y escenas industriales',icon:ScanEye},
- {key:'Visión IA',label:'Tecnología y manuales',detail:'Cómo funciona el sistema',icon:Boxes},
+ {key:'Visión IA',label:'Laboratorio IA',detail:'Reconocimiento en escenas 3D y cámaras públicas',icon:Boxes},
  {key:'Operaciones',label:'Revisión de indicios',detail:'Decisiones humanas verificables',icon:ClipboardCheck},
  {key:'Historial',label:'Historial de sesiones',detail:'Sesiones y exportaciones locales',icon:History},
  {key:'Privacidad',label:'Privacidad y retención',detail:'Datos guardados y privacidad',icon:ShieldCheck},
