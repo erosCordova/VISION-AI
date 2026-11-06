@@ -32,7 +32,7 @@ function renderEvidence(
   if(detection.confidence<minConfidence||
    (classFilter!=='all'&&detection.classId!==classFilter))continue;
   const box=frameBoxPixels(detection.box,frame.width,frame.height);
-  const color=detection.classId==='person'?'#75f6d0':'#ffd283';
+  const color=detection.classId==='person'?'#75abf6':'#ffd283';
   ctx.lineWidth=Math.max(2,frame.width/400);
   ctx.strokeStyle=color;
   ctx.strokeRect(box.x,box.y,box.width,box.height);
@@ -44,7 +44,7 @@ function renderEvidence(
   const top=Math.max(0,box.y-height);
   ctx.fillStyle='#051b2be9';ctx.fillRect(left,top,width,height);
   ctx.fillStyle=color;ctx.fillRect(left,top,4,height);
-  ctx.fillStyle='#f5fff9';ctx.textBaseline='middle';
+  ctx.fillStyle='#f5f9ff';ctx.textBaseline='middle';
   ctx.fillText(text,left+9,top+height/2);
  }
 }

@@ -7,14 +7,14 @@ export function ScenarioArtwork({kind}:{kind:Kind}){
   aria-hidden="true" focusable="false">
   <defs>
    <linearGradient id={'art-fill-'+kind} x1="0" y1="0" x2="1" y2="1">
-    <stop offset="0%" stopColor="#48efcc" stopOpacity=".29"/>
+    <stop offset="0%" stopColor="#488eef" stopOpacity=".29"/>
     <stop offset="100%" stopColor="#7796ff" stopOpacity=".025"/>
    </linearGradient>
    <linearGradient id={'art-line-'+kind} x1="0" y1="0" x2="1" y2="1">
-    <stop offset="0%" stopColor="#8effd9"/><stop offset="100%" stopColor="#8da7ff"/>
+    <stop offset="0%" stopColor="#90bdfd"/><stop offset="100%" stopColor="#8da7ff"/>
    </linearGradient>
   </defs>
-  <g opacity=".16" stroke="#8eddd4" strokeWidth=".7">
+  <g opacity=".16" stroke="#8eafdd" strokeWidth=".7">
    {grid.map(x=><path key={x} d={'M'+x+' 0 V300'}/>)}
    {grid.slice(0,5).map(y=><path key={y} d={'M0 '+y+' H560'}/>)}
   </g>
@@ -68,7 +68,7 @@ export function ScenarioArtwork({kind}:{kind:Kind}){
      fill="none" strokeDasharray="5 6"/>
    </>}
   </g>
-  <g opacity=".65" fill="#87fff3">
+  <g opacity=".65" fill="#89b9fd">
    <circle cx="92" cy="78" r="3"/><circle cx="469" cy="231" r="3"/>
    <circle cx="455" cy="54" r="2"/>
   </g>

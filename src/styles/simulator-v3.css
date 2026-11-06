@@ -1,7 +1,7 @@
 /* Consola V3: analítica geométrica y jerarquía visual empresarial. */
 .simulator-v3{border:1px solid #2a3d58;background:#0a1e2b;box-shadow:0 24px 70px rgba(6,26,38,.26)}
 .simulator-v3 .simulator-topline{background:
- radial-gradient(circle at 74% -40%,rgba(29,189,159,.21),transparent 46%),
+ radial-gradient(circle at 74% -40%,rgba(29, 96, 189,.21),transparent 46%),
  linear-gradient(115deg,#112d3d,#102736 57%,#0a1b33)}
 .simulator-pro-label{display:inline-flex;vertical-align:middle;align-items:center;
  font:800 10px/1 "DM Sans",sans-serif;letter-spacing:1.5px;color:#091424;

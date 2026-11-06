@@ -90,18 +90,18 @@ export function SimulationAnalytics({snapshot,elapsed,fps}:Props){
     aria-label={'Actividad sintética '+index+' de 100, con evolución temporal'}>
     <defs>
      <linearGradient id="sim-activity-fill" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stopColor="#36dbb5" stopOpacity=".32"/>
-      <stop offset="100%" stopColor="#36dbb5" stopOpacity=".015"/>
+      <stop offset="0%" stopColor="#367bdb" stopOpacity=".32"/>
+      <stop offset="100%" stopColor="#367bdb" stopOpacity=".015"/>
      </linearGradient>
     </defs>
     <g transform="translate(0 9)">
      {[0,25,50,75,100].map(v=><g key={v}>
-      <path d={`M0 ${100-v} H320`} stroke="#4a7180" strokeWidth=".65" strokeDasharray="3 5" opacity=".58"/>
-      <text x="346" y={104-v} fontSize="10" fill="#9db8c1" textAnchor="end">{v}</text>
+      <path d={`M0 ${100-v} H320`} stroke="#4a6080" strokeWidth=".65" strokeDasharray="3 5" opacity=".58"/>
+      <text x="346" y={104-v} fontSize="10" fill="#9dacc1" textAnchor="end">{v}</text>
      </g>)}
      <path d={area} fill="url(#sim-activity-fill)" stroke="none"/>
-     <path d={curve} fill="none" stroke="#53edc5" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
-     <circle cx="320" cy={100-recent[recent.length-1]} r="4.2" stroke="#193b3d" strokeWidth="2" fill="#9dffdc"/>
+     <path d={curve} fill="none" stroke="#5393ed" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
+     <circle cx="320" cy={100-recent[recent.length-1]} r="4.2" stroke="#19283d" strokeWidth="2" fill="#9fc6fd"/>
     </g>
    </svg>
    <div className="sim-activity-axis"><span>−30 s</span><span>−15 s</span><span>Ahora</span></div>
@@ -110,21 +110,21 @@ export function SimulationAnalytics({snapshot,elapsed,fps}:Props){
    <div className="sim-analytics-section-head"><div><h4>Mapa operativo</h4><p>Vista superior · posiciones generadas</p></div>
     <span className="sim-map-live">● POSICIONES</span></div>
    <svg viewBox="0 0 480 260" role="img" aria-label="Minimapa sintético con actores y zonas">
-    <rect x="4" y="4" width="472" height="252" rx="11" fill="#0b2836" stroke="#3b6571" strokeWidth="1.5"/>
+    <rect x="4" y="4" width="472" height="252" rx="11" fill="#0b2836" stroke="#3b5171" strokeWidth="1.5"/>
     {Array.from({length:15},(_,i)=><path key={'v'+i} d={`M${18+i*32} 10 V250`}
-      stroke="#50808b" strokeWidth=".75" opacity=".17"/>)}
+      stroke="#50698b" strokeWidth=".75" opacity=".17"/>)}
     {Array.from({length:7},(_,i)=><path key={'h'+i} d={`M10 ${14+i*38} H470`}
-      stroke="#50808b" strokeWidth=".75" opacity=".17"/>)}
+      stroke="#50698b" strokeWidth=".75" opacity=".17"/>)}
     {snapshot.zones.map(z=><g key={z.label}>
      <rect x={z.x/2+1} y={z.y/2+1} width={z.width/2} height={z.height/2}
-      rx="5" fill={snapshot.alert?'#a84a3a':'#3cc9bd'} fillOpacity=".14"
-      stroke={snapshot.alert?'#ef927e':'#57dacb'} strokeDasharray="5 4" strokeWidth="1.7"/>
-     <text x={z.x/2+7} y={z.y/2+15} fill={snapshot.alert?'#ffc4b4':'#a2eee0'} fontSize="9" fontWeight="700">{z.label}</text>
+      rx="5" fill={snapshot.alert?'#a84a3a':'#3c77c9'} fillOpacity=".14"
+      stroke={snapshot.alert?'#ef927e':'#578eda'} strokeDasharray="5 4" strokeWidth="1.7"/>
+     <text x={z.x/2+7} y={z.y/2+15} fill={snapshot.alert?'#ffc4b4':'#a2c2ee'} fontSize="9" fontWeight="700">{z.label}</text>
     </g>)}
     {active.map(a=>{
      const x=(a.x+a.width/2)/2,y=(a.y+a.height/2)/2;
      const radius=a.kind==='forklift'?8:5;
-     const color=a.kind==='forklift'?'#ffca82':'#69eaca';
+     const color=a.kind==='forklift'?'#ffca82':'#699fea';
      return <g key={a.id}>
        <circle cx={x} cy={y} r={radius+4} fill={color} opacity=".14"/>
        <circle cx={x} cy={y} r={radius} fill={color} stroke="#0c2836" strokeWidth="2"/>
@@ -133,7 +133,7 @@ export function SimulationAnalytics({snapshot,elapsed,fps}:Props){
      </g>;
     })}
     <rect x="12" y="231" width="151" height="17" rx="4" fill="#102f3e"/>
-    <text x="22" y="242" fontSize="9" fill="#b7d8d7">ESCALA REFERENCIAL / 2D</text>
+    <text x="22" y="242" fontSize="9" fill="#b7c5d8">ESCALA REFERENCIAL / 2D</text>
    </svg>
    <div className="sim-map-legend"><span><i className="sim-legend-person"/> Personas</span>
     <span><i className="sim-legend-forklift"/> Vehículos</span>

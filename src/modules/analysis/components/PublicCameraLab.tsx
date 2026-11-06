@@ -17,7 +17,7 @@ function annotate(source:HTMLCanvasElement,output:HTMLCanvasElement,items:readon
  const line=Math.max(2,source.width/420);
  for(const item of items){
   const r=frameBoxPixels(item.box,source.width,source.height);
-  ctx.strokeStyle=item.classId==='person'?'#6cf4d0':'#ffd078';
+  ctx.strokeStyle=item.classId==='person'?'#6ca5f4':'#ffd078';
   ctx.lineWidth=line;ctx.strokeRect(r.x,r.y,r.width,r.height);
   const label=item.label+' · '+Math.round(item.confidence*100)+'%';
   ctx.font='700 '+Math.max(11,Math.round(source.width/38))+'px sans-serif';
@@ -25,7 +25,7 @@ function annotate(source:HTMLCanvasElement,output:HTMLCanvasElement,items:readon
   const x=Math.max(0,Math.min(source.width-w,r.x));
   const y=Math.max(0,r.y-h);
   ctx.fillStyle='#082337ef';ctx.fillRect(x,y,w,h);
-  ctx.fillStyle='#e9fff5';ctx.fillText(label,x+8,y+17);
+  ctx.fillStyle='#e9f2ff';ctx.fillText(label,x+8,y+17);
  }
 }
 async function sha256(blob:Blob):Promise<string>{

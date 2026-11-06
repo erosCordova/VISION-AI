@@ -53,7 +53,7 @@ function drawFrame(frame:YoloFrame,dest:HTMLCanvasElement,family:YoloFamily,
  for(const detection of frame.detections){
   const {x:px,y:py,width:pw,height:ph}=frameBoxPixels(
    detection.box,frame.width,frame.height);
-  const color=family==='ppe'?ppeColor(detection.classId):detection.classId==='person'?'#5cf3c7':'#ffca78';
+  const color=family==='ppe'?ppeColor(detection.classId):detection.classId==='person'?'#5c9bf3':'#ffca78';
   ctx.strokeStyle=color;ctx.lineWidth=thickness;ctx.strokeRect(px,py,pw,ph);
   const text=detection.label+'  '+Math.round(detection.confidence*100)+'%';
   ctx.font='700 '+Math.max(11,Math.round(frame.width/65))+'px sans-serif';
@@ -62,7 +62,7 @@ function drawFrame(frame:YoloFrame,dest:HTMLCanvasElement,family:YoloFamily,
   const ty=py>hh?py-hh:py;
   ctx.fillStyle='#0a1e2de9';ctx.fillRect(tx,ty,tw,hh);
   ctx.fillStyle=color;ctx.fillRect(tx,ty,3,hh);
-  ctx.fillStyle='#effff8';ctx.textBaseline='middle';ctx.fillText(text,tx+9,ty+hh/2);
+  ctx.fillStyle='#eff6ff';ctx.textBaseline='middle';ctx.fillText(text,tx+9,ty+hh/2);
  }
 }
 const delay=(ms:number)=>new Promise<void>(resolve=>setTimeout(resolve,ms));

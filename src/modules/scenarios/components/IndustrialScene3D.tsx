@@ -33,7 +33,7 @@ interface DrawOptions {
  paused:boolean;
 }
 const colorFor=(o:SimEntity)=>({
- mint:'#6af3cf',amber:'#ffc56d',coral:'#ff9381',blue:'#7db8ff'
+ mint:'#6aa3f3',amber:'#ffc56d',coral:'#ff9381',blue:'#7db8ff'
 })[o.tone];
 
 const names:Record<SimEntity['kind'],string>={
@@ -104,7 +104,7 @@ function drawHud(canvas:HTMLCanvasElement,camera:Camera,options:DrawOptions){
  ctx.font='600 10px ui-monospace,Consolas,monospace';
  ctx.textBaseline='middle';
  // HUD surface corners.
- ctx.strokeStyle='rgba(110,237,205,.55)';ctx.lineWidth=1.5;
+ ctx.strokeStyle='rgba(110, 163, 237,.55)';ctx.lineWidth=1.5;
  ctx.beginPath();
  ctx.moveTo(24,45);ctx.lineTo(24,24);ctx.lineTo(45,24);
  ctx.moveTo(w-45,24);ctx.lineTo(w-24,24);ctx.lineTo(w-24,45);
@@ -121,9 +121,9 @@ function drawHud(canvas:HTMLCanvasElement,camera:Camera,options:DrawOptions){
    const textWidth=ctx.measureText(title).width;
    const x=Math.min(Math.max(5,at.x-textWidth/2),w-textWidth-18);
    const y=Math.max(60,Math.min(h-44,at.y));
-   ctx.fillStyle=snapshot.alert?'rgba(132,54,47,.93)':'rgba(24,75,72,.92)';
+   ctx.fillStyle=snapshot.alert?'rgba(132,54,47,.93)':'rgba(24, 45, 75,.92)';
    ctx.fillRect(x-7,y-11,textWidth+14,23);
-   ctx.fillStyle=snapshot.alert?'#ffd6c5':'#abffe3';ctx.fillText(title,x,y+.5);
+   ctx.fillStyle=snapshot.alert?'#ffd6c5':'#adcefd';ctx.fillText(title,x,y+.5);
   });
  }
  if(layers.boxes){
@@ -153,7 +153,7 @@ function drawHud(canvas:HTMLCanvasElement,camera:Camera,options:DrawOptions){
     ctx.fillRect(px,py,textWidth+15,21);
     ctx.fillStyle=color;
     ctx.fillRect(px,py,3,21);
-    ctx.fillStyle='#effff8';ctx.fillText(label,px+9,py+10.5);
+    ctx.fillStyle='#eff6ff';ctx.fillText(label,px+9,py+10.5);
    }
   });
  }

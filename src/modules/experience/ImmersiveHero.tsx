@@ -39,14 +39,14 @@ export function ImmersiveHero({onExplore,onHistory,sessionCount}:Props){
   // Núcleo: superficie facetada y capas orbitales, sin modelos comprados.
   const shell=addMesh(new THREE.IcosahedronGeometry(1.64,3),
    new THREE.MeshStandardMaterial({
-    color:0x1b9ca6,wireframe:true,transparent:true,opacity:.23,
-    emissive:0x0d404e,roughness:.45
+    color:0x1b55a6,wireframe:true,transparent:true,opacity:.23,
+    emissive:0x0d284e,roughness:.45
    }));
   const core=addMesh(new THREE.IcosahedronGeometry(1.08,5),
    new THREE.MeshPhysicalMaterial({
-    color:0x1ad5c8,metalness:.49,roughness:.21,
+    color:0x1a68d5,metalness:.49,roughness:.21,
     transparent:true,opacity:.64,
-    emissive:0x08768d,emissiveIntensity:.31,flatShading:false
+    emissive:0x083f8d,emissiveIntensity:.31,flatShading:false
    }));
   const inner=addMesh(new THREE.IcosahedronGeometry(.69,3),
    new THREE.MeshStandardMaterial({
@@ -54,7 +54,7 @@ export function ImmersiveHero({onExplore,onHistory,sessionCount}:Props){
     emissive:0x156f9a,emissiveIntensity:.7,flatShading:true
    }));
   inner.rotation.z=.3;
-  const ringColors=[0x74ffe2,0x8d91ff,0x3da8d1];
+  const ringColors=[0x77aefc,0x8d91ff,0x3d7bd1];
   const rings=[2.07,2.32,2.55].map((radius,i)=>{
    const ring=addMesh(new THREE.TorusGeometry(radius,.012,4,180),
     new THREE.MeshBasicMaterial({
@@ -65,7 +65,7 @@ export function ImmersiveHero({onExplore,onHistory,sessionCount}:Props){
   });
   const knot=addMesh(new THREE.TorusKnotGeometry(1.75,.013,260,5,2,3),
    new THREE.MeshBasicMaterial({
-    color:0x47eac9,transparent:true,opacity:.56,depthWrite:false
+    color:0x478bea,transparent:true,opacity:.56,depthWrite:false
    }));
   knot.rotation.x=.36;
   const positions=new Float32Array(950*3);
@@ -79,7 +79,7 @@ export function ImmersiveHero({onExplore,onHistory,sessionCount}:Props){
   pointsGeometry.setAttribute('position',new THREE.BufferAttribute(positions,3));
   resources.push(pointsGeometry);
   const pointMaterial=new THREE.PointsMaterial({
-   color:0x86f8ed,size:.022,transparent:true,opacity:.46,
+   color:0x86b5f8,size:.022,transparent:true,opacity:.46,
    blending:THREE.AdditiveBlending,depthWrite:false
   });
   materials.push(pointMaterial);
@@ -87,7 +87,7 @@ export function ImmersiveHero({onExplore,onHistory,sessionCount}:Props){
   stars.position.x=1.9;scene.add(stars);
   const ambient=new THREE.AmbientLight(0x86b0d2,1.25);
   scene.add(ambient);
-  const cyan=new THREE.PointLight(0x46d9db,33);cyan.position.set(3,2,5);scene.add(cyan);
+  const cyan=new THREE.PointLight(0x4684db,33);cyan.position.set(3,2,5);scene.add(cyan);
   const violet=new THREE.PointLight(0x8367c8,26);violet.position.set(-2,-2,3);scene.add(violet);
   const render=()=>{
    if(!renderer||!active)return;

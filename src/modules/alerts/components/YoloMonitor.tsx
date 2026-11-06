@@ -69,15 +69,15 @@ export function YoloMonitor({telemetry,scenario,paused}:Props){
      <svg viewBox="0 0 320 106" preserveAspectRatio="none" role="img"
        aria-label={'Detecciones reales por fotograma procesado: '+telemetry.observations.map(o=>o.detections.length).join(', ')}>
       {[0,.5,1].map(p=><line key={p} x1="0" x2="320" y1={95-p*85} y2={95-p*85}
-       stroke="#4b7480" strokeWidth="1" strokeDasharray="3 5" opacity=".6"/>)}
+       stroke="#4b6180" strokeWidth="1" strokeDasharray="3 5" opacity=".6"/>)}
       {telemetry.observations.map((entry,index)=>{
        const width=320/Math.max(30,telemetry.observations.length);
        const h=Math.max(2,(entry.detections.length/maxCount)*80);
        return <rect key={entry.frameNumber} x={(index+1)*width-1} y={95-h}
-        width={Math.max(3,width-3)} height={h} rx="1.5" fill="#69e9c2" opacity=".9"/>;
+        width={Math.max(3,width-3)} height={h} rx="1.5" fill="#699ee9" opacity=".9"/>;
       })}
-      <text x="3" y="10" fill="#abd2c6" fontSize="10">Máx. {maxCount} objetos</text>
-      <text x="317" y="104" textAnchor="end" fill="#8db9b4" fontSize="9">último fotograma</text>
+      <text x="3" y="10" fill="#abbbd2" fontSize="10">Máx. {maxCount} objetos</text>
+      <text x="317" y="104" textAnchor="end" fill="#8d9fb9" fontSize="9">último fotograma</text>
      </svg>:
      <p className="yolo-monitor-empty">Inicia el reconocimiento para ver los resultados.</p>}
    </section>

@@ -14,10 +14,10 @@ export const WORLD_KEYS=['safety','quality','warehouse','retail'] as const;
 export type WorldKey=typeof WORLD_KEYS[number];
 
 const WORLD_PALETTES={
- safety:{accent:0x64f6d0,secondary:0xf9b55f,position:0},
- quality:{accent:0x6bdef4,secondary:0xe1b4ff,position:1},
- warehouse:{accent:0x93b1ff,secondary:0x72f1d5,position:2},
- retail:{accent:0xefbeff,secondary:0x7dffe0,position:3},
+ safety:{accent:0x64a1f6,secondary:0xf9b55f,position:0},
+ quality:{accent:0x6ba4f4,secondary:0xe1b4ff,position:1},
+ warehouse:{accent:0x93b1ff,secondary:0x72a7f1,position:2},
+ retail:{accent:0xefbeff,secondary:0x80b4fc,position:3},
 } as const;
 export function worldName(key:WorldKey):string{
  return {safety:'Seguridad industrial',quality:'Control de calidad',
@@ -120,16 +120,16 @@ export function StudioWorld({active,paused,onReady}:Props){
    materials.add(m);return m;
   };
   const asphalt=material(0x1c3545,.25,.48);
-  const metal=material(0x4c7988,.42,.28);
+  const metal=material(0x4c6588,.42,.28);
   const dark=material(0x193544,.34,.37);
-  const bright=material(0xb1d9df,.28,.29);
-  const glass=material(0x7dbcca,.26,.25);
+  const bright=material(0xb1c4df,.28,.29);
+  const glass=material(0x7d9dca,.26,.25);
   const orange=material(0xe7aa63,.55,.36,0xe7aa63);
-  const cyan=material(0x56e7d2,.38,.25,0x56e7d2);
+  const cyan=material(0x5692e7,.38,.25,0x5692e7);
   const violet=material(0x91a3e9,.47,.31,0x6a7dca);
-  const white=material(0xbed8df,.5,.28);
+  const white=material(0xbeccdf,.5,.28);
   const crateColors=[metal,glass,orange,violet,bright];
-  const emission=new THREE.MeshBasicMaterial({color:0x46e7cf,toneMapped:false});
+  const emission=new THREE.MeshBasicMaterial({color:0x4689e7,toneMapped:false});
   const emissionViolet=new THREE.MeshBasicMaterial({color:0x8a99ff,toneMapped:false});
   materials.add(emission);materials.add(emissionViolet);
   const create=(g:any,geo:any,mat:any,x:number,y:number,z:number,sx=1,sy=1,sz=1)=>{
@@ -144,7 +144,7 @@ export function StudioWorld({active,paused,onReady}:Props){
   const platform=new THREE.Group();scene.add(platform);
   block(platform,asphalt,0,-.53,0,17,.26,13);
   block(platform,dark,0,-.7,0,17.35,.16,13.35);
-  const floorLines=material(0x25566a,.3,.4,0x1a4555);
+  const floorLines=material(0x25566a,.3,.4,0x1a3355);
   for(let i=-7;i<=7;i++){
    block(platform,floorLines,i,-.385,0,.012,.004,12.8);
   }
@@ -163,7 +163,7 @@ export function StudioWorld({active,paused,onReady}:Props){
     block(platform,emission,i*1.4,-.383,-4.7,.20,.011,.04);
    }
   }
-  const ambience=new THREE.HemisphereLight(0x9bdaf0,0x0e1b2b,1.28);scene.add(ambience);
+  const ambience=new THREE.HemisphereLight(0x9bbef0,0x0e1b2b,1.28);scene.add(ambience);
   const key=new THREE.DirectionalLight(0xf0faff,2.85);
   key.position.set(-8,14,11);
   key.castShadow=true;
@@ -172,7 +172,7 @@ export function StudioWorld({active,paused,onReady}:Props){
   key.shadow.camera.top=13;key.shadow.camera.bottom=-13;
   key.shadow.camera.near=.5;key.shadow.camera.far=40;
   key.shadow.bias=-.0007;scene.add(key);
-  const neonLeft=new THREE.PointLight(0x56e8e0,33,20);neonLeft.position.set(-5,5,2);scene.add(neonLeft);
+  const neonLeft=new THREE.PointLight(0x5693e8,33,20);neonLeft.position.set(-5,5,2);scene.add(neonLeft);
   const neonRight=new THREE.PointLight(0x9b8dff,26,18);neonRight.position.set(6,5,-3);scene.add(neonRight);
   const worlds={} as Record<WorldKey,{group:any;moving:any[];rotating:any[]}>;
   function person(g:any,x:number,z:number,vest:any,helmet=true,roleId?:string){
@@ -185,8 +185,8 @@ export function StudioWorld({active,paused,onReady}:Props){
    const jeans=material(helmet?0x344d5b:0x283b4a,.06,.87);
    const hair=material(0x202c35,.03,.84);
    const shoes=material(0x202b34,.18,.69);
-   const reflection=material(0xe9fff1,.16,.36);
-   const eye=material(0x1b3038,.02,.89);
+   const reflection=material(0xe9f2ff,.16,.36);
+   const eye=material(0x1b2738,.02,.89);
    const chest=create(visual,taper,vest,0,1.33,0);
    chest.castShadow=true;
    create(visual,anatomia,jeans,0,.93,0,.275,.16,.23);
@@ -344,7 +344,7 @@ export function StudioWorld({active,paused,onReady}:Props){
   }
   ribbonGeometry.setAttribute('position',new THREE.Float32BufferAttribute(coords,3));
   const outlineMaterial=new THREE.LineBasicMaterial({
-   color:0x41dec8,transparent:true,opacity:.47
+   color:0x4182de,transparent:true,opacity:.47
   });
   materials.add(outlineMaterial);
   const outline=new THREE.LineLoop(ribbonGeometry,outlineMaterial);
@@ -360,7 +360,7 @@ export function StudioWorld({active,paused,onReady}:Props){
   particlesGeometry.setAttribute('position',new THREE.BufferAttribute(points,3));
   geometries.add(particlesGeometry);
   const pm=new THREE.PointsMaterial({
-   color:0xa7fef0,size:.034,transparent:true,opacity:.6,
+   color:0xa8cbfd,size:.034,transparent:true,opacity:.6,
    depthWrite:false,blending:THREE.AdditiveBlending
   });
   materials.add(pm);

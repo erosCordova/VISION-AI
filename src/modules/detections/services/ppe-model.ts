@@ -42,7 +42,7 @@ export function ppeColor(id:string):string{
  const p=PPE_CLASSES.find(c=>c.id===id);
  switch(p?.category){
   case 'revisar':return '#ff9786';
-  case 'correcto':return '#73efd0';
+  case 'correcto':return '#73a9ef';
   case 'maquinaria':return '#ffcc84';
   case 'no-fiable':return '#9eaebe';
   default:return '#80baff';

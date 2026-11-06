@@ -1647,6 +1647,35 @@ try {
     const slug=hash.slice(1).toLowerCase();
     fs.writeFileSync(path.join(artifacts,'tema-global-'+slug+'.png'),Buffer.from(shot.data,'base64'));
    }
+   // PALETA30: inspección del color renderizado de todos los componentes, SVG
+   // y sombras; no evalúa los píxeles del vídeo ni las fotografías reales.
+   const colors=await cdp.send('Runtime.evaluate',{
+    expression:'(() => {'
+     +'const failures=[];'
+     +'const re=/rgba?\\(([^)]+)\\)/g;'
+     +'const tone=(s)=>{'
+     +'for(const m of s.matchAll(re)){'
+     +'const v=m[1].split(/[,\\s/]+/).filter(Boolean).map(Number);'
+     +'if(v.length<3||v.slice(0,3).some(x=>!Number.isFinite(x)))continue;'
+     +'if(v.length>3&&Number.isFinite(v[3])&&v[3]<.08)continue;'
+     +'const a=v.slice(0,3).map(x=>Math.min(255,Math.max(0,x))/255);'
+     +'const max=Math.max(...a),min=Math.min(...a),d=max-min;if(d<.02)continue;'
+     +'const l=(max+min)/2,sat=d/(1-Math.abs(2*l-1));'
+     +'let h=max===a[0]?((a[1]-a[2])/d)%6:max===a[1]?(a[2]-a[0])/d+2:(a[0]-a[1])/d+4;'
+     +'h=(h*60+360)%360;'
+     +'if(h>=64&&h<=197&&sat>.075)return {h:Math.round(h),sat:Math.round(sat*100)};'
+     +'}return null};'
+     +'for(const el of document.querySelectorAll(".neo-shell *")){'
+     +'const st=getComputedStyle(el);'
+     +'for(const prop of ["color","backgroundColor","backgroundImage","borderTopColor","boxShadow","textShadow","fill","stroke"]){'
+     +'const value=st[prop];if(!value)continue;const issue=tone(value);'
+     +'if(issue){failures.push({node:el.tagName,cls:typeof el.className==="string"?el.className.slice(0,70):"",prop,value:value.slice(0,120),...issue});'
+     +'if(failures.length>=10)return failures;}}}'
+     +'return failures;})()',
+    returnByValue:true
+   });
+   if(colors.result?.value?.length)
+    throw Error('PALETA30: colores verdes visibles en '+title+': '+JSON.stringify(colors.result.value));
    console.log('UI29 azul hielo global confirmado '+title+': '+JSON.stringify(theme));
   }
   console.log('UI29: ocho rutas con el mismo fondo azul hielo comprobadas en Chromium.');

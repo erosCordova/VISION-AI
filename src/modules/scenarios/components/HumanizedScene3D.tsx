@@ -151,7 +151,7 @@ function drawAnnotations(canvas:HTMLCanvasElement,camera:any,snapshot:SimSnapsho
   const boxHeight=(e.kind==='person'?140:e.kind==='forklift'?110:48)*factor;
   const xx=x-width/2, yy=y-boxHeight/2;
   if(xx>W||yy>H||xx+width<0||yy+boxHeight<0)continue;
-  const tint=e.kind==='defect'?'#ff9b86':e.kind==='forklift'?'#f6ca77':'#66f3cd';
+  const tint=e.kind==='defect'?'#ff9b86':e.kind==='forklift'?'#f6ca77':'#66a1f3';
   if(show.masks){ctx.globalAlpha=.14;ctx.fillStyle=tint;ctx.fillRect(xx,yy,width,boxHeight);ctx.globalAlpha=1;}
   ctx.strokeStyle=tint;ctx.lineWidth=1.7;ctx.strokeRect(xx,yy,width,boxHeight);
   if(show.labels){
@@ -161,7 +161,7 @@ function drawAnnotations(canvas:HTMLCanvasElement,camera:any,snapshot:SimSnapsho
    const ty=Math.max(25,yy-23);
    ctx.fillStyle='#0b2b3cec';ctx.fillRect(tx,ty,ctx.measureText(label).width+17,20);
    ctx.fillStyle=tint;ctx.fillRect(tx,ty,3,20);
-   ctx.fillStyle='#ebfff8';ctx.fillText(label,tx+9,ty+14);
+   ctx.fillStyle='#ebf3ff';ctx.fillText(label,tx+9,ty+14);
   }
  }
  if(show.zones){
@@ -173,9 +173,9 @@ function drawAnnotations(canvas:HTMLCanvasElement,camera:any,snapshot:SimSnapsho
    const label=z.label+' · SIMULADO';ctx.font='700 11px ui-monospace,Consolas,monospace';
    const measure=ctx.measureText(label).width;
    const left=Math.max(5,Math.min(W-measure-18,x-measure/2)),top=Math.max(45,Math.min(H-24,y));
-   ctx.fillStyle=snapshot.alert?'#7c3d36df':'#164c4adf';
+   ctx.fillStyle=snapshot.alert?'#7c3d36df':'#162c4cdf';
    ctx.fillRect(left-6,top-12,measure+12,24);
-   ctx.fillStyle='#dcfff2';ctx.fillText(label,left,top+4);
+   ctx.fillStyle='#ddebfe';ctx.fillText(label,left,top+4);
   }
  }
  ctx.restore();
@@ -214,7 +214,7 @@ export const HumanizedScene3D=forwardRef<IndustrialSceneHandle,Props>(function H
   const stage=new THREE.Scene();
   stage.background=new THREE.Color(0xd9eafa);
   stage.fog=new THREE.FogExp2(0xc9e1f4,.012);
-  stage.add(new THREE.HemisphereLight(0xf5fffa,0x526c7a,1.9));
+  stage.add(new THREE.HemisphereLight(0xf5f9ff,0x526c7a,1.9));
   const sun=new THREE.DirectionalLight(0xfff1dd,2.4);
   sun.position.set(-7,13,8);sun.castShadow=true;
   sun.shadow.mapSize.set(1024,1024);

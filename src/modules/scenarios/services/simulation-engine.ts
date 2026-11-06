@@ -88,7 +88,7 @@ export function simulationSnapshot(scenarioId:ScenarioKey,seconds:number):SimSna
     checking?'Personal realizando inspección en distintas estaciones · simulación':
     'Rondas con rutas independientes y cambios de dirección · simulación',
    metricLabel:'Personas en escena',
-   palette:[{label:'Persona',score:.97,color:'#7ce7cc'},{label:'Casco',score:.96,color:'#f9c865'},{label:'Chaleco',score:.94,color:'#63d7d2'}]};
+   palette:[{label:'Persona',score:.97,color:'#7ca9e7'},{label:'Casco',score:.96,color:'#f9c865'},{label:'Chaleco',score:.94,color:'#6393d7'}]};
  }
  if(scenarioId==='warehouse'){
   const forklift=actor('warehouse','lift','forklift','Montacargas · 01',t,128,102,.96,'amber');
@@ -115,7 +115,7 @@ export function simulationSnapshot(scenarioId:ScenarioKey,seconds:number):SimSna
    forklift.state==='inspecting'?'Montacargas detenido en área de carga · simulación':
    'Montacargas y operarios navegan por rutas diferenciadas · simulación',
    metricLabel:'Montacargas visibles',
-   palette:[{label:'Montacargas',score:.96,color:'#f9c865'},{label:'Operario',score:.93,color:'#7ce7cc'},{label:'Pallet',score:.95,color:'#87b5ff'}]};
+   palette:[{label:'Montacargas',score:.96,color:'#f9c865'},{label:'Operario',score:.93,color:'#7ca9e7'},{label:'Pallet',score:.95,color:'#87b5ff'}]};
  }
  if(scenarioId==='quality'){
   const items=[0,1,2].map(i=>{
@@ -137,7 +137,7 @@ export function simulationSnapshot(scenarioId:ScenarioKey,seconds:number):SimSna
    inspector.state==='inspecting'?'Operario verifica la estación de inspección · simulación':
    'Línea de producción y operario ejecutan tareas independientes · simulación',
    metricLabel:'Productos visibles',
-   palette:[{label:'Producto',score:.94,color:'#7ce7cc'},{label:'Defecto',score:.89,color:'#ff8d7e'},{label:'Inspector',score:.93,color:'#87b5ff'}]};
+   palette:[{label:'Producto',score:.94,color:'#7ca9e7'},{label:'Defecto',score:.89,color:'#ff8d7e'},{label:'Inspector',score:.93,color:'#87b5ff'}]};
  }
  const people=separateActors(Array.from({length:5},(_,i)=>
   actor('retail','r'+i,'person','Persona · '+(i+1),t,43,105,.95-i*.017,
@@ -149,5 +149,5 @@ export function simulationSnapshot(scenarioId:ScenarioKey,seconds:number):SimSna
    people.some(p=>p.state==='inspecting')?'Clientes se detienen frente a estantes · simulación':
    'Tránsito multidireccional de clientes y cruces entre pasillos · simulación',
   metricLabel:'Personas en zona',
-  palette:[{label:'Persona',score:.95,color:'#7ce7cc'},{label:'Zona',score:1,color:'#87b5ff'}]};
+  palette:[{label:'Persona',score:.95,color:'#7ca9e7'},{label:'Zona',score:1,color:'#87b5ff'}]};
 }

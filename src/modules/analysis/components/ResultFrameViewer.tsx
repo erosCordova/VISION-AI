@@ -16,7 +16,7 @@ function MaskLayer({ masks, width, height }: { masks: readonly Segmentation[]; w
     const ctx = element.getContext('2d');
     if (!ctx) return;
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = 'rgba(16, 174, 181, 0.38)';
+    ctx.fillStyle = 'rgba(16, 85, 181, 0.38)';
     for (const mask of masks) forEachMaskSegment(mask.mask, (x, y, runWidth) => ctx.fillRect(x, y, runWidth, 1));
   }, [masks, width, height]);
   return <canvas className="evidence-mask" aria-hidden="true" ref={canvas} />;
