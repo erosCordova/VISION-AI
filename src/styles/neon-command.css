@@ -554,3 +554,10 @@ html{scroll-behavior:smooth}
  .neo-shell .topbar{min-width:0}
  .neo-shell .neo-main-actions>span{min-width:0;overflow-wrap:anywhere}
 }
+
+/* La interfaz completa es fluida también a 1440 px: evitar artefactos de decoraciones. */
+html,body,#root{max-width:100%;overflow-x:clip}
+.neo-shell,.neo-shell .workspace,.neo-shell main{max-width:100%;min-width:0}
+.neo-shell .workspace{overflow-x:clip}
+.neo-home,.neo-insights,.neo-dashboard-grid,.neo-right-rail,.neo-bottom-grid,
+.neo-glass,.neo-scenarios,.neo-shortcuts,.neo-kpi-grid,.neo-scenario-grid{min-width:0;max-width:100%}
