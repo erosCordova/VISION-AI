@@ -197,30 +197,15 @@ html{scroll-behavior:smooth}
  margin:0 11px;border:1px solid #3b72aa;border-radius:13px;
  overflow:hidden;background:#09284c;isolation:isolate}
 .neo-preview-art{
- position:absolute;inset:0;
- background:
-  linear-gradient(0deg,#00142b70 0%,transparent 25%,#05224324 72%,#03152886 100%),
-  url("https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&w=1400&q=82") center 54%/cover,
-  linear-gradient(155deg,#325884,#12314d 50%,#092039);
+ position:absolute;inset:0;display:block;width:100%;height:100%;
+ object-fit:cover;object-position:center;
+ background:#132c4a;
 }
-.neo-street-sky{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,#091c3760)}
-.neo-street-blocks{position:absolute;bottom:13%;width:20%;height:54%;
- background:repeating-linear-gradient(90deg,#0c254555 0 9px,#3474aa33 9px 16px);
- opacity:.18;clip-path:polygon(0 20%,28% 20%,28% 0,77% 0,77% 30%,100% 30%,100% 100%,0 100%)}
-.neo-street-blocks.left{left:0}.neo-street-blocks.right{right:0;transform:scaleX(-1)}
-.neo-street-road{position:absolute;left:28%;bottom:0;width:44%;height:34%;
- clip-path:polygon(35% 0,65% 0,100% 100%,0 100%);
- background:#041c3852;border-top:1px solid #83beff88}
-.neo-street-road i{position:absolute;bottom:0;width:2px;height:62%;background:#ffffff65;transform:rotate(12deg)}
-.neo-street-road i:nth-child(1){left:25%;transform:rotate(16deg)}
-.neo-street-road i:nth-child(2){left:51%;transform:none}
-.neo-street-road i:nth-child(3){left:75%;transform:rotate(-16deg)}
-.neo-focus-box{position:absolute;border:2px solid #3185fb;
- box-shadow:0 0 15px #1977fa69,inset 0 0 9px #1c78fa1f;
- background:#2b82fb09;border-radius:4px;opacity:.8}
-.neo-focus-a{left:26%;top:22%;width:16%;height:52%}
-.neo-focus-b{left:50%;top:42%;width:17%;height:31%;border-color:#4691fb}
-.neo-focus-c{left:72%;top:35%;width:12%;height:34%;border-color:#a66dff}
+/* Sombreado únicamente para la legibilidad de los botones sobre la imagen. */
+.neo-preview-scene::after{
+ content:"";position:absolute;inset:auto 0 0;height:26%;pointer-events:none;
+ background:linear-gradient(0deg,#07142c70,transparent);
+}
 .neo-preview-label{position:absolute;top:15px;left:15px;
  display:flex;align-items:center;gap:7px;border:1px solid #52b3ed69;
  padding:8px 11px;border-radius:20px;color:#a0c7fd;

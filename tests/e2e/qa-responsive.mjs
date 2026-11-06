@@ -204,6 +204,28 @@ try {
             d.scenes!==4||d.shortcuts!==4||!d.chart||!d.note||d.icons<5||
             !d.search||!d.sceneAction)
            throw Error('UX26: tablero incompleto a '+width+' px: '+JSON.stringify(d));
+         // PORTADA31: verificar carga real de la imagen industrial local.
+         const visual=await eventually(async()=>{
+           const r=await cdp.send('Runtime.evaluate',{
+            expression:'(() => {const img=document.querySelector(".neo-preview-art");'
+             +'const button=document.querySelector(".neo-preview-overlay button");'
+             +'const demo=Array.from(document.querySelectorAll(".neo-main-actions button"))'
+             +'.find(b=>b.textContent?.includes("Demostración con cámaras públicas"));'
+             +'if(!img||img.tagName!=="IMG"||!img.complete||img.naturalWidth<1600)return null;'
+             +'return {src:img.getAttribute("src"),width:img.naturalWidth,'
+             +'alt:img.getAttribute("alt"),button:button?.textContent,'
+             +'demo:Boolean(demo),deprecated:!!document.querySelector(".neo-street-road")};})()',
+            returnByValue:true
+           });
+           return r.result?.value??null;
+         },'PORTADA31 imagen industrial de alta resolución disponible');
+         if(visual.src!=='/visuals/vision-ai-supervision-industrial.webp'||
+            !visual.alt?.includes('Ilustración')||
+            !visual.button?.includes('Explorar simulación 3D')||
+            !visual.demo||visual.deprecated)
+            throw Error('PORTADA31 portada incoherente: '+JSON.stringify(visual));
+         console.log('PORTADA31 imagen industrial '+visual.width+'px cargada correctamente');
+
         if(width===360){
           const signature=await cdp.send('Runtime.evaluate',{
             expression:'document.querySelector(".experience-mobile-brand")?.textContent?.trim()',

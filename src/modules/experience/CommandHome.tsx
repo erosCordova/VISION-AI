@@ -136,28 +136,25 @@ export function CommandHome({sessions,observations,onScene,onCameras,onHistory,o
     <div><span>Escenarios disponibles</span><strong>4</strong><small>Simulaciones 3D</small></div></div>
   </section>
   <div className="neo-dashboard-grid">
-   <section className="neo-main-view neo-glass" aria-label="Vista previa del reconocimiento visual">
-    <header className="neo-panel-heading"><h2><Video size={20}/> Análisis visual</h2>
-     <span className="neo-state"><span/> Vistas disponibles</span></header>
+   <section className="neo-main-view neo-glass" aria-label="Vista ilustrativa de supervisión industrial">
+    <header className="neo-panel-heading"><h2><Warehouse size={20}/> Supervisión visual industrial</h2>
+     <span className="neo-state"><span/> 4 escenarios 3D</span></header>
     <div className="neo-preview-scene">
-     <div className="neo-preview-art" aria-hidden="true">
-      <div className="neo-street-sky"/>
-      <div className="neo-street-blocks left"/><div className="neo-street-blocks right"/>
-      <div className="neo-street-road"><i/><i/><i/></div>
-      <span className="neo-focus-box neo-focus-a"/><span className="neo-focus-box neo-focus-b"/>
-      <span className="neo-focus-box neo-focus-c"/>
-     </div>
-     <div className="neo-preview-label"><span className="neo-preview-led"/> VISTA ILUSTRATIVA</div>
-     <div className="neo-preview-watermark">VISION <b>AI</b> / ANÁLISIS DE IMAGEN</div>
+     <img className="neo-preview-art"
+      src="/visuals/vision-ai-supervision-industrial.webp"
+      alt="Ilustración de supervisión industrial con operarios, equipos de protección, montacargas y zonas de seguridad. Los recuadros son ilustrativos, no detecciones activas."
+      loading="eager" decoding="async"/>
+     <div className="neo-preview-label"><span className="neo-preview-led"/> ILUSTRACIÓN DEL PROYECTO</div>
+     <div className="neo-preview-watermark">VISION <b>AI</b> / SEGURIDAD INDUSTRIAL</div>
      <div className="neo-preview-overlay">
-      <span><Camera size={17}/> Cámaras públicas disponibles</span>
-      <button type="button" onClick={onCameras}>Abrir video en directo <ArrowRight size={16}/></button>
+      <span><Factory size={17}/> Seguridad · logística · control de calidad</span>
+      <button type="button" onClick={()=>onScene('safety')}>Explorar simulación 3D <ArrowRight size={16}/></button>
      </div>
     </div>
     <div className="neo-main-actions">
-     <button onClick={onCameras} type="button"><Video size={17}/> Cámaras públicas</button>
      <button onClick={()=>onScene('safety')} type="button"><Layers3 size={17}/> Iniciar simulación 3D</button>
-     <span>El video y el reconocimiento se activan al abrir la cámara.</span>
+     <button onClick={onCameras} type="button"><Video size={17}/> Demostración con cámaras públicas</button>
+     <span>Las cámaras en directo son una demostración complementaria del reconocimiento.</span>
     </div>
    </section>
    <div className="neo-right-rail">
